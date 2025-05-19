@@ -1,0 +1,277 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --color-primary: #3B82F6;    /* Light Blue */
+    --color-primary-light: #60A5FA;
+    --color-primary-dark: #2563EB;
+    --color-accent: #F59E0B;     /* Gold */
+    --color-accent-light: #FBBF24;
+    --color-accent-dark: #D97706;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+.navbar {
+    background-color: #1f3fb0;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    border-bottom: 4px solid #f1c40f;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.navbar-right .icon {
+    font-size: 18px;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+.container {
+    padding: 30px;
+}
+
+/* Already has navbar styles */
+
+.welcome-text {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.divider {
+    margin: 10px 0 30px 0;
+    height: 1px;
+    border: none;
+    background-color: #444;
+}
+
+.card-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background-color: white;
+    padding: 20px;
+    width: 250px;
+    box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    border-radius: 5px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 15px;
+}
+
+/* Header Styles */
+.header-nav {
+    @apply bg-white shadow-sm;
+    position: relative;
+    z-index: 50;
+}
+
+.header-nav::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--color-primary), var(--color-accent));
+}
+
+.header-logo {
+    @apply text-2xl font-bold;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header-nav-link {
+    @apply px-3 py-2 text-sm font-medium rounded-md transition-all duration-200;
+    position: relative;
+}
+
+.header-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-accent);
+    transition: width 0.2s ease;
+}
+
+.header-nav-link:hover::after {
+    width: 100%;
+}
+
+.header-nav-link.active {
+    color: var(--color-primary-dark);
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.header-dropdown-button {
+    @apply flex items-center text-sm font-medium rounded-md px-3 py-2;
+    color: var(--color-primary-dark);
+    transition: all 0.2s ease;
+}
+
+.header-dropdown-button:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.header-dropdown-menu {
+    @apply absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5;
+    border-top: 2px solid var(--color-accent);
+}
+
+.header-dropdown-item {
+    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150;
+    position: relative;
+}
+
+.header-dropdown-item:hover {
+    color: var(--color-primary-dark);
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Custom Background Gradients */
+.bg-gradient-custom {
+    background: linear-gradient(135deg, #EFF6FF 0%, #FEFCE8 100%);
+}
+
+/* Custom Button Styles */
+.btn-primary {
+    @apply inline-flex items-center border border-transparent text-base font-medium rounded-lg;
+    background-color: var(--color-primary);
+    color: white;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2), 0 2px 4px -1px rgba(59, 130, 246, 0.1);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    @apply inline-flex items-center border text-base font-medium rounded-lg;
+    background-color: white;
+    border-color: var(--color-accent);
+    color: var(--color-accent-dark);
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-accent-light);
+    color: var(--color-accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.2), 0 2px 4px -1px rgba(245, 158, 11, 0.1);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+/* Add styles for button icons */
+.btn-primary svg, .btn-secondary svg {
+    transition: transform 0.2s ease-in-out;
+}
+
+.btn-primary:hover svg, .btn-secondary:hover svg {
+    transform: scale(1.1);
+}
+
+/* Navigation Styles */
+.nav-link {
+    @apply text-sm font-medium;
+    color: var(--color-primary-dark);
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+    color: var(--color-accent);
+}
+
+/* Custom Header Styles */
+.header-gradient {
+    background: linear-gradient(45deg, var(--color-primary-light) 0%, var(--color-primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Custom Animation */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Custom Shadows */
+.shadow-custom {
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -2px rgba(245, 158, 11, 0.1);
+}
+
+/* Hero Section Styles */
+.hero-text {
+    @apply text-4xl font-extrabold mb-4;
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Custom Focus Styles */
+.focus-ring-custom {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    --tw-ring-color: var(--color-primary-light);
+    --tw-ring-offset-color: var(--color-accent-light);
+}
+
