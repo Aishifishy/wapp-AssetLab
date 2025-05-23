@@ -122,6 +122,11 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_description">Description</label>
+                    <textarea name="description" id="edit_description" rows="3"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                </div>
+                <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_category">Category</label>
                     <select name="category_id" id="edit_category" required
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -145,8 +150,10 @@
                     </select>
                 </div>
                 <div class="flex justify-end mt-6">
-                    <button type="button" onclick="closeEditModal()" class="btn-secondary mr-2">Cancel</button>
-                    <button type="submit" class="btn-primary">Update</button>
+                    <button type="button" onclick="closeEditModal()" 
+                        class="inline-flex items-center px-4 py-2 bg-gray-200 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mr-2">Cancel</button>
+                    <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Update</button>
                 </div>
             </form>
         </div>
@@ -158,15 +165,25 @@
     function openEditModal(equipmentId) {
         // Fetch equipment data and populate form
         fetch(`/api/equipment/${equipmentId}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 document.getElementById('edit_name').value = data.name;
+                document.getElementById('edit_description').value = data.description || '';
                 document.getElementById('edit_category').value = data.category_id;
-                document.getElementById('edit_rfid').value = data.rfid_tag;
+                document.getElementById('edit_rfid').value = data.rfid_tag || '';
                 document.getElementById('edit_status').value = data.status;
                 
                 document.getElementById('editForm').action = `/admin/equipment/${equipmentId}`;
                 document.getElementById('editModal').classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error('Error fetching equipment data:', error);
+                alert('Failed to load equipment data. Please try again.');
             });
     }
 
@@ -183,4 +200,4 @@
     }
 </script>
 @endpush
-@endsection 
+@endsection

@@ -113,7 +113,7 @@
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Create Onsite Borrow</h3>
-            <form action="{{ route('admin.equipment.borrow-requests.onsite') }}" method="POST" class="mt-4">
+            <form action="{{ route('admin.equipment.borrow-requests.onsite') }}" method="POST" class="mt-4" id="onsiteBorrowForm">
                 @csrf
                 
                 <div class="space-y-4">
@@ -222,6 +222,8 @@
 <script>
     function openOnsiteBorrowModal() {
         document.getElementById('onsiteBorrowModal').classList.remove('hidden');
+        // Ensure the form is reset when opening
+        document.getElementById('onsiteBorrowForm').reset();
     }
 
     function closeOnsiteBorrowModal() {
@@ -230,13 +232,28 @@
 
     function openReturnModal(requestId) {
         const modal = document.getElementById('returnModal');
-        document.getElementById('returnForm').action = `/admin/equipment/requests/${requestId}/return`;
+        const form = document.getElementById('returnForm');
+        
+        // Set the correct form action URL and reset form
+        form.action = `/admin/equipment/requests/${requestId}/return`;
+        form.reset();
+        
         modal.classList.remove('hidden');
     }
 
     function closeReturnModal() {
         document.getElementById('returnModal').classList.add('hidden');
     }
+
+    // Set up date validation for return date input
+    document.addEventListener('DOMContentLoaded', function() {
+        const requestedUntilInput = document.getElementById('requested_until');
+        if(requestedUntilInput) {
+            const today = new Date();
+            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+            requestedUntilInput.min = today.toISOString().slice(0,16);
+        }
+    });
 
     // Close modals when clicking outside
     window.onclick = function(event) {
@@ -252,4 +269,4 @@
     }
 </script>
 @endpush
-@endsection 
+@endsection
