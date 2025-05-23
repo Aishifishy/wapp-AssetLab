@@ -27,8 +27,8 @@
                                 Users
                             </a>
                         @else
-                                                        <a href="{{ route('equipment.borrowed') }}"                                class="nav-link {{ request()->routeIs('equipment.borrowed') ? 'text-accent-dark' : 'text-primary' }}">                                Borrowed Items                            </a>
-                                                        <a href="{{ route('equipment.history') }}"                                class="nav-link {{ request()->routeIs('equipment.history') ? 'text-accent-dark' : 'text-primary' }}">                                History                            </a>
+                                                        <a href="{{ route('ruser.equipment.borrowed') }}"                                class="nav-link {{ request()->routeIs('ruser.equipment.borrowed') ? 'text-accent-dark' : 'text-primary' }}">                                Borrowed Items                            </a>
+                                                        <a href="{{ route('ruser.equipment.history') }}"                                class="nav-link {{ request()->routeIs('ruser.equipment.history') ? 'text-accent-dark' : 'text-primary' }}">                                History                            </a>
                         @endif
                     </div>
                 @endauth

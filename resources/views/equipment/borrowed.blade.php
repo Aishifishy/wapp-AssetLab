@@ -46,13 +46,13 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 @if($request->isPending())
-                                <form action="{{ route('equipment.cancel-request', $request) }}" method="POST" class="inline">
+                                <form action="{{ route('ruser.equipment.cancel-request', $request) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900">Cancel</button>
                                 </form>
                                 @elseif($request->isApproved() && !$request->returned_at)
-                                <form action="{{ route('equipment.return', $request) }}" method="POST" class="inline">
+                                <form action="{{ route('ruser.equipment.return', $request) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="text-blue-600 hover:text-blue-900">Return</button>
                                 </form>
@@ -61,9 +61,8 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                You haven't borrowed any equipment yet.
-                                <a href="{{ route('equipment.borrow') }}" class="text-blue-600 hover:text-blue-900 ml-1">Browse available equipment</a>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">                                You haven't borrowed any equipment yet.
+                                <a href="{{ route('ruser.equipment.borrow') }}" class="text-blue-600 hover:text-blue-900 ml-1">Browse available equipment</a>
                             </td>
                         </tr>
                         @endforelse

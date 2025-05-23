@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\LaboratoryController;
 use App\Http\Controllers\Admin\ComputerLabCalendarController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\EquipmentCategoryController;
+use App\Http\Controllers\Ruser\RDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,24 +27,37 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [RuserAuthController::class, 'logout'])->name('logout');
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [RDashboardController::class, 'index'])->name('dashboard');
+    
+    // Ruser specific routes
+    Route::prefix('ruser')->name('ruser.')->group(function() {
+        Route::get('/dashboard', [RDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/borrowed', [EquipmentController::class, 'borrowed'])->name('borrowed');
+        Route::get('/history', [EquipmentController::class, 'history'])->name('history');
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
+        
+        // Laboratory reservation routes
+        Route::prefix('laboratory')->name('laboratory.')->group(function() {
+            Route::get('/', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'index'])->name('index');
+            Route::get('/{laboratory}', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'show'])->name('show');
+            Route::post('/{laboratory}/reserve', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'reserve'])->name('reserve');
+        });
+        
+        // Equipment borrowing routes for regular users
+        Route::prefix('equipment')->name('equipment.')->group(function() {
+            Route::get('/', [\App\Http\Controllers\Ruser\EquipmentController::class, 'index'])->name('borrow');
+            Route::post('/request', [\App\Http\Controllers\Ruser\EquipmentController::class, 'request'])->name('request');
+            Route::get('/borrowed', [\App\Http\Controllers\Ruser\EquipmentController::class, 'borrowed'])->name('borrowed');
+            Route::get('/history', [\App\Http\Controllers\Ruser\EquipmentController::class, 'history'])->name('history');
+            Route::delete('/request/{equipmentRequest}', [\App\Http\Controllers\Ruser\EquipmentController::class, 'cancelRequest'])->name('cancel-request');
+            Route::post('/return/{equipmentRequest}', [\App\Http\Controllers\Ruser\EquipmentController::class, 'return'])->name('return');
+        });
+    });
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Equipment Borrowing Routes
-    Route::prefix('equipment')->name('equipment.')->group(function () {
-        Route::get('/', [EquipmentController::class, 'index'])->name('borrow');
-        Route::post('/request', [EquipmentController::class, 'request'])->name('request');
-        Route::get('/borrowed', [EquipmentController::class, 'borrowed'])->name('borrowed');
-        Route::get('/history', [EquipmentController::class, 'history'])->name('history');
-        Route::delete('/request/{equipmentRequest}', [EquipmentController::class, 'cancelRequest'])->name('cancel-request');
-        Route::post('/return/{equipmentRequest}', [EquipmentController::class, 'return'])->name('return');
-    });
 });
 
 // Admin Routes

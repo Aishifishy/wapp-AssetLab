@@ -65,7 +65,7 @@
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Borrow Equipment</h3>
-            <form id="borrowForm" action="{{ route('equipment.request') }}" method="POST" class="mt-4">
+            <form id="borrowForm" action="{{ route('ruser.equipment.request') }}" method="POST" class="mt-4">
                 @csrf
                 <input type="hidden" name="equipment_id" id="equipment_id">
                 
