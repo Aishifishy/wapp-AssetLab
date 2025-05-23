@@ -275,3 +275,87 @@ body {
     --tw-ring-offset-color: var(--color-accent-light);
 }
 
+/* Admin Layout Styles */
+/* Override Tailwind's preflight styles for Bootstrap compatibility */
+button, input, optgroup, select, textarea {
+    font-family: inherit;
+    font-size: 100%;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
+    padding: 0;
+}
+
+/* Preserve Bootstrap styles */
+.btn {
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+}
+
+/* Sidebar styles */
+.admin-nav-link {
+    transition: all 0.2s ease-in-out;
+}
+
+.admin-collapse {
+    transition: all 0.2s ease-in-out;
+}
+
+.admin-sidebar {
+    width: 280px;
+    min-height: 100vh;
+}
+
+#equipmentSubmenu {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+#equipmentSubmenu .nav-link {
+    padding-left: 1rem;
+    font-size: 0.9rem;
+}
+
+#equipmentSubmenu .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.fa-chevron-down {
+    transition: transform 0.2s ease-in-out;
+}
+
+[aria-expanded="true"] .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+/* Equipment section styles */
+.nav-item .admin-border-start {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.nav-item .admin-nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.nav-item .admin-nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item .admin-nav-link.active {
+    background: #0d6efd;
+}
+
+/* Equipment header style */
+.admin-section-header {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+

@@ -15,85 +15,7 @@
     <!-- Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    @vite(['resources/css/app.css'])
-    <style>
-        /* Override Tailwind's preflight styles */
-        button, input, optgroup, select, textarea {
-            font-family: inherit;
-            font-size: 100%;
-            font-weight: inherit;
-            line-height: inherit;
-            margin: 0;
-            padding: 0;
-        }
-        /* Preserve Bootstrap styles */
-        .btn {
-            display: inline-block;
-            font-weight: 400;
-            text-align: center;
-            vertical-align: middle;
-            cursor: pointer;
-            user-select: none;
-            padding: 0.375rem 0.75rem;
-            font-size: 1rem;
-            line-height: 1.5;
-            border-radius: 0.25rem;
-        }
-
-        /* Sidebar styles */
-        .nav-link {
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .collapse {
-            transition: all 0.2s ease-in-out;
-        }
-
-        #equipmentSubmenu {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        #equipmentSubmenu .nav-link {
-            padding-left: 1rem;
-            font-size: 0.9rem;
-        }
-
-        #equipmentSubmenu .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .fa-chevron-down {
-            transition: transform 0.2s ease-in-out;
-        }
-
-        [aria-expanded="true"] .fa-chevron-down {
-            transform: rotate(180deg);
-        }
-
-        /* Equipment section styles */
-        .nav-item .border-start {
-            border-color: rgba(255, 255, 255, 0.15) !important;
-        }
-
-        .nav-item .nav-link {
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-        }
-
-        .nav-item .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item .nav-link.active {
-            background: #0d6efd;
-        }
-
-        /* Equipment header style */
-        .nav-item .text-uppercase {
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 
     <!-- Scripts -->
@@ -103,7 +25,7 @@
 <body class="bg-light">
     <div class="d-flex">
         <!-- Sidebar -->
-        <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style="width: 280px; min-height: 100vh;">
+        <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark admin-sidebar">
             <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                 <i class="fas fa-laptop-code me-2"></i>
                 <span class="fs-4">ResourEase</span>
@@ -111,54 +33,54 @@
             <hr>
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link text-white {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="fas fa-tachometer-alt me-2"></i>
                         Dashboard
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.academic.index') }}" class="nav-link text-white {{ request()->routeIs('admin.academic.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.academic.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.academic.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-alt me-2"></i>
                         Academic Calendar
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.laboratory.index') }}" class="nav-link text-white {{ request()->routeIs('admin.laboratory.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.laboratory.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.laboratory.*') ? 'active' : '' }}">
                         <i class="fas fa-desktop me-2"></i>
                         Laboratories
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.comlab.calendar') }}" class="nav-link text-white {{ request()->routeIs('admin.comlab.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.comlab.calendar') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.comlab.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-week me-2"></i>
                         Lab Schedule
                     </a>
                 </li>
                 <!-- Equipment Section Header -->
                 <li class="nav-item mt-2">
-                    <div class="nav-link text-white mb-2">
+                    <div class="nav-link admin-nav-link text-white mb-2">
                         <i class="fas fa-tools me-2"></i>
-                        <span class="text-uppercase fw-bold">Equipment</span>
+                        <span class="text-uppercase fw-bold admin-section-header">Equipment</span>
                     </div>
                     <!-- Equipment Sub-items -->
-                    <ul class="nav nav-pills flex-column border-start border-secondary ms-3">
+                    <ul class="nav nav-pills flex-column border-start admin-border-start border-secondary ms-3">
                         <li class="nav-item">
                             <a href="{{ route('admin.equipment.manage') }}" 
-                               class="nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.manage') ? 'active' : '' }}">
+                               class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.manage') ? 'active' : '' }}">
                                 <i class="fas fa-cog me-2"></i>
                                 Manage Equipment
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('admin.equipment.borrow-requests') }}" 
-                               class="nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.borrow-requests') ? 'active' : '' }}">
+                               class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.borrow-requests') ? 'active' : '' }}">
                                 <i class="fas fa-clipboard-list me-2"></i>
                                 Borrowing
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('admin.equipment.categories.index') }}" 
-                               class="nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.categories.*') ? 'active' : '' }}">
+                               class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.categories.*') ? 'active' : '' }}">
                                 <i class="fas fa-tags me-2"></i>
                                 Categories
                             </a>
@@ -243,4 +165,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

@@ -21,8 +21,10 @@
             <main class="flex-grow">
                 @yield('content')
             </main>
+            
+            @include('layouts.footer')
         </div>
 
         @stack('scripts')
     </body>
-</html> 
+</html>
