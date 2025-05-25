@@ -32,8 +32,6 @@ Route::middleware('auth')->group(function () {
     // Ruser specific routes
     Route::prefix('ruser')->name('ruser.')->group(function() {
         Route::get('/dashboard', [RDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/borrowed', [EquipmentController::class, 'borrowed'])->name('borrowed');
-        Route::get('/history', [EquipmentController::class, 'history'])->name('history');
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
         
         // Laboratory reservation routes
@@ -41,14 +39,24 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'index'])->name('index');
             Route::get('/{laboratory}', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'show'])->name('show');
             Route::post('/{laboratory}/reserve', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'reserve'])->name('reserve');
+            
+            // New Laboratory Reservation Routes
+            Route::prefix('reservations')->name('reservations.')->group(function() {
+                Route::get('/', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'index'])->name('index');
+                Route::get('/calendar', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'calendar'])->name('calendar');
+                Route::get('/quick', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'quickReserveForm'])->name('quick');
+                Route::post('/quick', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'quickReserveStore'])->name('quick-store');
+                Route::get('/create/{laboratory}', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'create'])->name('create');
+                Route::post('/store/{laboratory}', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'store'])->name('store');
+                Route::get('/{reservation}', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'show'])->name('show');
+                Route::post('/{reservation}/cancel', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'cancel'])->name('cancel');
+            });
         });
         
         // Equipment borrowing routes for regular users
         Route::prefix('equipment')->name('equipment.')->group(function() {
             Route::get('/', [\App\Http\Controllers\Ruser\EquipmentController::class, 'index'])->name('borrow');
             Route::post('/request', [\App\Http\Controllers\Ruser\EquipmentController::class, 'request'])->name('request');
-            Route::get('/borrowed', [\App\Http\Controllers\Ruser\EquipmentController::class, 'borrowed'])->name('borrowed');
-            Route::get('/history', [\App\Http\Controllers\Ruser\EquipmentController::class, 'history'])->name('history');
             Route::delete('/request/{equipmentRequest}', [\App\Http\Controllers\Ruser\EquipmentController::class, 'cancelRequest'])->name('cancel-request');
             Route::post('/return/{equipmentRequest}', [\App\Http\Controllers\Ruser\EquipmentController::class, 'return'])->name('return');
         });
@@ -105,6 +113,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/{laboratory}', [LaboratoryController::class, 'update'])->name('update');
             Route::delete('/{laboratory}', [LaboratoryController::class, 'destroy'])->name('destroy');
             Route::patch('/{laboratory}/status', [LaboratoryController::class, 'updateStatus'])->name('update-status');
+            
+            // Laboratory Reservations Management
+            Route::prefix('reservations')->name('reservations.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'index'])->name('index');
+                Route::get('/{reservation}', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'show'])->name('show');
+                Route::post('/{reservation}/approve', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'approve'])->name('approve');
+                Route::post('/{reservation}/reject', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'reject'])->name('reject');
+                Route::delete('/{reservation}', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'destroy'])->name('destroy');
+            });
         });
 
         // Laboratory Calendar Management
@@ -136,7 +153,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::get('/borrow-requests', [EquipmentController::class, 'borrowRequests'])->name('borrow-requests');
             Route::post('/borrow-requests/onsite', [EquipmentController::class, 'createOnsiteBorrow'])->name('borrow-requests.onsite');
-            Route::get('/history', [EquipmentController::class, 'history'])->name('history');
             Route::post('/', [EquipmentController::class, 'store'])->name('store');
             Route::put('/{equipment}', [EquipmentController::class, 'update'])->name('update');
             Route::delete('/{equipment}', [EquipmentController::class, 'destroy'])->name('destroy');

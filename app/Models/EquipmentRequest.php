@@ -32,9 +32,7 @@ class EquipmentRequest extends Model
     const STATUS_PENDING = 'pending';
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
-    const STATUS_RETURNED = 'returned';
-
-    // Relationships
+    const STATUS_RETURNED = 'returned';    // Relationships
     public function user()
     {
         return $this->belongsTo(Ruser::class, 'user_id');

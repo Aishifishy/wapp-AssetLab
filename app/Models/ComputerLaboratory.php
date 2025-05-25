@@ -93,6 +93,12 @@ class ComputerLaboratory extends Model
     public function schedules()
     {
         return $this->hasMany(LaboratorySchedule::class, 'laboratory_id');
+    }    /**
+     * Get the reservations for the laboratory.
+     */
+    public function reservations()
+    {
+        return $this->hasMany(LaboratoryReservation::class, 'laboratory_id');
     }
 
     /**

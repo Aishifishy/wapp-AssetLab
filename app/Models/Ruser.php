@@ -60,4 +60,20 @@ class Ruser extends Authenticatable
     {
         return $this->role === 'staff';
     }
+    
+    /**
+     * Get the equipment requests for the user.
+     */
+    public function equipmentRequests()
+    {
+        return $this->hasMany(EquipmentRequest::class, 'user_id');
+    }
+    
+    /**
+     * Get the laboratory reservations for the user.
+     */
+    public function laboratoryReservations()
+    {
+        return $this->hasMany(LaboratoryReservation::class, 'user_id');
+    }
 }

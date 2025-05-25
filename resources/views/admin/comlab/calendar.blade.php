@@ -149,15 +149,7 @@
 </div>
 
 @push('styles')
-<style>
-    td {
-        position: relative;
-        min-width: 120px;
-    }
-    td:first-child {
-        min-width: 80px;
-    }
-</style>
+<!-- Styles moved to app.css -->
 @endpush
 
 @push('scripts')

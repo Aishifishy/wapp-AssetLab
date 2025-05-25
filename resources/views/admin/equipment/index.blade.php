@@ -46,16 +46,11 @@
                     <div class="flex-1">
                         <input type="text" id="search" placeholder="Search equipment..." 
                             class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <select id="status-filter" class="px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>                    <select id="status-filter" class="px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         <option value="">All Status</option>
-                        <option value="available">Available</option>
-                        <option value="borrowed">Borrowed</option>
-                        <option value="unavailable">Unavailable</option>
-                    </select>
-                    <select id="category-filter" class="px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">All Categories</option>
-                        <!-- Add categories dynamically -->
+                        <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Available</option>
+                        <option value="borrowed" {{ request('status') === 'borrowed' ? 'selected' : '' }}>Borrowed</option>
+                        <option value="unavailable" {{ request('status') === 'unavailable' ? 'selected' : '' }}>Unavailable</option>
                     </select>
                 </div>
             </div>
@@ -65,8 +60,8 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipment Type</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RFID Tag</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
@@ -82,7 +77,7 @@
                                 <div class="text-sm text-gray-500">{{ Str::limit($item->description, 50) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $item->category }}
+                                {{ $item->name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $item->rfid_tag ?? 'Not Set' }}
@@ -272,18 +267,31 @@
         }
     }
 
-    // Filter functionality
-    document.getElementById('status-filter').addEventListener('change', function() {
-        // Implement filter logic
-    });
-
-    document.getElementById('category-filter').addEventListener('change', function() {
-        // Implement filter logic
-    });
-
+    // Filter functionality    document.getElementById('status-filter').addEventListener('change', function() {
+        // Get the selected status value
+        const status = this.value;
+        // Redirect to the current page with status filter
+        window.location.href = `{{ route('admin.equipment.index') }}?status=${status}`;
+    });    // Add debounce function for search input
+    let searchTimeout;
     document.getElementById('search').addEventListener('input', function() {
-        // Implement search logic
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const searchQuery = this.value.trim();
+            const currentStatus = document.getElementById('status-filter').value;
+            
+            // Build the URL with both search and status filters
+            let url = `{{ route('admin.equipment.index') }}?search=${encodeURIComponent(searchQuery)}`;
+            if (currentStatus) {
+                url += `&status=${currentStatus}`;
+            }
+            
+            window.location.href = url;
+        }, 500); // 500ms delay to avoid too many requests
     });
+    
+    // Set the search input value from URL parameter
+    document.getElementById('search').value = '{{ request('search') }}';
 </script>
 @endpush
 @endsection 

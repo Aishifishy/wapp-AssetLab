@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+  @extends('layouts.admin')
 
 @section('title', 'Dashboard')
 @section('page-title', 'Dashboard Overview')
@@ -74,55 +74,103 @@
 
 <!-- Recent Activities -->
 <div class="mt-8">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="text-xl font-semibold">Recent Activities</h3>
-        <div class="d-flex gap-2">
-            <button class="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded-pill hover:bg-blue-200">All</button>
-            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-pill hover:bg-gray-200">Equipment</button>
-            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-pill hover:bg-gray-200">Laboratory</button>
-        </div>
-    </div>
-    
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="table table-hover mb-0">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Time</th>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Activity</th>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">User</th>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($recentActivities ?? [] as $activity)
-                <tr>
-                    <td class="px-6 py-4 text-sm text-gray-500">
-                        {{ $activity->created_at ?? 'N/A' }}
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-900">
-                        {{ $activity->description ?? 'N/A' }}
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-500">
-                        {{ $activity->user_name ?? 'N/A' }}
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 d-inline-flex text-xs font-semibold rounded-pill 
-                            {{ $activity->status == 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                            {{ $activity->status ?? 'N/A' }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm">
-                        <a href="#" class="text-blue-600 hover:text-blue-900">View Details</a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent activities</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="text-xl font-semibold">Recent Activities</h3>
+                
+                <!-- Activity Filter Buttons -->
+                <div class="inline-flex rounded-md shadow-sm">
+                    <a href="{{ route('admin.dashboard', ['activity_type' => 'all']) }}" 
+                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border border-gray-300 rounded-l-md">
+                        All
+                    </a>
+                    <a href="{{ route('admin.dashboard', ['activity_type' => 'equipment']) }}" 
+                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'equipment' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300">
+                        Equipment
+                    </a>
+                    <a href="{{ route('admin.dashboard', ['activity_type' => 'laboratory']) }}" 
+                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'laboratory' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300 rounded-r-md">
+                        Laboratory
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ $activityType == 'laboratory' ? 'Laboratory' : 'Equipment' }}
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse($recentActivities ?? [] as $activity)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $activity->created_at ? $activity->created_at->diffForHumans() : 'N/A' }}
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-900">
+                                {{ $activity->description ?? 'N/A' }}
+                                @if(isset($activity->notes))
+                                <p class="text-xs text-gray-500 mt-1">{{ Str::limit($activity->notes, 50) }}</p>
+                                @endif
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                                {{ $activity->user_name ?? 'N/A' }}
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                {{ $activity->item_name ?? 'N/A' }}
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    @if(($activity->status_class ?? '') === 'green') bg-green-100 text-green-800
+                                    @elseif(($activity->status_class ?? '') === 'yellow') bg-yellow-100 text-yellow-800
+                                    @elseif(($activity->status_class ?? '') === 'blue') bg-blue-100 text-blue-800
+                                    @elseif(($activity->status_class ?? '') === 'red') bg-red-100 text-red-800
+                                    @else bg-gray-100 text-gray-800
+                                    @endif">
+                                    {{ ucfirst($activity->status ?? 'N/A') }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 text-sm whitespace-nowrap">
+                                <a href="#" class="text-blue-600 hover:text-blue-900">View Details</a>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+                                @if($activityType == 'laboratory')
+                                    No laboratory activities found
+                                @elseif($activityType == 'equipment')
+                                    No equipment activities found
+                                @else
+                                    No recent activities found
+                                @endif
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4 flex justify-end">
+                <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
+                    View All Activities 
+                    <svg class="ml-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 

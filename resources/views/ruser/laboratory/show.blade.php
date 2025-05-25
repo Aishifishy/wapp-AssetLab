@@ -117,9 +117,7 @@
                 </table>
             </div>
         </div>
-    </div>
-
-    <!-- Reservation Form -->
+    </div>    <!-- Reservation Form -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Make Reservation</h2>
@@ -128,23 +126,20 @@
                 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
                     <p>Reservations are not available without an active academic term.</p>
                 </div>
-            @else
-                <form action="{{ route('ruser.laboratory.reserve', $laboratory) }}" method="POST">
+            @else<form action="{{ route('ruser.laboratory.reserve', $laboratory) }}" method="POST">
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="purpose" class="block text-sm font-medium text-gray-700">Purpose</label>
-                            <textarea name="purpose" id="purpose" rows="3" required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">{{ old('purpose') }}</textarea>
-                            @error('purpose')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        
-                        <div>
-                            <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
-                            <input type="date" name="date" id="date" required
-                                min="{{ date('Y-m-d') }}"
+                    <div class="flex justify-center">
+                        <button type="submit" class="bg-blue-600 py-3 px-6 border border-transparent rounded-md shadow-sm text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Make a New Reservation
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <a href="{{ route('ruser.laboratory.reservations.index') }}" class="text-blue-600 hover:text-blue-900 font-medium">
+                        View My Existing Reservations
+                    </a>
+                </div>
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" 
                                 value="{{ old('date') }}">
                             @error('date')

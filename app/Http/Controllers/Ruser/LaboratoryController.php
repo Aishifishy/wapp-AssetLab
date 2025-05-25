@@ -52,25 +52,12 @@ class LaboratoryController extends Controller
         }
 
         return view('ruser.laboratory.show', compact('laboratory', 'schedules', 'currentTerm'));
-    }
-
-    /**
+    }    /**
      * Make a reservation request for a laboratory
      */
     public function reserve(Request $request, ComputerLaboratory $laboratory)
     {
-        $validated = $request->validate([
-            'purpose' => 'required|string|max:500',
-            'day_of_week' => 'required|integer|min:0|max:6',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'date' => 'required|date|after_or_equal:today',
-        ]);
-        
-        // Here we would check for conflicts and create a reservation
-        // For now this is a placeholder
-        
-        return redirect()->route('ruser.laboratory.index')
-            ->with('success', 'Laboratory reservation request submitted successfully.');
+        // Redirect to the new reservation form
+        return redirect()->route('ruser.laboratory.reservations.create', $laboratory);
     }
 }

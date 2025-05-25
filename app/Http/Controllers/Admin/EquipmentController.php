@@ -11,11 +11,33 @@ use Carbon\Carbon;
 
 class EquipmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $equipment = Equipment::with('currentBorrower')
-            ->latest()
-            ->paginate(10);
+        $query = Equipment::with('currentBorrower');
+        
+        // Filter by status if provided
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+        
+        // Search by name, description, or category
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%")
+                  ->orWhere('category', 'like', "%{$searchTerm}%")
+                  ->orWhere('location', 'like', "%{$searchTerm}%");
+            });
+        }
+        
+        $equipment = $query->latest()->paginate(10);
+        
+        // Keep the filters when paginating
+        $equipment->appends([
+            'status' => $request->status,
+            'search' => $request->search
+        ]);
             
         return view('admin.equipment.index', compact('equipment'));
     }
@@ -63,14 +85,7 @@ class EquipmentController extends Controller
         ));
     }
 
-    public function history()
-    {
-        $history = EquipmentRequest::with(['user', 'equipment'])
-            ->where('status', '!=', EquipmentRequest::STATUS_PENDING)
-            ->latest()
-            ->paginate(15);
-        return view('admin.equipment.history', compact('history'));
-    }
+    // History method has been removed
 
     public function store(Request $request)
     {

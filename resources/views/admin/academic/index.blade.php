@@ -4,52 +4,7 @@
 
 @push('styles')
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
-<style>
-    .fc {
-        --fc-border-color: #e5e7eb;
-        --fc-button-hover-bg-color: #f3f4f6;
-        --fc-button-hover-border-color: #e5e7eb;
-        --fc-button-active-bg-color: #3b82f6;
-        --fc-button-active-border-color: #2563eb;
-    }
-    
-    .fc-button-primary {
-        @apply bg-white border-gray-200 text-gray-700 !important;
-    }
-    
-    .fc-button-primary:not(:disabled):active,
-    .fc-button-primary:not(:disabled).fc-button-active {
-        @apply bg-blue-500 border-blue-600 text-white !important;
-    }
-    
-    .fc-button-primary:hover {
-        @apply bg-gray-100 border-gray-200 !important;
-    }
-    
-    .fc-daygrid-day {
-        @apply transition-colors duration-200;
-    }
-    
-    .fc-daygrid-day:hover {
-        @apply bg-gray-50;
-    }
-    
-    .fc-event {
-        @apply cursor-pointer rounded px-2 py-1 my-0.5 border-0 text-sm;
-    }
-    
-    .fc-event.term-event {
-        @apply bg-blue-100 text-blue-700 border-l-4 border-blue-500 !important;
-    }
-    
-    .fc-event.current-term {
-        @apply bg-green-100 text-green-700 border-l-4 border-green-500 !important;
-    }
-    
-    .fc-toolbar-title {
-        @apply text-lg font-semibold !important;
-    }
-</style>
+<!-- Styles moved to app.css -->
 @endpush
 
 @section('content')
