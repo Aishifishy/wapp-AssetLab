@@ -10,17 +10,7 @@
 
 @section('content')
 <div class="space-y-6">
-    @if(session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-            <p>{{ session('success') }}</p>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-            <p>{{ session('error') }}</p>
-        </div>
-    @endif
+    <x-flash-messages />
     
     <!-- Filter Options -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -112,114 +102,12 @@
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
-        const modal = document.getElementById('eventModal');
-        const closeModal = document.getElementById('closeModal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalContent = document.getElementById('modal-content');
-        const viewDetailsBtn = document.getElementById('viewDetailsBtn');
-        
-        let currentEventUrl = '';
-        
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: '{{ $view }}',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            slotMinTime: '07:00:00',
-            slotMaxTime: '19:00:00',
-            allDaySlot: false,
-            height: 'auto',
-            events: @json($events),
-            eventClick: function(info) {
-                const event = info.event;
-                const eventData = event.extendedProps;
-                
-                if (eventData.type === 'schedule') {
-                    modalTitle.textContent = 'Regular Class Schedule';
-                    modalContent.innerHTML = `
-                        <div class="grid grid-cols-1 gap-3">
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Subject</h4>
-                                <p class="mt-1 text-base text-gray-900">${eventData.subject}</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Time</h4>
-                                <p class="mt-1 text-base text-gray-900">${eventData.time}</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Section</h4>
-                                <p class="mt-1 text-base text-gray-900">${eventData.section}</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Instructor</h4>
-                                <p class="mt-1 text-base text-gray-900">${eventData.instructor}</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Laboratory</h4>
-                                <p class="mt-1 text-base text-gray-900">${eventData.laboratory}</p>
-                            </div>
-                        </div>
-                    `;
-                    viewDetailsBtn.style.display = 'none';
-                } else {
-                    modalTitle.textContent = 'Reservation Details';
-                    modalContent.innerHTML = `
-                        <div class="grid grid-cols-1 gap-3">
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Laboratory</h4>
-                                <p class="mt-1 text-base text-gray-900">${eventData.laboratory}</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Time</h4>
-                                <p class="mt-1 text-base text-gray-900">${event.title}</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Purpose</h4>
-                                <p class="mt-1 text-base text-gray-900">${eventData.purpose}</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-500">Status</h4>
-                                <p class="mt-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                    ${eventData.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                                    ${eventData.status === 'approved' ? 'bg-green-100 text-green-800' : ''}
-                                ">
-                                    ${eventData.status.charAt(0).toUpperCase() + eventData.status.slice(1)}
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Set up view details button
-                    currentEventUrl = eventData.url;
-                    viewDetailsBtn.style.display = 'block';
-                }
-                
-                modal.classList.remove('hidden');
-            }
-        });
-        
-        calendar.render();
-        
-        closeModal.addEventListener('click', function() {
-            modal.classList.add('hidden');
-        });
-        
-        viewDetailsBtn.addEventListener('click', function() {
-            if (currentEventUrl) {
-                window.location.href = currentEventUrl;
-            }
-        });
-        
-        // Close modal when clicking outside
-        window.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-            }
-        });
-    });
+    // Expose calendar configuration for calendar manager
+    window.calendarConfig = {
+        view: '{{ $view }}',
+        events: @json($events),
+        laboratory: @json($laboratory ?? null),
+        isReservationCalendar: true
+    };
 </script>
 @endsection

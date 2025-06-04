@@ -94,7 +94,7 @@
                 </div>
 
                 <div class="flex justify-end mt-6">
-                    <button type="button" onclick="closeBorrowModal()" class="btn-secondary mr-2">Cancel</button>
+                    <button type="button" class="btn-secondary mr-2" data-action="close-modal" data-target="borrowModal">Cancel</button>
                     <button type="submit" class="btn-primary">Submit Request</button>
                 </div>
             </form>
@@ -103,79 +103,6 @@
 </div>
 
 @push('scripts')
-<script>
-    // Add event listeners for borrow buttons and filters
-    document.addEventListener('DOMContentLoaded', function() {
-        // Borrow button event listeners
-        document.querySelectorAll('.borrow-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const id = this.getAttribute('data-equipment-id');
-                openBorrowModal(id);
-            });
-        });
-        
-        // Search filter
-        const searchInput = document.getElementById('search');
-        const categoryFilter = document.getElementById('category-filter');
-        const equipmentCards = document.querySelectorAll('.grid > div:not(.col-span-full)');
-        
-        function filterEquipment() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const categoryId = categoryFilter.value;
-            
-            equipmentCards.forEach(card => {
-                const name = card.querySelector('h3').textContent.toLowerCase();
-                const description = card.querySelector('p.text-sm').textContent.toLowerCase();
-                const cardCategoryId = card.getAttribute('data-category-id');
-                
-                const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
-                const matchesCategory = categoryId === '' || cardCategoryId === categoryId;
-                
-                card.style.display = (matchesSearch && matchesCategory) ? 'block' : 'none';
-            });
-        }
-        
-        searchInput.addEventListener('input', filterEquipment);
-        categoryFilter.addEventListener('change', filterEquipment);
-    });
-
-    function openBorrowModal(equipmentId) {
-        document.getElementById('equipment_id').value = equipmentId;
-        document.getElementById('borrowModal').classList.remove('hidden');
-        
-        // Set minimum dates for the datetime inputs
-        const now = new Date();
-        const nowString = now.toISOString().slice(0, 16);
-        document.getElementById('requested_from').min = nowString;
-        document.getElementById('requested_until').min = nowString;
-    }
-
-    function closeBorrowModal() {
-        document.getElementById('borrowModal').classList.add('hidden');
-        document.getElementById('borrowForm').reset();
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('borrowModal');
-        if (event.target == modal) {
-            closeBorrowModal();
-        }
-    }
-
-    // Validate dates when they change
-    document.getElementById('requested_from').addEventListener('change', validateDates);
-    document.getElementById('requested_until').addEventListener('change', validateDates);
-
-    function validateDates() {
-        const fromDate = new Date(document.getElementById('requested_from').value);
-        const untilDate = new Date(document.getElementById('requested_until').value);
-        
-        if (fromDate >= untilDate) {
-            alert('The return date must be after the borrow date');
-            document.getElementById('requested_until').value = '';
-        }
-    }
-</script>
+<!-- Equipment management is now handled by equipment-manager.js module -->
 @endpush
 @endsection

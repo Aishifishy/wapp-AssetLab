@@ -17,49 +17,32 @@
         <div class="card-body">
             <form action="{{ route('admin.comlab.schedule.store', $laboratory) }}" method="POST">
                 @csrf
-                
-                @if($errors->has('time_conflict'))
-                    <div class="alert alert-danger">
-                        {{ $errors->first('time_conflict') }}
-                    </div>
-                @endif
+                  <x-form-error field="time_conflict" />
 
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="subject_code" class="form-label">Subject Code</label>
-                            <input type="text" class="form-control @error('subject_code') is-invalid @enderror" 
+                            <label for="subject_code" class="form-label">Subject Code</label>                            <input type="text" class="form-control @error('subject_code') is-invalid @enderror" 
                                 id="subject_code" name="subject_code" value="{{ old('subject_code') }}" maxlength="20">
-                            @error('subject_code')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <x-form-error field="subject_code" />
                         </div>
 
                         <div class="mb-3">
-                            <label for="subject_name" class="form-label">Subject Name</label>
-                            <input type="text" class="form-control @error('subject_name') is-invalid @enderror" 
+                            <label for="subject_name" class="form-label">Subject Name</label>                            <input type="text" class="form-control @error('subject_name') is-invalid @enderror" 
                                 id="subject_name" name="subject_name" value="{{ old('subject_name') }}" required maxlength="100">
-                            @error('subject_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <x-form-error field="subject_name" />
                         </div>
 
                         <div class="mb-3">
-                            <label for="instructor_name" class="form-label">Instructor Name</label>
-                            <input type="text" class="form-control @error('instructor_name') is-invalid @enderror" 
+                            <label for="instructor_name" class="form-label">Instructor Name</label>                            <input type="text" class="form-control @error('instructor_name') is-invalid @enderror" 
                                 id="instructor_name" name="instructor_name" value="{{ old('instructor_name') }}" required maxlength="100">
-                            @error('instructor_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <x-form-error field="instructor_name" />
                         </div>
 
                         <div class="mb-3">
-                            <label for="section" class="form-label">Section</label>
-                            <input type="text" class="form-control @error('section') is-invalid @enderror" 
+                            <label for="section" class="form-label">Section</label>                            <input type="text" class="form-control @error('section') is-invalid @enderror" 
                                 id="section" name="section" value="{{ old('section') }}" required maxlength="20">
-                            @error('section')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <x-form-error field="section" />
                         </div>
                     </div>
 
@@ -75,29 +58,20 @@
                                 <option value="3" {{ old('day_of_week') === '3' ? 'selected' : '' }}>Wednesday</option>
                                 <option value="4" {{ old('day_of_week') === '4' ? 'selected' : '' }}>Thursday</option>
                                 <option value="5" {{ old('day_of_week') === '5' ? 'selected' : '' }}>Friday</option>
-                                <option value="6" {{ old('day_of_week') === '6' ? 'selected' : '' }}>Saturday</option>
-                            </select>
-                            @error('day_of_week')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                                <option value="6" {{ old('day_of_week') === '6' ? 'selected' : '' }}>Saturday</option>                            </select>
+                            <x-form-error field="day_of_week" />
                         </div>
 
                         <div class="mb-3">
-                            <label for="start_time" class="form-label">Start Time</label>
-                            <input type="time" class="form-control @error('start_time') is-invalid @enderror" 
+                            <label for="start_time" class="form-label">Start Time</label>                            <input type="time" class="form-control @error('start_time') is-invalid @enderror" 
                                 id="start_time" name="start_time" value="{{ old('start_time') }}" required>
-                            @error('start_time')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <x-form-error field="start_time" />
                         </div>
 
                         <div class="mb-3">
                             <label for="end_time" class="form-label">End Time</label>
                             <input type="time" class="form-control @error('end_time') is-invalid @enderror" 
-                                id="end_time" name="end_time" value="{{ old('end_time') }}" required>
-                            @error('end_time')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                                id="end_time" name="end_time" value="{{ old('end_time') }}" required>                            <x-form-error field="end_time" />
                         </div>
 
                         <div class="mb-3">
@@ -106,10 +80,7 @@
                                 id="type" name="type" required>
                                 <option value="regular" {{ old('type') === 'regular' ? 'selected' : '' }}>Regular</option>
                                 <option value="special" {{ old('type') === 'special' ? 'selected' : '' }}>Special</option>
-                            </select>
-                            @error('type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            </select>                            <x-form-error field="type" />
                         </div>
                     </div>
                 </div>
@@ -117,10 +88,7 @@
                 <div class="mb-3">
                     <label for="notes" class="form-label">Notes</label>
                     <textarea class="form-control @error('notes') is-invalid @enderror" 
-                        id="notes" name="notes" rows="3">{{ old('notes') }}</textarea>
-                    @error('notes')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                        id="notes" name="notes" rows="3">{{ old('notes') }}</textarea>                    <x-form-error field="notes" />
                 </div>
 
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -133,11 +101,4 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-    $(document).ready(function() {
-        // Add any necessary JavaScript validation or functionality
-    });
-</script>
-@endpush
-@endsection 
+@endsection

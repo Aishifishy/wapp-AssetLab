@@ -68,11 +68,7 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' : 
-                                        ($request->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                        {{ ucfirst($request->status) }}
-                                    </span>
+                                    <x-status-badge :status="$request->status" type="request" />
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     @if($request->status === 'pending')
@@ -161,7 +157,8 @@
 
                 <div class="mt-6 flex justify-end space-x-3">
                     <button type="button" 
-                            onclick="closeOnsiteBorrowModal()"
+                            data-action="close-modal" 
+                            data-target="onsiteBorrowModal"
                             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Cancel
                     </button>
@@ -204,7 +201,8 @@
 
                 <div class="mt-6 flex justify-end space-x-3">
                     <button type="button" 
-                            onclick="closeReturnModal()"
+                            data-action="close-modal"
+                            data-target="returnModal"
                             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Cancel
                     </button>
@@ -219,54 +217,6 @@
 </div>
 
 @push('scripts')
-<script>
-    function openOnsiteBorrowModal() {
-        document.getElementById('onsiteBorrowModal').classList.remove('hidden');
-        // Ensure the form is reset when opening
-        document.getElementById('onsiteBorrowForm').reset();
-    }
-
-    function closeOnsiteBorrowModal() {
-        document.getElementById('onsiteBorrowModal').classList.add('hidden');
-    }
-
-    function openReturnModal(requestId) {
-        const modal = document.getElementById('returnModal');
-        const form = document.getElementById('returnForm');
-        
-        // Set the correct form action URL and reset form
-        form.action = `/admin/equipment/requests/${requestId}/return`;
-        form.reset();
-        
-        modal.classList.remove('hidden');
-    }
-
-    function closeReturnModal() {
-        document.getElementById('returnModal').classList.add('hidden');
-    }
-
-    // Set up date validation for return date input
-    document.addEventListener('DOMContentLoaded', function() {
-        const requestedUntilInput = document.getElementById('requested_until');
-        if(requestedUntilInput) {
-            const today = new Date();
-            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-            requestedUntilInput.min = today.toISOString().slice(0,16);
-        }
-    });
-
-    // Close modals when clicking outside
-    window.onclick = function(event) {
-        const onsiteBorrowModal = document.getElementById('onsiteBorrowModal');
-        const returnModal = document.getElementById('returnModal');
-        
-        if (event.target == onsiteBorrowModal) {
-            closeOnsiteBorrowModal();
-        }
-        if (event.target == returnModal) {
-            closeReturnModal();
-        }
-    }
-</script>
+<!-- Equipment borrowing functionality is now handled by equipment-manager.js module -->
 @endpush
 @endsection

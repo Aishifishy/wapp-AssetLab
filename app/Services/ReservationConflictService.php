@@ -6,9 +6,39 @@ use App\Models\LaboratoryReservation;
 use App\Models\LaboratorySchedule;
 use App\Models\AcademicTerm;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class ReservationConflictService
-{
+{    /**
+     * Apply time overlap query constraints to any query builder
+     * This centralizes the time conflict detection logic used across all controllers
+     *
+     * @param Builder $query
+     * @param string $startTime
+     * @param string $endTime
+     * @return Builder
+     */
+    public static function applyTimeOverlapConstraints(Builder $query, string $startTime, string $endTime): Builder
+    {
+        return $query->where(function($q) use ($startTime, $endTime) {
+            // Case 1: Existing item starts before new item starts but ends after new item starts
+            $q->where(function($subQ) use ($startTime) {
+                $subQ->where('start_time', '<=', $startTime)
+                     ->where('end_time', '>', $startTime);
+            })
+            // Case 2: Existing item starts before new item ends but ends after new item ends  
+            ->orWhere(function($subQ) use ($endTime) {
+                $subQ->where('start_time', '<', $endTime)
+                     ->where('end_time', '>=', $endTime);
+            })
+            // Case 3: Existing item is completely within new item time range
+            ->orWhere(function($subQ) use ($startTime, $endTime) {
+                $subQ->where('start_time', '>=', $startTime)
+                     ->where('end_time', '<=', $endTime);
+            });
+        });
+    }
+
     /**
      * Check for all types of reservation conflicts
      *
@@ -55,29 +85,17 @@ class ReservationConflictService
         }
 
         return $conflicts;
-    }
-
-    /**
+    }    /**
      * Check for single reservation conflicts
      */
     private function checkSingleReservationConflict($laboratoryId, $date, $startTime, $endTime, $excludeId = null)
     {
         $query = LaboratoryReservation::where('laboratory_id', $laboratoryId)
             ->where('reservation_date', $date)
-            ->where('status', LaboratoryReservation::STATUS_APPROVED)
-            ->where(function($q) use ($startTime, $endTime) {
-                // Check for time overlap
-                $q->where(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<=', $startTime)
-                      ->where('end_time', '>', $startTime);
-                })->orWhere(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<', $endTime)
-                      ->where('end_time', '>=', $endTime);
-                })->orWhere(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '>=', $startTime)
-                      ->where('end_time', '<=', $endTime);
-                });
-            });
+            ->where('status', LaboratoryReservation::STATUS_APPROVED);
+            
+        // Apply centralized time overlap logic
+        $query = self::applyTimeOverlapConstraints($query, $startTime, $endTime);
         
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
@@ -94,25 +112,14 @@ class ReservationConflictService
         // First convert the date to Carbon instance for easier manipulation
         $checkDate = Carbon::parse($date);
         $dayOfWeek = $checkDate->dayOfWeek;
-        
-        // Get all recurring reservations for this laboratory
+          // Get all recurring reservations for this laboratory
         $recurringReservations = LaboratoryReservation::where('laboratory_id', $laboratoryId)
             ->where('status', LaboratoryReservation::STATUS_APPROVED)
             ->where('is_recurring', true)
-            ->where('recurrence_end_date', '>=', $checkDate)
-            ->where(function($query) use ($startTime, $endTime) {
-                // Time overlap check
-                $query->where(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<=', $startTime)
-                      ->where('end_time', '>', $startTime);
-                })->orWhere(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<', $endTime)
-                      ->where('end_time', '>=', $endTime);
-                })->orWhere(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '>=', $startTime)
-                      ->where('end_time', '<=', $endTime);
-                });
-            })
+            ->where('recurrence_end_date', '>=', $checkDate);
+            
+        // Apply centralized time overlap logic
+        $recurringReservations = self::applyTimeOverlapConstraints($recurringReservations, $startTime, $endTime)
             ->with('user');
         
         if ($excludeId) {
@@ -184,24 +191,13 @@ class ReservationConflictService
         if ($checkDate->lt($termStart) || $checkDate->gt($termEnd)) {
             return null; // Date is outside current academic term
         }
-        
-        // Check for conflicts with laboratory schedules
+          // Check for conflicts with laboratory schedules
         $conflictingSchedule = LaboratorySchedule::where('laboratory_id', $laboratoryId)
             ->where('academic_term_id', $currentTerm->id)
-            ->where('day_of_week', $dayOfWeek)
-            ->where(function($query) use ($startTime, $endTime) {
-                // Time overlap check
-                $query->where(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<=', $startTime)
-                      ->where('end_time', '>', $startTime);
-                })->orWhere(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<', $endTime)
-                      ->where('end_time', '>=', $endTime);
-                })->orWhere(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '>=', $startTime)
-                      ->where('end_time', '<=', $endTime);
-                });
-            })
+            ->where('day_of_week', $dayOfWeek);
+            
+        // Apply centralized time overlap logic
+        $conflictingSchedule = self::applyTimeOverlapConstraints($conflictingSchedule, $startTime, $endTime)
             ->first();
             
         return $conflictingSchedule;

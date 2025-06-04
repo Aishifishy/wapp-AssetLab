@@ -5,17 +5,7 @@
 
 @section('content')
 <div class="space-y-6">
-    @if(session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-            <p>{{ session('success') }}</p>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-            <p>{{ session('error') }}</p>
-        </div>
-    @endif    <!-- Action Buttons -->
+    <!-- Action Buttons -->
     <div class="flex flex-wrap gap-4">
         <a href="{{ route('ruser.laboratory.reservations.calendar') }}" 
            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center">
@@ -90,17 +80,13 @@
                                         <div class="text-sm text-gray-900 truncate max-w-xs">
                                             {{ \Illuminate\Support\Str::limit($reservation->purpose, 50) }}
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                            Pending
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    </td>                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <x-status-badge status="pending" type="reservation" />
+                                    </td>                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900 mr-4">View</a>
                                         <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST" class="inline">
                                             @csrf
-                                            <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to cancel this reservation?')">Cancel</button>
+                                            <button type="submit" class="text-red-600 hover:text-red-900 confirm-action" data-confirm-message="Are you sure you want to cancel this reservation?">Cancel</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -167,11 +153,10 @@
                                         @php
                                             $canCancel = \Carbon\Carbon::parse($reservation->reservation_date . ' ' . $reservation->start_time)->diffInHours(now()) >= 24;
                                         @endphp
-                                        
-                                        @if($canCancel)
+                                          @if($canCancel)
                                             <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to cancel this reservation?')">Cancel</button>
+                                                <button type="submit" class="text-red-600 hover:text-red-900 confirm-action" data-confirm-message="Are you sure you want to cancel this reservation?">Cancel</button>
                                             </form>
                                         @else
                                             <span class="text-gray-400" title="Reservations cannot be cancelled within 24 hours of start time">Cannot Cancel</span>

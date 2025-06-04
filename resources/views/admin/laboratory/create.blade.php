@@ -28,11 +28,8 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('name') border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
                                    id="name" 
                                    name="name" 
-                                   value="{{ old('name') }}" 
-                                   required>
-                            @error('name')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   value="{{ old('name') }}"                                   required>
+                            <x-form-error field="name" />
                         </div>
 
                         <div>
@@ -41,11 +38,8 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('room_number') border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
                                    id="room_number" 
                                    name="room_number" 
-                                   value="{{ old('room_number') }}" 
-                                   required>
-                            @error('room_number')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   value="{{ old('room_number') }}"                                   required>
+                            <x-form-error field="room_number" />
                         </div>
 
                         <div>
@@ -54,11 +48,8 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('building') border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
                                    id="building" 
                                    name="building" 
-                                   value="{{ old('building') }}" 
-                                   required>
-                            @error('building')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   value="{{ old('building') }}"                                   required>
+                            <x-form-error field="building" />
                         </div>
                     </div>
                     
@@ -70,11 +61,8 @@
                                    id="capacity" 
                                    name="capacity" 
                                    value="{{ old('capacity') }}" 
-                                   required 
-                                   min="1">
-                            @error('capacity')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   required                                   min="1">
+                            <x-form-error field="capacity" />
                         </div>
 
                         <div>
@@ -84,11 +72,8 @@
                                    id="number_of_computers" 
                                    name="number_of_computers" 
                                    value="{{ old('number_of_computers') }}" 
-                                   required 
-                                   min="1">
-                            @error('number_of_computers')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   required                                   min="1">
+                            <x-form-error field="number_of_computers" />
                         </div>
 
                         <div>
@@ -100,11 +85,8 @@
                                 <option value="available">Available</option>
                                 <option value="in_use">In Use</option>
                                 <option value="under_maintenance">Under Maintenance</option>
-                                <option value="reserved">Reserved</option>
-                            </select>
-                            @error('status')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                <option value="reserved">Reserved</option>                            </select>
+                            <x-form-error field="status" />
                         </div>
                     </div>
                 </div>

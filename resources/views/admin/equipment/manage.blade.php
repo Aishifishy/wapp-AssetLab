@@ -71,26 +71,20 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-500">{{ $item->rfid_tag ?? 'Not Set' }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {{ $item->status === 'available' ? 'bg-green-100 text-green-800' : 
-                                    ($item->status === 'borrowed' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                    {{ ucfirst($item->status) }}
-                                </span>
+                            </td>                            <td class="px-6 py-4 whitespace-nowrap">
+                                <x-status-badge :status="$item->status" type="equipment" />
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-500">
                                     {{ $item->currentBorrower ? $item->currentBorrower->name : 'None' }}
                                 </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" onclick="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                            </td>                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button data-action="edit-equipment" data-equipment-id="{{ $item->id }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
                                 @if($item->status !== 'borrowed')
                                     <form action="{{ route('admin.equipment.destroy', $item) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this equipment?')">Delete</button>
+                                        <button type="submit" class="text-red-600 hover:text-red-900 confirm-action" data-confirm-message="Are you sure you want to delete this equipment?">Delete</button>
                                     </form>
                                 @endif
                             </td>
@@ -148,9 +142,8 @@
                         <option value="unavailable">Unavailable</option>
                         <option value="borrowed">Borrowed</option>
                     </select>
-                </div>
-                <div class="flex justify-end mt-6">
-                    <button type="button" onclick="closeEditModal()" 
+                </div>                <div class="flex justify-end mt-6">
+                    <button type="button" data-action="close-modal" data-target="editModal" 
                         class="inline-flex items-center px-4 py-2 bg-gray-200 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mr-2">Cancel</button>
                     <button type="submit" 
                         class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Update</button>
@@ -160,44 +153,4 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-    function openEditModal(equipmentId) {
-        // Fetch equipment data and populate form
-        fetch(`/api/equipment/${equipmentId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('edit_name').value = data.name;
-                document.getElementById('edit_description').value = data.description || '';
-                document.getElementById('edit_category').value = data.category_id;
-                document.getElementById('edit_rfid').value = data.rfid_tag || '';
-                document.getElementById('edit_status').value = data.status;
-                
-                document.getElementById('editForm').action = `/admin/equipment/${equipmentId}`;
-                document.getElementById('editModal').classList.remove('hidden');
-            })
-            .catch(error => {
-                console.error('Error fetching equipment data:', error);
-                alert('Failed to load equipment data. Please try again.');
-            });
-    }
-
-    function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('editModal');
-        if (event.target == modal) {
-            closeEditModal();
-        }
-    }
-</script>
-@endpush
 @endsection

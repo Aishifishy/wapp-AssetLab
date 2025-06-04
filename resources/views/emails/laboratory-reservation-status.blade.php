@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+/* Placeholder for Email Notification Template */
 <html lang="en">
 <head>
     <meta charset="UTF-8">

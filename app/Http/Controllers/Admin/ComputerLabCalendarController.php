@@ -11,11 +11,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ComputerLabCalendarController extends Controller
-{
-    /**
+{    /**
      * Display the calendar view.
      */
-    public function index()
+    public function index(Request $request)
     {
         $laboratories = ComputerLaboratory::orderBy('building')
             ->orderBy('room_number')
@@ -28,33 +27,47 @@ class ComputerLabCalendarController extends Controller
                 ->with('error', 'Please set a current academic term first.');
         }
 
-        $schedules = LaboratorySchedule::with(['laboratory', 'academicTerm'])
-            ->where('academic_term_id', $currentTerm->id)
-            ->get()
-            ->groupBy('laboratory_id');
+        $selectedLaboratoryId = $request->get('laboratory_id');
+        $selectedLaboratory = null;
 
-        return view('admin.comlab.calendar', compact('laboratories', 'currentTerm', 'schedules'));
-    }
+        // Build schedules query
+        $schedulesQuery = LaboratorySchedule::with(['laboratory', 'academicTerm'])
+            ->where('academic_term_id', $currentTerm->id);
 
-    /**
+        // Filter by selected laboratory if provided
+        if ($selectedLaboratoryId) {
+            $selectedLaboratory = ComputerLaboratory::find($selectedLaboratoryId);
+            if ($selectedLaboratory) {
+                $schedulesQuery->where('laboratory_id', $selectedLaboratoryId);
+            }
+        }
+
+        $schedules = $schedulesQuery->get()->groupBy('laboratory_id');
+
+        return view('admin.comlab.calendar', compact('laboratories', 'currentTerm', 'schedules', 'selectedLaboratory'));
+    }/**
      * Show the form for creating a new schedule.
      */
-    public function create(ComputerLaboratory $laboratory)
+    public function create()
     {
+        // Get all laboratories for the dropdown
+        $laboratories = ComputerLaboratory::orderBy('building')
+            ->orderBy('room_number')
+            ->get();
+
         // Get current and future academic terms
         $academicTerms = AcademicTerm::whereHas('academicYear', function ($query) {
             $query->where('end_date', '>=', now());
         })->with('academicYear')->get();
 
-        return view('admin.laboratory.schedules.create', compact('laboratory', 'academicTerms'));
-    }
-
-    /**
+        return view('admin.laboratory.schedules.create', compact('laboratories', 'academicTerms'));
+    }    /**
      * Store a newly created schedule in storage.
      */
-    public function store(Request $request, ComputerLaboratory $laboratory)
+    public function store(Request $request)
     {
         $validated = $request->validate([
+            'laboratory_id' => 'required|exists:computer_laboratories,id',
             'academic_term_id' => 'required|exists:academic_terms,id',
             'subject_code' => 'nullable|string|max:20',
             'subject_name' => 'required|string|max:100',
@@ -64,8 +77,8 @@ class ComputerLabCalendarController extends Controller
             'start_time' => [
                 'required',
                 'date_format:H:i',
-                function ($attribute, $value, $fail) use ($request, $laboratory) {
-                    $existingSchedule = LaboratorySchedule::where('laboratory_id', $laboratory->id)
+                function ($attribute, $value, $fail) use ($request) {
+                    $existingSchedule = LaboratorySchedule::where('laboratory_id', $request->laboratory_id)
                         ->where('academic_term_id', $request->academic_term_id)
                         ->where('day_of_week', $request->day_of_week)
                         ->where(function ($query) use ($value, $request) {
@@ -91,6 +104,8 @@ class ComputerLabCalendarController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
+        $laboratory = ComputerLaboratory::findOrFail($validated['laboratory_id']);
+        
         $schedule = $laboratory->schedules()->create([
             ...$validated,
             'type' => 'regular'

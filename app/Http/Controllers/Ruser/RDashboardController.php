@@ -39,11 +39,9 @@ class RDashboardController extends Controller
             ->count();
             
         // Get available laboratories
-        $availableLabs = ComputerLaboratory::where('status', 'available')->count();
-
-        // Get recent activities - showing latest 10 actions
+        $availableLabs = ComputerLaboratory::where('status', 'available')->count();        // Get recent activities - showing latest 10 actions
         $equipmentActivitiesQuery = EquipmentRequest::where('user_id', $user->id)
-            ->with(['equipment']);
+            ->with(['equipment.category']);
             
         // Currently we only have equipment activities, but this section can be
         // extended in the future to include laboratory activities when implemented
@@ -77,14 +75,13 @@ class RDashboardController extends Controller
                             $statusClass = 'red';
                             break;
                     }
-                    
-                    return [
+                      return [
                         'id' => $request->id,
                         'time' => $request->created_at,
                         'description' => $activityText,
                         'status' => $request->status,
                         'status_class' => $statusClass,
-                        'equipment_name' => $request->equipment->name,
+                        'equipment_name' => $request->equipment->category->name ?? 'Uncategorized',
                         'purpose' => $request->purpose,
                         'activity_type' => $activityType
                     ];

@@ -9,8 +9,7 @@
 
     <!-- Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-      <!-- Scripts -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <!-- Alpine.js -->
@@ -19,6 +18,9 @@
     <!-- Bootstrap Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- Page Styles -->
+    @stack('styles')
 </head>
 <body class="font-sans antialiased">
     <div class=" bg-gray-100">
@@ -73,36 +75,15 @@
             </div>
         </header>
         <!-- Page Content -->
-        <main>
-            <div class="py-4">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    @if(session('success'))
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                            <span class="block sm:inline">{{ session('success') }}</span>
-                            <button type="button" class="absolute top-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
-                                <span class="sr-only">Close</span>
-                                <svg class="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    @endif
-                      @if(session('error'))
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                            <span class="block sm:inline">{{ session('error') }}</span>
-                            <button type="button" class="absolute top-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
-                                <span class="sr-only">Close</span>
-                                <svg class="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    @endif
-                    
-                    @yield('content')
+        <main>            <div class="py-4">                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <x-flash-messages />
+                      @yield('content')
                 </div>
             </div>
         </main>
     </div>
+    
+    <!-- Page Scripts -->
+    @stack('scripts')
 </body>
 </html>

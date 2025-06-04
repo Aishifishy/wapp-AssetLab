@@ -29,11 +29,8 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('name') border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
                                    id="name" 
                                    name="name" 
-                                   value="{{ old('name', $laboratory->name) }}" 
-                                   required>
-                            @error('name')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   value="{{ old('name', $laboratory->name) }}"                                   required>
+                            <x-form-error field="name" />
                         </div>
 
                         <div>
@@ -42,11 +39,8 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('room_number') border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
                                    id="room_number" 
                                    name="room_number" 
-                                   value="{{ old('room_number', $laboratory->room_number) }}" 
-                                   required>
-                            @error('room_number')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   value="{{ old('room_number', $laboratory->room_number) }}"                                   required>
+                            <x-form-error field="room_number" />
                         </div>
 
                         <div>
@@ -56,10 +50,7 @@
                                    id="building" 
                                    name="building" 
                                    value="{{ old('building', $laboratory->building) }}" 
-                                   required>
-                            @error('building')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   required>                            <x-form-error field="building" />
                         </div>
                     </div>
                     
@@ -72,10 +63,7 @@
                                    name="capacity" 
                                    value="{{ old('capacity', $laboratory->capacity) }}" 
                                    required 
-                                   min="1">
-                            @error('capacity')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   min="1">                            <x-form-error field="capacity" />
                         </div>
 
                         <div>
@@ -86,10 +74,7 @@
                                    name="number_of_computers" 
                                    value="{{ old('number_of_computers', $laboratory->number_of_computers) }}" 
                                    required 
-                                   min="1">
-                            @error('number_of_computers')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   min="1">                            <x-form-error field="number_of_computers" />
                         </div>
 
                         <div>
@@ -102,10 +87,7 @@
                                 <option value="in_use" {{ old('status', $laboratory->status) === 'in_use' ? 'selected' : '' }}>In Use</option>
                                 <option value="under_maintenance" {{ old('status', $laboratory->status) === 'under_maintenance' ? 'selected' : '' }}>Under Maintenance</option>
                                 <option value="reserved" {{ old('status', $laboratory->status) === 'reserved' ? 'selected' : '' }}>Reserved</option>
-                            </select>
-                            @error('status')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            </select>                            <x-form-error field="status" />
                         </div>
                     </div>
                 </div>

@@ -37,11 +37,8 @@
                                 <option value="">Select Term</option>
                                 <option value="1" {{ old('term_number') == 1 ? 'selected' : '' }}>First Term</option>
                                 <option value="2" {{ old('term_number') == 2 ? 'selected' : '' }}>Second Term</option>
-                                <option value="3" {{ old('term_number') == 3 ? 'selected' : '' }}>Third Term</option>
-                            </select>
-                            @error('term_number')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                <option value="3" {{ old('term_number') == 3 ? 'selected' : '' }}>Third Term</option>                            </select>
+                            <x-form-error field="term_number" />
                             <input type="hidden" name="name" id="term_name">
                         </div>
                     </div>
@@ -53,11 +50,8 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('start_date') border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
                                    id="start_date" 
                                    name="start_date" 
-                                   value="{{ old('start_date') }}" 
-                                   required>
-                            @error('start_date')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   value="{{ old('start_date') }}"                                   required>
+                            <x-form-error field="start_date" />
                         </div>
 
                         <div>
@@ -66,11 +60,8 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('end_date') border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
                                    id="end_date" 
                                    name="end_date" 
-                                   value="{{ old('end_date') }}" 
-                                   required>
-                            @error('end_date')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   value="{{ old('end_date') }}"                                   required>
+                            <x-form-error field="end_date" />
                         </div>
 
                         <div>
@@ -83,11 +74,8 @@
                                        {{ old('is_current') ? 'checked' : '' }}>
                                 <label for="is_current" class="ml-2 block text-sm text-gray-700">
                                     Set as Current Term
-                                </label>
-                            </div>
-                            @error('is_current')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                </label>                            </div>
+                            <x-form-error field="is_current" />
                         </div>
                     </div>
                 </div>
@@ -104,50 +92,14 @@
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        // Set academic year date constraints
-        const startDate = '{{ $academicYear->start_date->format('Y-m-d') }}';
-        const endDate = '{{ $academicYear->end_date->format('Y-m-d') }}';
-        
-        $('#start_date').attr('min', startDate);
-        $('#start_date').attr('max', endDate);
-        $('#end_date').attr('min', startDate);
-        $('#end_date').attr('max', endDate);
-
-        // Set term name based on selected term number
-        $('#term_number').change(function() {
-            const termNames = {
-                '1': 'First Term',
-                '2': 'Second Term',
-                '3': 'Third Term'
-            };
-            $('#term_name').val(termNames[$(this).val()] || '');
-        });
-        // Set initial term name if term number is pre-selected
-        $('#term_number').trigger('change');
-
-        // Validate end date is after start date
-        $('#end_date').change(function() {
-            const startDate = new Date($('#start_date').val());
-            const endDate = new Date($(this).val());
-            
-            if (endDate <= startDate) {
-                const errorDiv = $('<div>')
-                    .addClass('fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50')
-                    .html(`
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span>End date must be after start date</span>
-                            <button type="button" class="ml-4 text-red-700 hover:text-red-900" onclick="this.parentElement.parentElement.remove()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `);
-                $('body').append(errorDiv);
-                setTimeout(() => errorDiv.remove(), 5000);
-                $(this).val('');
-            }
-        });
+    // Initialize academic term validation with academic year data
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.dateValidationManager) {
+            window.dateValidationManager.initAcademicTermValidation({
+                start_date: '{{ $academicYear->start_date->format('Y-m-d') }}',
+                end_date: '{{ $academicYear->end_date->format('Y-m-d') }}'
+            });
+        }
     });
 </script>
 @endpush

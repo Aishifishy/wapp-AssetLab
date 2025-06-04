@@ -5,17 +5,7 @@
 
 @section('content')
 <div class="space-y-6">
-    @if(session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-            <p>{{ session('success') }}</p>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-            <p>{{ session('error') }}</p>
-        </div>
-    @endif
+    <x-flash-messages />
 
     <!-- Filters Section -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -102,19 +92,7 @@
                                             {{ \Carbon\Carbon::parse($reservation->end_time)->format('H:i') }}
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                            @if($reservation->status == 'pending')
-                                                bg-yellow-100 text-yellow-800
-                                            @elseif($reservation->status == 'approved')
-                                                bg-green-100 text-green-800
-                                            @elseif($reservation->status == 'rejected')
-                                                bg-red-100 text-red-800
-                                            @elseif($reservation->status == 'cancelled')
-                                                bg-gray-100 text-gray-800
-                                            @endif">
-                                            {{ ucfirst($reservation->status) }}
-                                        </span>
+                                    <td class="px-6 py-4 whitespace-nowrap">                                        <x-status-badge :status="$reservation->status" type="reservation" />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $reservation->created_at->format('M d, Y H:i') }}
@@ -130,20 +108,31 @@
                                             
                                             <a href="#" onclick="openRejectModal({{ $reservation->id }})" class="text-red-600 hover:text-red-900">Reject</a>
                                         @endif
-                                        
-                                        @if(in_array($reservation->status, ['rejected', 'cancelled']))
-                                            <a href="#" onclick="if(confirm('Are you sure you want to delete this reservation?')) document.getElementById('delete-form-{{ $reservation->id }}').submit();" class="text-gray-600 hover:text-gray-900">Delete</a>
-                                            <form id="delete-form-{{ $reservation->id }}" action="{{ route('admin.laboratory.reservations.destroy', $reservation) }}" method="POST" class="hidden">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
+                                          @if(in_array($reservation->status, ['rejected', 'cancelled']))
+                                            <button type="button" 
+                                                    class="text-gray-600 hover:text-gray-900"
+                                                    data-modal-target="deleteModal{{ $reservation->id }}">
+                                                Delete
+                                            </button>
                                         @endif
-                                    </td>
-                                </tr>
+                                    </td>                                </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Delete Confirmation Modals for each deletable reservation -->
+                @foreach($reservations as $reservation)
+                    @if(in_array($reservation->status, ['rejected', 'cancelled']))
+                        <x-delete-confirmation-modal 
+                            modal-id="deleteModal{{ $reservation->id }}"
+                            title="Delete Reservation"
+                            message="Are you sure you want to delete this reservation? This action cannot be undone."
+                            item-name="Reservation #{{ $reservation->id }}"
+                            delete-route="{{ route('admin.laboratory.reservations.destroy', $reservation) }}" />
+                    @endif
+                @endforeach
+                
                 <div class="mt-4">
                     {{ $reservations->appends(request()->query())->links() }}
                 </div>
@@ -155,48 +144,9 @@
 </div>
 
 <!-- Rejection Modal -->
-<div id="rejection-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-lg max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Reject Reservation</h3>
-            <button type="button" onclick="closeRejectModal()" class="text-gray-500 hover:text-gray-700">
-                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        
-        <form id="reject-form" action="" method="POST">
-            @csrf
-            <div class="mb-4">
-                <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-1">Rejection Reason</label>
-                <textarea id="rejection_reason" name="rejection_reason" rows="4" required
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
-            </div>
-            
-            <div class="flex justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-300 mr-3">
-                    Cancel
-                </button>
-                <button type="submit" class="bg-red-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700">
-                    Reject Reservation
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+<x-rejection-modal />
 
 @push('scripts')
-<script>
-    function openRejectModal(reservationId) {
-        document.getElementById('reject-form').action = `/admin/laboratory/reservations/${reservationId}/reject`;
-        document.getElementById('rejection_reason').value = '';
-        document.getElementById('rejection-modal').classList.remove('hidden');
-    }
-    
-    function closeRejectModal() {
-        document.getElementById('rejection-modal').classList.add('hidden');
-    }
-</script>
+<!-- Reservation rejection functionality is now handled by reservation-manager.js module -->
 @endpush
 @endsection

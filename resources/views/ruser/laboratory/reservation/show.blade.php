@@ -5,34 +5,12 @@
 
 @section('content')
 <div class="space-y-6">
-    @if(session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-            <p>{{ session('success') }}</p>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-            <p>{{ session('error') }}</p>
-        </div>
-    @endif
+    <x-flash-messages />
 
     <!-- Reservation Details Card -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 class="text-lg font-medium text-gray-900">Reservation Information</h2>
-            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
-                @if($reservation->status == 'pending')
-                    bg-yellow-100 text-yellow-800
-                @elseif($reservation->status == 'approved')
-                    bg-green-100 text-green-800
-                @elseif($reservation->status == 'rejected')
-                    bg-red-100 text-red-800
-                @elseif($reservation->status == 'cancelled')
-                    bg-gray-100 text-gray-800
-                @endif">
-                {{ ucfirst($reservation->status) }}
-            </span>
+            <x-status-badge :status="$reservation->status" type="reservation" class="px-3 py-1 text-sm" />
         </div>
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -124,11 +102,10 @@
                 @endphp
                 
                 @if($canCancel)
-                <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST">
-                    @csrf
+                <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST">                @csrf
                     <button type="submit" 
-                            onclick="return confirm('Are you sure you want to cancel this reservation?')"
-                            class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700">
+                            class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 confirm-action"
+                            data-confirm-message="Are you sure you want to cancel this reservation?">
                         Cancel Reservation
                     </button>
                 </form>

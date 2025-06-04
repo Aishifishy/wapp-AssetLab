@@ -17,16 +17,29 @@
                 <h3 class="text-lg font-medium text-gray-900">Schedule Details</h3>
             </div>
         </div>
-        <div class="p-6">
-            <form action="{{ route('admin.comlab.schedule.store', $laboratory) }}" method="POST">
+        <div class="p-6">            <form action="{{ route('admin.comlab.schedule.store') }}" method="POST">
                 @csrf
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-6">
                         <div>
-                            <p class="block text-sm font-medium text-gray-700">Laboratory</p>
-                            <p class="mt-1 text-sm text-gray-600">{{ $laboratory->name }}</p>
-                            <p class="mt-1 text-xs text-gray-500">Capacity: {{ $laboratory->capacity }} computers</p>
+                            <label for="laboratory_id" class="block text-sm font-medium text-gray-700">Computer Laboratory</label>
+                            <select name="laboratory_id" 
+                                    id="laboratory_id" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                    required>
+                                <option value="">Select Laboratory</option>
+                                @foreach($laboratories as $lab)
+                                    <option value="{{ $lab->id }}" 
+                                            {{ old('laboratory_id') == $lab->id ? 'selected' : '' }}
+                                            data-capacity="{{ $lab->capacity }}">
+                                        {{ $lab->name }} ({{ $lab->building }} - Room {{ $lab->room_number }})
+                                    </option>
+                                @endforeach                            </select>
+                            <x-form-error field="laboratory_id" />
+                            <div id="laboratory-info" class="mt-2 text-sm text-gray-600 hidden">
+                                <p>Capacity: <span id="lab-capacity"></span> computers</p>
+                            </div>
                         </div>
 
                         <div>
@@ -40,11 +53,8 @@
                                     <option value="{{ $term->id }}" {{ old('academic_term_id') == $term->id ? 'selected' : '' }}>
                                         {{ $term->academicYear->name }} - {{ $term->name }}
                                     </option>
-                                @endforeach
-                            </select>
-                            @error('academic_term_id')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                @endforeach                            </select>
+                            <x-form-error field="academic_term_id" />
                         </div>
 
                         <div>
@@ -53,11 +63,8 @@
                                    id="subject_code" 
                                    name="subject_code" 
                                    value="{{ old('subject_code') }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                   placeholder="e.g., CS101">
-                            @error('subject_code')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"                                   placeholder="e.g., CS101">
+                            <x-form-error field="subject_code" />
                         </div>
 
                         <div>
@@ -67,11 +74,8 @@
                                    name="subject_name" 
                                    value="{{ old('subject_name') }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                   required
-                                   placeholder="e.g., Introduction to Computing">
-                            @error('subject_name')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   required                                   placeholder="e.g., Introduction to Computing">
+                            <x-form-error field="subject_name" />
                         </div>
                     </div>
 
@@ -83,11 +87,8 @@
                                    name="instructor_name" 
                                    value="{{ old('instructor_name') }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                   required
-                                   placeholder="e.g., John Doe">
-                            @error('instructor_name')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   required                                   placeholder="e.g., John Doe">
+                            <x-form-error field="instructor_name" />
                         </div>
 
                         <div>
@@ -97,11 +98,8 @@
                                    name="section" 
                                    value="{{ old('section') }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                   required
-                                   placeholder="e.g., BSCS-1A">
-                            @error('section')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   required                                   placeholder="e.g., BSCS-1A">
+                            <x-form-error field="section" />
                         </div>
 
                         <div>
@@ -116,11 +114,8 @@
                                 <option value="3" {{ old('day_of_week') == 3 ? 'selected' : '' }}>Wednesday</option>
                                 <option value="4" {{ old('day_of_week') == 4 ? 'selected' : '' }}>Thursday</option>
                                 <option value="5" {{ old('day_of_week') == 5 ? 'selected' : '' }}>Friday</option>
-                                <option value="6" {{ old('day_of_week') == 6 ? 'selected' : '' }}>Saturday</option>
-                            </select>
-                            @error('day_of_week')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                <option value="6" {{ old('day_of_week') == 6 ? 'selected' : '' }}>Saturday</option>                            </select>
+                            <x-form-error field="day_of_week" />
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -130,11 +125,8 @@
                                        id="start_time" 
                                        name="start_time" 
                                        value="{{ old('start_time') }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                       required>
-                                @error('start_time')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"                                       required>
+                                <x-form-error field="start_time" />
                             </div>
 
                             <div>
@@ -143,11 +135,8 @@
                                        id="end_time" 
                                        name="end_time" 
                                        value="{{ old('end_time') }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                       required>
-                                @error('end_time')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"                                       required>
+                                <x-form-error field="end_time" />
                             </div>
                         </div>
                     </div>
@@ -158,16 +147,12 @@
                     <textarea id="notes" 
                               name="notes" 
                               rows="3"
-                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              placeholder="Any additional information about this schedule">{{ old('notes') }}</textarea>
-                    @error('notes')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"                              placeholder="Any additional information about this schedule">{{ old('notes') }}</textarea>
+                    <x-form-error field="notes" />
                 </div>
 
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" 
-                            onclick="window.history.back()"
+                <div class="mt-6 flex justify-end space-x-3">                    <button type="button" 
+                            data-action="go-back"
                             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Cancel
                     </button>
@@ -181,32 +166,4 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-    $(document).ready(function() {
-        // Validate end time is after start time
-        $('#end_time').change(function() {
-            const startTime = $('#start_time').val();
-            const endTime = $(this).val();
-            
-            if (startTime && endTime && endTime <= startTime) {
-                const errorDiv = $('<div>')
-                    .addClass('fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50')
-                    .html(`
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span>End time must be after start time</span>
-                            <button type="button" class="ml-4 text-red-700 hover:text-red-900" onclick="this.parentElement.parentElement.remove()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `);
-                $('body').append(errorDiv);
-                setTimeout(() => errorDiv.remove(), 5000);
-                $(this).val('');
-            }
-        });
-    });
-</script>
-@endpush
-@endsection 
+@endsection

@@ -13,11 +13,8 @@
             <div class="mt-1">
                 <input id="name" name="name" type="text" required
                     class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value="{{ old('name') }}">
-            </div>
-            @error('name')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+                    value="{{ old('name') }}">            </div>
+            <x-form-error field="name" />
         </div>
 
         <!-- Email Address -->
@@ -26,11 +23,8 @@
             <div class="mt-1">
                 <input id="email" name="email" type="email" autocomplete="email" required
                     class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value="{{ old('email') }}">
-            </div>
-            @error('email')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+                    value="{{ old('email') }}">            </div>
+            <x-form-error field="email" />
         </div>
 
         <!-- Role -->
@@ -43,11 +37,8 @@
                     <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Student</option>
                     <option value="faculty" {{ old('role') == 'faculty' ? 'selected' : '' }}>Faculty</option>
                     <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>Staff</option>
-                </select>
-            </div>
-            @error('role')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+                </select>            </div>
+            <x-form-error field="role" />
         </div>
 
         <!-- Department -->
@@ -56,11 +47,8 @@
             <div class="mt-1">
                 <input id="department" name="department" type="text" required
                     class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value="{{ old('department') }}">
-            </div>
-            @error('department')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+                    value="{{ old('department') }}">            </div>
+            <x-form-error field="department" />
         </div>
 
         <!-- Password -->
@@ -68,11 +56,8 @@
             <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
             <div class="mt-1">
                 <input id="password" name="password" type="password" required
-                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-            </div>
-            @error('password')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">            </div>
+            <x-form-error field="password" />
         </div>
 
         <!-- Confirm Password -->

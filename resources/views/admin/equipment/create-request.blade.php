@@ -61,27 +61,6 @@
 </div>
 
 @push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Set minimum dates for the datetime inputs
-        const now = new Date();
-        const nowString = now.toISOString().slice(0, 16);
-        document.getElementById('requested_from').min = nowString;
-        document.getElementById('requested_until').min = nowString;
-
-        // Validate dates when they change
-        document.getElementById('requested_from').addEventListener('change', validateDates);
-        document.getElementById('requested_until').addEventListener('change', validateDates);
-    });
-
-    function validateDates() {
-        const fromDate = document.getElementById('requested_from').value;
-        const untilDate = document.getElementById('requested_until').value;
-        
-        if (fromDate && untilDate && fromDate >= untilDate) {
-            alert('The return date must be after the borrow date.');
-            document.getElementById('requested_until').value = '';
-        }
-    }
-</script>
+<!-- Equipment request date validation is now handled by equipment-manager.js module -->
+@endpush
 @endpush 

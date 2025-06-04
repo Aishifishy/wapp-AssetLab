@@ -121,19 +121,7 @@
             </div>
 
             <!-- Flash Messages -->
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
+            <x-flash-messages />
 
             <!-- Main Content -->
             @yield('content')
@@ -141,28 +129,6 @@
     </div>
 
     @stack('scripts')
-    <script>
-        // Keep equipment submenu open when on equipment pages
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get the current URL path
-            const currentPath = window.location.pathname;
-            
-            // Check if we're on an equipment-related page
-            if (currentPath.includes('/admin/equipment')) {
-                const equipmentSubmenu = document.getElementById('equipmentSubmenu');
-                if (equipmentSubmenu) {
-                    equipmentSubmenu.classList.add('show');
-                }
-            }
-
-            // Prevent submenu from closing when clicking submenu items
-            const submenuLinks = document.querySelectorAll('#equipmentSubmenu .nav-link');
-            submenuLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent event from bubbling up
-                });
-            });
-        });
-    </script>
+    <!-- Navigation management is now handled by navigation-manager.js module -->
 </body>
 </html>

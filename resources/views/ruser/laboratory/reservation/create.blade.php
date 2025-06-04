@@ -3,27 +3,9 @@
 @section('title', 'Create Laboratory Reservation')
 @section('header', 'Create Laboratory Reservation')
 
-@push('meta')
-<meta name="csrf-token" content="{{ csrf_token() }}">
-@endpush
-
-@push('meta')
-<meta name="csrf-token" content="{{ csrf_token() }}">
-@endpush
-
 @section('content')
 <div class="space-y-6">
-    @if(session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-            <p>{{ session('success') }}</p>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-            <p>{{ session('error') }}</p>
-        </div>
-    @endif
+    <x-flash-messages />
 
     <!-- Laboratory Information -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -47,14 +29,7 @@
                 </div>
                 <div>
                     <h3 class="text-sm font-medium text-gray-500">Status</h3>
-                    <p class="mt-1">
-                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                            {{ $laboratory->status === 'available' ? 'bg-green-100 text-green-800' : '' }}
-                            {{ $laboratory->status === 'in_use' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                            {{ $laboratory->status === 'under_maintenance' ? 'bg-red-100 text-red-800' : '' }}
-                            {{ $laboratory->status === 'reserved' ? 'bg-blue-100 text-blue-800' : '' }}">
-                            {{ ucfirst(str_replace('_', ' ', $laboratory->status)) }}
-                        </span>
+                    <p class="mt-1">                        <x-status-badge :status="$laboratory->status" type="laboratory" />
                     </p>
                 </div>
             </div>
@@ -76,85 +51,61 @@
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="purpose" class="block text-sm font-medium text-gray-700">Purpose <span class="text-red-500">*</span></label>
-                            <textarea name="purpose" id="purpose" rows="3" required
+                            <label for="purpose" class="block text-sm font-medium text-gray-700">Purpose <span class="text-red-500">*</span></label>                            <textarea name="purpose" id="purpose" rows="3" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">{{ old('purpose') }}</textarea>
-                            @error('purpose')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-form-error field="purpose" />
                         </div>
                         
                         <div>
-                            <label for="reservation_date" class="block text-sm font-medium text-gray-700">Date <span class="text-red-500">*</span></label>
-                            <input type="date" name="reservation_date" id="reservation_date" required
+                            <label for="reservation_date" class="block text-sm font-medium text-gray-700">Date <span class="text-red-500">*</span></label>                            <input type="date" name="reservation_date" id="reservation_date" required
                                 min="{{ date('Y-m-d') }}"
                                 value="{{ old('reservation_date') }}"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            @error('reservation_date')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-form-error field="reservation_date" />
                         </div>
                         
                         <div>
-                            <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time <span class="text-red-500">*</span></label>
-                            <input type="time" name="start_time" id="start_time" required
+                            <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time <span class="text-red-500">*</span></label>                            <input type="time" name="start_time" id="start_time" required
                                 value="{{ old('start_time') }}"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            @error('start_time')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-form-error field="start_time" />
                         </div>
                         
                         <div>
-                            <label for="end_time" class="block text-sm font-medium text-gray-700">End Time <span class="text-red-500">*</span></label>
-                            <input type="time" name="end_time" id="end_time" required
+                            <label for="end_time" class="block text-sm font-medium text-gray-700">End Time <span class="text-red-500">*</span></label>                            <input type="time" name="end_time" id="end_time" required
                                 value="{{ old('end_time') }}"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            @error('end_time')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-form-error field="end_time" />
                         </div>
                         
                         <div>
-                            <label for="num_students" class="block text-sm font-medium text-gray-700">Number of Students <span class="text-red-500">*</span></label>
-                            <input type="number" name="num_students" id="num_students" required
+                            <label for="num_students" class="block text-sm font-medium text-gray-700">Number of Students <span class="text-red-500">*</span></label>                            <input type="number" name="num_students" id="num_students" required
                                 min="1" max="{{ $laboratory->capacity }}"
                                 value="{{ old('num_students') }}"
                                 placeholder="Max: {{ $laboratory->capacity }}"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            @error('num_students')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-form-error field="num_students" />
                         </div>
                         
                         <div>
-                            <label for="course_code" class="block text-sm font-medium text-gray-700">Course Code</label>
-                            <input type="text" name="course_code" id="course_code"
+                            <label for="course_code" class="block text-sm font-medium text-gray-700">Course Code</label>                            <input type="text" name="course_code" id="course_code"
                                 value="{{ old('course_code') }}"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            @error('course_code')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-form-error field="course_code" />
                         </div>
                         
                         <div>
-                            <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
-                            <input type="text" name="subject" id="subject"
+                            <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>                            <input type="text" name="subject" id="subject"
                                 value="{{ old('subject') }}"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            @error('subject')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-form-error field="subject" />
                         </div>
                         
                         <div>
-                            <label for="section" class="block text-sm font-medium text-gray-700">Section</label>
-                            <input type="text" name="section" id="section"
+                            <label for="section" class="block text-sm font-medium text-gray-700">Section</label>                            <input type="text" name="section" id="section"
                                 value="{{ old('section') }}"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            @error('section')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-form-error field="section" />
                         </div>
                           <div class="col-span-1 md:col-span-2">
                             <div class="flex items-center">
@@ -169,26 +120,20 @@
                         
                         <div class="recurrence-options hidden md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="recurrence_pattern" class="block text-sm font-medium text-gray-700">Recurrence Pattern</label>
-                                <select name="recurrence_pattern" id="recurrence_pattern"
+                                <label for="recurrence_pattern" class="block text-sm font-medium text-gray-700">Recurrence Pattern</label>                                <select name="recurrence_pattern" id="recurrence_pattern"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                     <option value="weekly" {{ old('recurrence_pattern') == 'weekly' ? 'selected' : '' }}>Weekly</option>
                                     <option value="monthly" {{ old('recurrence_pattern') == 'monthly' ? 'selected' : '' }}>Monthly</option>
                                 </select>
-                                @error('recurrence_pattern')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                <x-form-error field="recurrence_pattern" />
                             </div>
                             
                             <div>
-                                <label for="recurrence_end_date" class="block text-sm font-medium text-gray-700">Recurrence End Date</label>
-                                <input type="date" name="recurrence_end_date" id="recurrence_end_date"
+                                <label for="recurrence_end_date" class="block text-sm font-medium text-gray-700">Recurrence End Date</label>                                <input type="date" name="recurrence_end_date" id="recurrence_end_date"
                                     min="{{ date('Y-m-d', strtotime('+1 week')) }}"
                                     value="{{ old('recurrence_end_date') }}"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                @error('recurrence_end_date')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                <x-form-error field="recurrence_end_date" />
                             </div>
                         </div>
                     </div>

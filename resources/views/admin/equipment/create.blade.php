@@ -27,10 +27,7 @@
                                    value="{{ old('name') }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                    required
-                                   placeholder="e.g., 0001">
-                            @error('name')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   placeholder="e.g., 0001">                            <x-form-error field="name" />
                         </div>
 
                         <div>
@@ -45,10 +42,7 @@
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
-                            </select>
-                            @error('category_id')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            </select>                            <x-form-error field="category_id" />
                             <div class="mt-2">
                                 <a href="{{ route('admin.equipment.categories.create') }}" class="text-sm text-blue-600 hover:text-blue-800">
                                     <i class="fas fa-plus-circle mr-1"></i> Add New Category
@@ -63,10 +57,7 @@
                                    name="rfid_tag" 
                                    value="{{ old('rfid_tag') }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                   placeholder="RFID tag number">
-                            @error('rfid_tag')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                   placeholder="RFID tag number">                            <x-form-error field="rfid_tag" />
                         </div>
                     </div>
 
@@ -79,10 +70,7 @@
                                     required>
                                 <option value="available" {{ old('status') == 'available' ? 'selected' : '' }}>Available</option>
                                 <option value="unavailable" {{ old('status') == 'unavailable' ? 'selected' : '' }}>Unavailable</option>
-                            </select>
-                            @error('status')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            </select>                            <x-form-error field="status" />
                         </div>
 
                         <div>
@@ -91,10 +79,7 @@
                                     name="description" 
                                     rows="3"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                    placeholder="Equipment description and specifications">{{ old('description') }}</textarea>
-                            @error('description')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                    placeholder="Equipment description and specifications">{{ old('description') }}</textarea>                            <x-form-error field="description" />
                         </div>
                     </div>
                 </div>

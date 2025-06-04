@@ -1,4 +1,15 @@
 import './bootstrap';
+import './alert-helper';
+import './calendar-view';
+import './equipment-manager';
+import './modal-manager';
+import './form-utilities';
+import './navigation-manager';
+import './laboratory-manager';
+import './reservation-manager';
+import './calendar-manager';
+import './view-manager';
+import './date-validation-manager';
 
 import Alpine from 'alpinejs';
 

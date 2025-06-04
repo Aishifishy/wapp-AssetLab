@@ -13,23 +13,16 @@
             <div class="mt-1">
                 <input id="email" name="email" type="email" autocomplete="email" required
                     class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value="{{ old('email') }}">
-            </div>
-            @error('email')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+                    value="{{ old('email') }}">            </div>
+            <x-form-error field="email" />
         </div>
 
         <!-- Password -->
         <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-            <div class="mt-1">
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>            <div class="mt-1">
                 <input id="password" name="password" type="password" autocomplete="current-password" required
-                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-            </div>
-            @error('password')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">            </div>
+            <x-form-error field="password" />
         </div>
 
         <!-- Remember Me -->

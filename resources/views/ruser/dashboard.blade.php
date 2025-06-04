@@ -146,16 +146,8 @@
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
                                 {{ $activity['equipment_name'] }}
-                            </td>
-                            <td class="px-4 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                    @if($activity['status_class'] === 'green') bg-green-100 text-green-800
-                                    @elseif($activity['status_class'] === 'yellow') bg-yellow-100 text-yellow-800
-                                    @elseif($activity['status_class'] === 'blue') bg-blue-100 text-blue-800
-                                    @elseif($activity['status_class'] === 'red') bg-red-100 text-red-800
-                                    @endif">
-                                    {{ ucfirst($activity['status']) }}
-                                </span>
+                            </td>                            <td class="px-4 py-4 whitespace-nowrap">
+                                <x-status-badge :status="$activity['status']" :type="$activity['activity_type']" />
                             </td>
                         </tr>
                         @empty

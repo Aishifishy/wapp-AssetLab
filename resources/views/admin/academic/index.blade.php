@@ -15,19 +15,8 @@
            class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring ring-blue-300 disabled:opacity-25 transition">
             <i class="fas fa-plus mr-2"></i> Add New Academic Year
         </a>
-    </div>
-
-    @if(session('success'))
-        <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('success') }}</span>
-            <button type="button" class="absolute top-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
-                <span class="sr-only">Close</span>
-                <svg class="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-            </button>
-        </div>
-    @endif
+    </div>    <!-- Flash Messages -->
+    <x-flash-messages />
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Academic Years List -->
@@ -108,31 +97,8 @@
 @push('scripts')
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        height: 'auto',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-        },
-        buttonText: {
-            today: 'Today',
-            month: 'Month',
-            week: 'Week'
-        },
-        dayMaxEvents: true,
-        events: {!! json_encode($calendarEvents) !!},
-        eventClick: function(info) {
-            const event = info.event;
-            const props = event.extendedProps;
-            
-            // You can implement a modal or other UI for event details here
-        }
-    });
-    calendar.render();
-});
+// Make calendar events available to calendar-manager.js
+window.calendarEvents = {!! json_encode($calendarEvents) !!};
 </script>
-@endpush 
+<!-- Academic calendar functionality is now handled by calendar-manager.js module -->
+@endpush

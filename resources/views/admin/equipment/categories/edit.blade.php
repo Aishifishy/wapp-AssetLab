@@ -27,10 +27,7 @@
                                value="{{ old('name', $category->name) }}"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                required
-                               placeholder="e.g., Laboratory Equipment">
-                        @error('name')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                               placeholder="e.g., Laboratory Equipment">                        <x-form-error field="name" />
                     </div>
 
                     <div>
@@ -39,10 +36,7 @@
                                 name="description" 
                                 rows="3"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                placeholder="Category description">{{ old('description', $category->description) }}</textarea>
-                        @error('description')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                                placeholder="Category description">{{ old('description', $category->description) }}</textarea>                        <x-form-error field="description" />
                     </div>
                 </div>
 
