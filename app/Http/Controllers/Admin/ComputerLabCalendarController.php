@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AcademicTerm;
 use App\Models\ComputerLaboratory;
 use App\Models\LaboratorySchedule;
+use App\Services\ReservationConflictService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -73,36 +74,33 @@ class ComputerLabCalendarController extends Controller
             'subject_name' => 'required|string|max:100',
             'instructor_name' => 'required|string|max:100',
             'section' => 'required|string|max:20',
-            'day_of_week' => 'required|integer|min:1|max:6',
-            'start_time' => [
+            'day_of_week' => 'required|integer|min:1|max:6',            'start_time' => [
                 'required',
                 'date_format:H:i',
-                function ($attribute, $value, $fail) use ($request) {
-                    $existingSchedule = LaboratorySchedule::where('laboratory_id', $request->laboratory_id)
-                        ->where('academic_term_id', $request->academic_term_id)
-                        ->where('day_of_week', $request->day_of_week)
-                        ->where(function ($query) use ($value, $request) {
-                            $query->where(function ($q) use ($value, $request) {
-                                $q->where('start_time', '<=', $value)
-                                  ->where('end_time', '>', $value);
-                            })->orWhere(function ($q) use ($value, $request) {
-                                $q->where('start_time', '<', $request->end_time)
-                                  ->where('end_time', '>=', $request->end_time);
-                            });
-                        })->exists();
-
-                    if ($existingSchedule) {
-                        $fail('The selected time slot conflicts with an existing schedule.');
-                    }
-                },
             ],
             'end_time' => [
                 'required',
                 'date_format:H:i',
                 'after:start_time',
             ],
-            'notes' => 'nullable|string|max:500',
-        ]);
+            'notes' => 'nullable|string|max:500',        ]);
+
+        // Check for schedule conflicts using centralized logic
+        $conflictingSchedule = LaboratorySchedule::where('laboratory_id', $validated['laboratory_id'])
+            ->where('academic_term_id', $validated['academic_term_id'])
+            ->where('day_of_week', $validated['day_of_week']);
+            
+        $conflictingSchedule = ReservationConflictService::applyTimeOverlapConstraints(
+            $conflictingSchedule, 
+            $validated['start_time'], 
+            $validated['end_time']
+        )->first();
+
+        if ($conflictingSchedule) {
+            return back()->withInput()->withErrors([
+                'start_time' => 'The selected time slot conflicts with an existing schedule.'
+            ]);
+        }
 
         $laboratory = ComputerLaboratory::findOrFail($validated['laboratory_id']);
         
@@ -139,19 +137,17 @@ class ComputerLabCalendarController extends Controller
             'end_time' => 'required|date_format:H:i|after:start_time',
             'type' => 'required|in:regular,special',
             'notes' => 'nullable|string',
-        ]);
-
-        // Check for schedule conflicts
-        $conflictingSchedule = LaboratorySchedule::where('laboratory_id', $laboratory->id)
+        ]);        // Check for schedule conflicts using centralized logic
+        $conflictingScheduleQuery = LaboratorySchedule::where('laboratory_id', $laboratory->id)
             ->where('academic_term_id', $schedule->academic_term_id)
             ->where('day_of_week', $validated['day_of_week'])
-            ->where('id', '!=', $schedule->id)
-            ->where(function($query) use ($validated) {
-                $query->where(function($q) use ($validated) {
-                    $q->where('start_time', '<', $validated['end_time'])
-                        ->where('end_time', '>', $validated['start_time']);
-                });
-            })->first();
+            ->where('id', '!=', $schedule->id);
+            
+        $conflictingSchedule = ReservationConflictService::applyTimeOverlapConstraints(
+            $conflictingScheduleQuery, 
+            $validated['start_time'], 
+            $validated['end_time']
+        )->first();
 
         if ($conflictingSchedule) {
             throw ValidationException::withMessages([

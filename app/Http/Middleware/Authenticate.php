@@ -10,8 +10,7 @@ class Authenticate extends Middleware
 {
     /**
      * Get the path the user should be redirected to when they are not authenticated.
-     */
-    protected function redirectTo(Request $request): ?string
+     */    protected function redirectTo(Request $request): ?string
     {
         if (!$request->expectsJson()) {
             // Log the redirection
@@ -20,9 +19,7 @@ class Authenticate extends Middleware
                 'is_admin_path' => $request->is('admin/*')
             ]);
 
-            if ($request->is('admin/*')) {
-                return route('admin.login');
-            }
+            // Both admin and user paths now redirect to the unified login
             return route('login');
         }
         return null;

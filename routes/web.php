@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\Auth\RuserAuthController;
-use App\Http\Controllers\Auth\RadminAuthController;
+use App\Http\Controllers\Auth\UnifiedAuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\AcademicYearController;
@@ -17,16 +16,21 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Ruser Authentication Routes
+// Unified Authentication Routes (replaces separate user/admin login)
 Route::middleware('guest')->group(function () {
-    Route::get('login', [RuserAuthController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [RuserAuthController::class, 'login']);
-    Route::get('register', [RuserAuthController::class, 'showRegistrationForm'])->name('register');
-    Route::post('register', [RuserAuthController::class, 'register']);
+    Route::get('login', [UnifiedAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [UnifiedAuthController::class, 'login'])->name('unified.login');
+    Route::get('register', [UnifiedAuthController::class, 'showRegistrationForm'])->name('register');
+    Route::post('register', [UnifiedAuthController::class, 'register']);
 });
 
+// Legacy admin login redirect (for any hardcoded admin/login links)
+Route::get('admin/login', function() {
+    return redirect()->route('login');
+})->middleware('guest:admin');
+
 Route::middleware('auth')->group(function () {
-    Route::post('logout', [RuserAuthController::class, 'logout'])->name('logout');
+    Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [RDashboardController::class, 'index'])->name('dashboard');
     
     // Ruser specific routes
@@ -70,15 +74,9 @@ Route::middleware('auth')->group(function () {
 
 // Admin Routes
 Route::prefix('admin')->name('admin.')->group(function () {
-    // Guest routes (login)
-    Route::middleware('guest:admin')->group(function () {
-        Route::get('login', [RadminAuthController::class, 'showLoginForm'])->name('login');
-        Route::post('login', [RadminAuthController::class, 'login'])->name('login');
-    });
-
     // Authenticated admin routes
     Route::middleware('auth:admin')->group(function () {
-        Route::post('logout', [RadminAuthController::class, 'logout'])->name('logout');
+        Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
         
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

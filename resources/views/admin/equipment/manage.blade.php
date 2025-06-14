@@ -15,10 +15,9 @@
             <a href="{{ route('admin.equipment.create') }}" 
                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <i class="fas fa-plus mr-2"></i> Add New Equipment
-            </a>
-            <a href="{{ route('admin.equipment.categories.index') }}" 
+            </a>            <a href="{{ route('admin.equipment.categories.index') }}" 
                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                <i class="fas fa-tags mr-2"></i> Manage Categories
+                <i class="fas fa-tags mr-2"></i> Manage Equipment Types
             </a>
         </div>
     </div>
@@ -43,17 +42,47 @@
                 {{ $equipment->where('status', 'unavailable')->count() }}
             </div>
         </div>
-    </div>
-
-    <!-- Equipment List -->
+    </div>    <!-- Equipment List -->
     <div class="bg-white shadow-sm rounded-lg p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Equipment List</h2>
+        
+        <!-- Search and Filters -->
+        <div class="mb-6">
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <input type="text" 
+                           id="search" 
+                           name="search"
+                           value="{{ request('search') }}"
+                           placeholder="Search equipment by ID number or equipment type" 
+                           class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <select id="status-filter" 
+                        name="status"
+                        class="px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Status</option>
+                    <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Available</option>
+                    <option value="borrowed" {{ request('status') === 'borrowed' ? 'selected' : '' }}>Borrowed</option>
+                    <option value="unavailable" {{ request('status') === 'unavailable' ? 'selected' : '' }}>Unavailable</option>
+                </select>
+                <button type="button" 
+                        id="search-btn"
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-search mr-2"></i> Search
+                </button>
+                <a href="{{ route('admin.equipment.manage') }}" 
+                   class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    <i class="fas fa-times mr-2"></i> Clear
+                </a>
+            </div>
+        </div>
+        
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Number</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipment Type</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RFID Tag</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Borrower</th>
@@ -111,7 +140,7 @@
                 @csrf
                 @method('PUT')
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_name">Name</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_name">ID Number</label>
                     <input type="text" name="name" id="edit_name" required
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
@@ -121,7 +150,7 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_category">Category</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_category">Equipment Type</label>
                     <select name="category_id" id="edit_category" required
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         @foreach($categories as $category)
@@ -153,4 +182,61 @@
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script src="{{ asset('js/equipment-manager.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search');
+    const statusFilter = document.getElementById('status-filter');
+    const searchBtn = document.getElementById('search-btn');
+    
+    // Handle search button click
+    searchBtn.addEventListener('click', function() {
+        performSearch();
+    });
+    
+    // Handle Enter key in search input
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
+    
+    // Handle status filter change
+    statusFilter.addEventListener('change', function() {
+        performSearch();
+    });
+    
+    function performSearch() {
+        const searchTerm = searchInput.value.trim();
+        const status = statusFilter.value;
+        
+        // Build URL with search parameters
+        const url = new URL(window.location.href.split('?')[0]);
+        const params = new URLSearchParams();
+        
+        if (searchTerm) {
+            params.append('search', searchTerm);
+        }
+        if (status) {
+            params.append('status', status);
+        }
+        
+        // Redirect with search parameters
+        if (params.toString()) {
+            url.search = params.toString();
+        }
+        
+        window.location.href = url.toString();
+    }
+    
+    // Initialize equipment manager for modals and other functionality
+    if (typeof EquipmentManager !== 'undefined') {
+        const equipmentManager = new EquipmentManager();
+    }
+});
+</script>
 @endsection

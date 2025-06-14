@@ -42,11 +42,29 @@ class EquipmentController extends Controller
         return view('admin.equipment.index', compact('equipment'));
     }
 
-    public function manage()
+    public function manage(Request $request)
     {
-        $equipment = Equipment::with(['currentBorrower', 'borrowRequests'])
-            ->latest()
-            ->get();
+        $query = Equipment::with(['currentBorrower', 'borrowRequests', 'category']);
+        
+        // Filter by status if provided
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+        
+        // Search by name, description, category, or RFID tag
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%")
+                  ->orWhere('rfid_tag', 'like', "%{$searchTerm}%")
+                  ->orWhereHas('category', function($categoryQuery) use ($searchTerm) {
+                      $categoryQuery->where('name', 'like', "%{$searchTerm}%");
+                  });
+            });
+        }
+        
+        $equipment = $query->latest()->get();
         $categories = EquipmentCategory::all();
         return view('admin.equipment.manage', compact('equipment', 'categories'));
     }

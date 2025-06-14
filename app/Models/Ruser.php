@@ -13,6 +13,14 @@ class Ruser extends Authenticatable
     protected $table = 'rusers';
 
     /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\RuserFactory::new();
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

@@ -4,7 +4,7 @@
 @section('subtitle', 'Sign in to your account')
 
 @section('content')
-    <form method="POST" action="{{ route('login') }}" class="space-y-6">
+    <form method="POST" action="{{ route('unified.login') }}" class="space-y-6">
         @csrf
 
         <!-- Email Address -->

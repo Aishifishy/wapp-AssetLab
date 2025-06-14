@@ -82,7 +82,7 @@
                             <a href="{{ route('admin.equipment.categories.index') }}" 
                                class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.categories.*') ? 'active' : '' }}">
                                 <i class="fas fa-tags me-2"></i>
-                                Categories
+                                Equipment Types
                             </a>
                         </li>
                     </ul>

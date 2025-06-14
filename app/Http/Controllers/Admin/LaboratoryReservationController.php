@@ -8,6 +8,7 @@ use App\Models\ComputerLaboratory;
 use App\Models\AcademicTerm;
 use App\Models\Ruser;
 use App\Mail\LaboratoryReservationStatusChanged;
+use App\Services\ReservationConflictService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -83,29 +84,35 @@ class LaboratoryReservationController extends Controller
             return redirect()->route('admin.laboratory.reservations.show', $reservation)
                 ->with('error', 'Only pending reservations can be approved.');
         }
+          // Check for conflicts using centralized service
+        $conflictService = new ReservationConflictService();
+        $conflicts = $conflictService->checkConflicts(
+            $reservation->laboratory_id, 
+            $reservation->reservation_date, 
+            $reservation->start_time, 
+            $reservation->end_time,
+            $reservation->id  // Exclude current reservation
+        );
         
-        // Check for conflicts with other approved reservations
-        $conflictingReservation = LaboratoryReservation::where('laboratory_id', $reservation->laboratory_id)
-            ->where('reservation_date', $reservation->reservation_date)
-            ->where('status', LaboratoryReservation::STATUS_APPROVED)
-            ->where('id', '!=', $reservation->id)
-            ->where(function($query) use ($reservation) {
-                $query->where(function($q) use ($reservation) {
-                    $q->where('start_time', '<=', $reservation->start_time)
-                      ->where('end_time', '>', $reservation->start_time);
-                })->orWhere(function($q) use ($reservation) {
-                    $q->where('start_time', '<', $reservation->end_time)
-                      ->where('end_time', '>=', $reservation->end_time);
-                })->orWhere(function($q) use ($reservation) {
-                    $q->where('start_time', '>=', $reservation->start_time)
-                      ->where('end_time', '<=', $reservation->end_time);
-                });
-            })
-            ->first();
-        
-        if ($conflictingReservation) {
+        if ($conflicts['has_conflict']) {
+            $errorMessage = 'This reservation conflicts with ';
+            switch ($conflicts['conflict_type']) {
+                case 'single_reservation':
+                    $errorMessage .= 'another approved reservation.';
+                    break;
+                case 'recurring_reservation':
+                    $errorMessage .= 'a recurring reservation.';
+                    break;
+                case 'class_schedule':
+                    $errorMessage .= 'a scheduled class.';
+                    break;
+                default:
+                    $errorMessage .= 'another booking.';
+            }
+            $errorMessage .= ' Please check schedule before approving.';
+            
             return redirect()->route('admin.laboratory.reservations.show', $reservation)
-                ->with('error', 'This reservation conflicts with another approved reservation. Please check schedule before approving.');
+                ->with('error', $errorMessage);
         }
           // Update status and save
         $reservation->status = LaboratoryReservation::STATUS_APPROVED;

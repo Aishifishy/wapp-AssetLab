@@ -29,7 +29,7 @@ class EquipmentCategoryController extends Controller
         EquipmentCategory::create($validated);
 
         return redirect()->route('admin.equipment.categories.index')
-            ->with('success', 'Category created successfully.');
+            ->with('success', 'Equipment type created successfully.');
     }
 
     public function edit(EquipmentCategory $category)
@@ -47,17 +47,17 @@ class EquipmentCategoryController extends Controller
         $category->update($validated);
 
         return redirect()->route('admin.equipment.categories.index')
-            ->with('success', 'Category updated successfully.');
+            ->with('success', 'Equipment type updated successfully.');
     }
 
     public function destroy(EquipmentCategory $category)
     {
         if ($category->equipment()->exists()) {
-            return back()->with('error', 'Cannot delete category that has equipment assigned to it.');
+            return back()->with('error', 'Cannot delete equipment type that has equipment assigned to it.');
         }
 
         $category->delete();
 
-        return back()->with('success', 'Category deleted successfully.');
+        return back()->with('success', 'Equipment type deleted successfully.');
     }
 }

@@ -16,7 +16,7 @@
                         <input type="text" id="search" placeholder="Search equipment..." 
                             class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     </div>                    <select id="category-filter" class="px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">All Categories</option>
+                        <option value="">All Equipment Types</option>
                         @foreach($categories as $category)
                         <option value="{{ $category->id }}">{{ $category->name }}</option>
                         @endforeach

@@ -5,6 +5,8 @@
 
 class ReservationManager {
     constructor() {
+        this.conflictChecker = new ConflictChecker();
+        
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 this.init();
@@ -12,7 +14,7 @@ class ReservationManager {
         } else {
             this.init();
         }
-    }    init() {
+    }init() {
         this.bindEvents();
         this.initConflictChecking();
         this.initDateConstraints();
@@ -100,9 +102,7 @@ class ReservationManager {
                 this.checkConflicts();
             }
         }
-    }
-
-    checkConflicts() {
+    }    async checkConflicts() {
         const templateSelect = document.getElementById('template');
         const dateInput = document.getElementById('reservation_date');
         const startTimeInput = document.getElementById('start_time');
@@ -118,93 +118,27 @@ class ReservationManager {
         }
 
         const laboratory_id = window.reservationTemplates[selectedId].laboratory_id;
-        const laboratory_name = window.reservationTemplates[selectedId].laboratory_name;
-
-        // Create conflict message area if it doesn't exist
-        let conflictArea = document.getElementById('conflict-message');
-        if (!conflictArea) {
-            conflictArea = document.createElement('div');
-            conflictArea.id = 'conflict-message';
-            conflictArea.className = 'mt-4 text-sm';
-            const gridContainer = document.querySelector('.grid');
-            if (gridContainer) {
-                gridContainer.appendChild(conflictArea);
-            }
-        }
-
-        // Show loading message
-        conflictArea.innerHTML = '<p class="text-gray-500">Checking for conflicts...</p>';
-
-        // Make AJAX request to check conflicts
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-        fetch('/api/check-reservation-conflicts', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-            },
-            body: JSON.stringify({
-                laboratory_id: laboratory_id,
-                reservation_date: dateInput.value,
-                start_time: startTimeInput.value,
-                end_time: endTimeInput.value
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (data.conflicts && data.conflicts.length > 0) {
-                    this.displayConflicts(conflictArea, data.conflicts, laboratory_name);
-                } else {
-                    conflictArea.innerHTML = `
-                        <div class="p-3 bg-green-50 border border-green-200 rounded-md">
-                            <p class="font-medium text-green-800">No conflicts found</p>
-                            <p class="text-green-600">${laboratory_name} is available for the selected time.</p>
-                        </div>
-                    `;
-                }
-            } else {
-                conflictArea.innerHTML = `
-                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                        <p class="font-medium text-yellow-800">Could not check for conflicts</p>
-                        <p class="text-yellow-600">Please proceed with caution.</p>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error checking conflicts:', error);
-            conflictArea.innerHTML = `
-                <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p class="font-medium text-yellow-800">Could not check for conflicts</p>
-                    <p class="text-yellow-600">Please proceed with caution.</p>
-                </div>
-            `;
+        // Get or create conflict message container
+        const conflictArea = this.conflictChecker.getOrCreateConflictContainer(
+            'conflict-message', 
+            document.querySelector('.grid')
+        );
+
+        // Show loading state
+        this.conflictChecker.showLoading(conflictArea);
+
+        // Check for conflicts using centralized checker
+        const result = await this.conflictChecker.checkReservationConflict({
+            laboratory_id: laboratory_id,
+            date: dateInput.value,
+            start_time: startTimeInput.value,
+            end_time: endTimeInput.value
         });
-    }
 
-    displayConflicts(conflictArea, conflicts, laboratoryName) {
-        let conflictHtml = `
-            <div class="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p class="font-medium text-red-800">Conflicts detected for ${laboratoryName}</p>
-                <ul class="mt-2 text-red-600 space-y-1">
-        `;
-        
-        conflicts.forEach(conflict => {
-            conflictHtml += `<li>• ${conflict.description} (${conflict.time_range})</li>`;
-        });
-        
-        conflictHtml += `
-                </ul>
-                <p class="mt-2 text-red-600">Please choose a different time slot.</p>
-            </div>
-        `;
-        
-        conflictArea.innerHTML = conflictHtml;
-    }
-
-    // Debounced recurring conflict check
+        // Display results
+        this.conflictChecker.displayConflictMessage(conflictArea, result);
+    }    // Debounced recurring conflict check
     debouncedRecurringCheck() {
         if (this.recurringCheckTimeout) {
             clearTimeout(this.recurringCheckTimeout);
@@ -239,7 +173,7 @@ class ReservationManager {
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-        fetch('/api/check-recurring-conflicts', {
+        fetch('/api/reservation/check-recurring-conflicts', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -28,15 +28,13 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                    required
                                    placeholder="e.g., 0001">                            <x-form-error field="name" />
-                        </div>
-
-                        <div>
-                            <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
+                        </div>                        <div>
+                            <label for="category_id" class="block text-sm font-medium text-gray-700">Equipment Type</label>
                             <select name="category_id" 
                                     id="category_id" 
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     required>
-                                <option value="">Select Category</option>
+                                <option value="">Select Equipment Type</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
@@ -45,7 +43,7 @@
                             </select>                            <x-form-error field="category_id" />
                             <div class="mt-2">
                                 <a href="{{ route('admin.equipment.categories.create') }}" class="text-sm text-blue-600 hover:text-blue-800">
-                                    <i class="fas fa-plus-circle mr-1"></i> Add New Category
+                                    <i class="fas fa-plus-circle mr-1"></i> Add New Equipment Type
                                 </a>
                             </div>
                         </div>
