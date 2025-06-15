@@ -32,30 +32,44 @@
             </a>
             <hr>
             <ul class="nav nav-pills flex-column mb-auto">
-                <li class="nav-item">
+                <li class="nav-item mt-2">
                     <a href="{{ route('admin.dashboard') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="fas fa-tachometer-alt me-2"></i>
                         Dashboard
                     </a>
                 </li>
-                <li>
+                <li class="nav-item mt-2">
                     <a href="{{ route('admin.academic.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.academic.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-alt me-2"></i>
                         Academic Calendar
                     </a>
                 </li>
-                <li>
-                    <a href="{{ route('admin.laboratory.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.laboratory.*') ? 'active' : '' }}">
-                        <i class="fas fa-desktop me-2"></i>
-                        Laboratories
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.comlab.calendar') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.comlab.*') ? 'active' : '' }}">
-                        <i class="fas fa-calendar-week me-2"></i>
-                        Lab Schedule
-                    </a>
-                </li>
+                <!-- Comlab Section Header -->
+                <li class="nav-item mt-2">
+                    <div class="nav-link admin-nav-link text-white mb-2">
+                        <i class="fas fa-laptop me-2"></i>
+                        <span class="text-uppercase fw-bold admin-section-header">Computer Labs</span>
+                    </div>
+                    <!-- Comlab Sub-items -->
+                    <ul class="nav nav-pills flex-column border-start admin-border-start border-secondary ms-3">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.laboratory.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.laboratory.*') ? 'active' : '' }}">
+                            <i class="fas fa-desktop me-2"></i>
+                            Laboratories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.comlab.calendar') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.comlab.*') ? 'active' : '' }}">
+                            <i class="fas fa-calendar-week me-2"></i>
+                            Lab Schedule
+                        </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.dashboard') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.comlab.requests') ? 'active' : '' }}">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                Lab Reservation
+                            </a>
+                    </ul>
                 <!-- Equipment Section Header -->
                 <li class="nav-item mt-2">
                     <div class="nav-link admin-nav-link text-white mb-2">
