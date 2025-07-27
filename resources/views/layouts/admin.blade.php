@@ -32,29 +32,29 @@
             </a>
             <hr>
             <ul class="nav nav-pills flex-column mb-auto">
-                <li class="nav-item mt-2">
+                <li class="nav-item">
                     <a href="{{ route('admin.dashboard') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="fas fa-tachometer-alt me-2"></i>
                         Dashboard
                     </a>
                 </li>
-                <li class="nav-item mt-2">
+                <li>
                     <a href="{{ route('admin.academic.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.academic.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-alt me-2"></i>
                         Academic Calendar
                     </a>
                 </li>
-                <!-- Comlab Section Header -->
+                <!-- Com Lab Section Header -->
                 <li class="nav-item mt-2">
                     <div class="nav-link admin-nav-link text-white mb-2">
-                        <i class="fas fa-laptop me-2"></i>
-                        <span class="text-uppercase fw-bold admin-section-header">Computer Labs</span>
+                        <i class="fas fa-desktop me-2"></i>
+                        <span class="text-uppercase fw-bold admin-section-header">Computer Laboratory</span>
                     </div>
-                    <!-- Comlab Sub-items -->
+                    <!-- Com Lab Sub-items -->
                     <ul class="nav nav-pills flex-column border-start admin-border-start border-secondary ms-3">
                         <li class="nav-item">
                             <a href="{{ route('admin.laboratory.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.laboratory.*') ? 'active' : '' }}">
-                            <i class="fas fa-desktop me-2"></i>
+                            <i class="fas fa-clipboard-list me-2"></i>
                             Laboratories
                             </a>
                         </li>
@@ -62,14 +62,10 @@
                             <a href="{{ route('admin.comlab.calendar') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.comlab.*') ? 'active' : '' }}">
                             <i class="fas fa-calendar-week me-2"></i>
                             Lab Schedule
-                        </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('admin.dashboard') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.comlab.requests') ? 'active' : '' }}">
-                                <i class="fas fa-clipboard-list me-2"></i>
-                                Lab Reservation
                             </a>
+                        </li>
                     </ul>
+                </li>
                 <!-- Equipment Section Header -->
                 <li class="nav-item mt-2">
                     <div class="nav-link admin-nav-link text-white mb-2">
@@ -96,10 +92,16 @@
                             <a href="{{ route('admin.equipment.categories.index') }}" 
                                class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.categories.*') ? 'active' : '' }}">
                                 <i class="fas fa-tags me-2"></i>
-                                Equipment Types
+                                Categories
                             </a>
                         </li>
                     </ul>
+                </li>
+                <li>
+                    <a href="{{ route('admin.users.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                        <i class="fas fa-users me-2"></i>
+                        User Management
+                    </a>
                 </li>
             </ul>
             <hr>
@@ -135,7 +137,19 @@
             </div>
 
             <!-- Flash Messages -->
-            <x-flash-messages />
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
             <!-- Main Content -->
             @yield('content')
@@ -143,6 +157,28 @@
     </div>
 
     @stack('scripts')
-    <!-- Navigation management is now handled by navigation-manager.js module -->
+    <script>
+        // Keep equipment submenu open when on equipment pages
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the current URL path
+            const currentPath = window.location.pathname;
+            
+            // Check if we're on an equipment-related page
+            if (currentPath.includes('/admin/equipment')) {
+                const equipmentSubmenu = document.getElementById('equipmentSubmenu');
+                if (equipmentSubmenu) {
+                    equipmentSubmenu.classList.add('show');
+                }
+            }
+
+            // Prevent submenu from closing when clicking submenu items
+            const submenuLinks = document.querySelectorAll('#equipmentSubmenu .nav-link');
+            submenuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent event from bubbling up
+                });
+            });
+        });
+    </script>
 </body>
 </html>

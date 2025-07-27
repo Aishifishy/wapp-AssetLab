@@ -2,78 +2,79 @@
 
 use App\Http\Controllers\Auth\UnifiedAuthController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\EquipmentController;
+use App\Http\Controllers\Admin\EquipmentController as AdminEquipmentController;
 use App\Http\Controllers\Admin\AcademicYearController;
 use App\Http\Controllers\Admin\AcademicTermController;
 use App\Http\Controllers\Admin\LaboratoryController;
 use App\Http\Controllers\Admin\ComputerLabCalendarController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\EquipmentCategoryController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Ruser\RDashboardController;
+use App\Http\Controllers\Ruser\EquipmentController as RuserEquipmentController;
+use App\Http\Controllers\Ruser\LaboratoryController as RuserLaboratoryController;
+use App\Http\Controllers\Ruser\LaboratoryReservationController as RuserLaboratoryReservationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Unified Authentication Routes (replaces separate user/admin login)
+// Ruser Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('login', [UnifiedAuthController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [UnifiedAuthController::class, 'login'])->name('unified.login');
+    Route::post('login', [UnifiedAuthController::class, 'login']);
     Route::get('register', [UnifiedAuthController::class, 'showRegistrationForm'])->name('register');
     Route::post('register', [UnifiedAuthController::class, 'register']);
 });
 
-// Legacy admin login redirect (for any hardcoded admin/login links)
-Route::get('admin/login', function() {
-    return redirect()->route('login');
-})->middleware('guest:admin');
-
 Route::middleware('auth')->group(function () {
     Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [RDashboardController::class, 'index'])->name('dashboard');
-    
-    // Ruser specific routes
-    Route::prefix('ruser')->name('ruser.')->group(function() {
-        Route::get('/dashboard', [RDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
-        
-        // Laboratory reservation routes
-        Route::prefix('laboratory')->name('laboratory.')->group(function() {
-            Route::get('/', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'index'])->name('index');
-            Route::get('/{laboratory}', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'show'])->name('show');
-            Route::post('/{laboratory}/reserve', [\App\Http\Controllers\Ruser\LaboratoryController::class, 'reserve'])->name('reserve');
-            
-            // New Laboratory Reservation Routes
-            Route::prefix('reservations')->name('reservations.')->group(function() {
-                Route::get('/', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'index'])->name('index');
-                Route::get('/calendar', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'calendar'])->name('calendar');
-                Route::get('/quick', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'quickReserveForm'])->name('quick');
-                Route::post('/quick', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'quickReserveStore'])->name('quick-store');
-                Route::get('/create/{laboratory}', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'create'])->name('create');
-                Route::post('/store/{laboratory}', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'store'])->name('store');
-                Route::get('/{reservation}', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'show'])->name('show');
-                Route::post('/{reservation}/cancel', [\App\Http\Controllers\Ruser\LaboratoryReservationController::class, 'cancel'])->name('cancel');
-            });
-        });
-        
-        // Equipment borrowing routes for regular users
-        Route::prefix('equipment')->name('equipment.')->group(function() {
-            Route::get('/', [\App\Http\Controllers\Ruser\EquipmentController::class, 'index'])->name('borrow');
-            Route::post('/request', [\App\Http\Controllers\Ruser\EquipmentController::class, 'request'])->name('request');
-            Route::delete('/request/{equipmentRequest}', [\App\Http\Controllers\Ruser\EquipmentController::class, 'cancelRequest'])->name('cancel-request');
-            Route::post('/return/{equipmentRequest}', [\App\Http\Controllers\Ruser\EquipmentController::class, 'return'])->name('return');
-        });
-    });
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Equipment Borrowing Routes
+    Route::prefix('equipment')->name('ruser.equipment.')->group(function () {
+        Route::get('/', [RuserEquipmentController::class, 'index'])->name('borrow');
+        Route::post('/request', [RuserEquipmentController::class, 'request'])->name('request');
+        Route::get('/borrowed', [RuserEquipmentController::class, 'borrowed'])->name('borrowed');
+        Route::get('/history', [RuserEquipmentController::class, 'history'])->name('history');
+        Route::delete('/request/{equipmentRequest}', [RuserEquipmentController::class, 'cancelRequest'])->name('cancel-request');
+        Route::post('/return/{equipmentRequest}', [RuserEquipmentController::class, 'return'])->name('return');
+    });
+
+    // Laboratory Reservation Routes
+    Route::prefix('laboratory')->name('ruser.laboratory.')->group(function () {
+        Route::get('/', [RuserLaboratoryController::class, 'index'])->name('index');
+        Route::get('/{laboratory}', [RuserLaboratoryController::class, 'show'])->name('show');
+        Route::post('/{laboratory}/reserve', [RuserLaboratoryController::class, 'reserve'])->name('reserve');
+        
+        // Laboratory Reservations
+        Route::prefix('reservations')->name('reservations.')->group(function () {
+            Route::get('/', [RuserLaboratoryReservationController::class, 'index'])->name('index');
+            Route::get('/calendar', [RuserLaboratoryReservationController::class, 'calendar'])->name('calendar');
+            Route::get('/quick', [RuserLaboratoryReservationController::class, 'quickReserve'])->name('quick');
+            Route::post('/quick-store', [RuserLaboratoryReservationController::class, 'quickStore'])->name('quick-store');
+            Route::get('/{laboratory}/create', [RuserLaboratoryReservationController::class, 'create'])->name('create');
+            Route::post('/{laboratory}', [RuserLaboratoryReservationController::class, 'store'])->name('store');
+            Route::get('/{reservation}/show', [RuserLaboratoryReservationController::class, 'show'])->name('show');
+            Route::post('/{reservation}/cancel', [RuserLaboratoryReservationController::class, 'cancel'])->name('cancel');
+        });
+    });
 });
 
 // Admin Routes
 Route::prefix('admin')->name('admin.')->group(function () {
+    // Guest routes (login)
+    Route::middleware('guest:admin')->group(function () {
+        Route::get('login', [UnifiedAuthController::class, 'showLoginForm'])->name('login');
+        Route::post('login', [UnifiedAuthController::class, 'login'])->name('login');
+    });
+
     // Authenticated admin routes
     Route::middleware('auth:admin')->group(function () {
         Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
@@ -111,22 +112,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/{laboratory}', [LaboratoryController::class, 'update'])->name('update');
             Route::delete('/{laboratory}', [LaboratoryController::class, 'destroy'])->name('destroy');
             Route::patch('/{laboratory}/status', [LaboratoryController::class, 'updateStatus'])->name('update-status');
-            
-            // Laboratory Reservations Management
-            Route::prefix('reservations')->name('reservations.')->group(function () {
-                Route::get('/', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'index'])->name('index');
-                Route::get('/{reservation}', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'show'])->name('show');
-                Route::post('/{reservation}/approve', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'approve'])->name('approve');
-                Route::post('/{reservation}/reject', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'reject'])->name('reject');
-                Route::delete('/{reservation}', [\App\Http\Controllers\Admin\LaboratoryReservationController::class, 'destroy'])->name('destroy');
-            });
         });
 
         // Laboratory Calendar Management
         Route::prefix('comlab')->name('comlab.')->group(function () {
             Route::get('/calendar', [ComputerLabCalendarController::class, 'index'])->name('calendar');
-            Route::get('/schedule/create', [ComputerLabCalendarController::class, 'create'])->name('schedule.create');
-            Route::post('/schedule', [ComputerLabCalendarController::class, 'store'])->name('schedule.store');
+            Route::get('/{laboratory}/schedule/create', [ComputerLabCalendarController::class, 'create'])->name('schedule.create');
+            Route::post('/{laboratory}/schedule', [ComputerLabCalendarController::class, 'store'])->name('schedule.store');
             Route::get('/{laboratory}/schedule/{schedule}/edit', [ComputerLabCalendarController::class, 'edit'])->name('schedule.edit');
             Route::put('/{laboratory}/schedule/{schedule}', [ComputerLabCalendarController::class, 'update'])->name('schedule.update');
             Route::delete('/{laboratory}/schedule/{schedule}', [ComputerLabCalendarController::class, 'destroy'])->name('schedule.destroy');
@@ -135,9 +127,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Equipment Management
         Route::prefix('equipment')->name('equipment.')->group(function () {
-            Route::get('/', [EquipmentController::class, 'index'])->name('index');
-            Route::get('/manage', [EquipmentController::class, 'manage'])->name('manage');
-            Route::get('/create', [EquipmentController::class, 'create'])->name('create');
+            Route::get('/', [AdminEquipmentController::class, 'index'])->name('index');
+            Route::get('/manage', [AdminEquipmentController::class, 'manage'])->name('manage');
+            Route::get('/create', [AdminEquipmentController::class, 'create'])->name('create');
             
             // Equipment Categories
             Route::prefix('categories')->name('categories.')->group(function () {
@@ -149,20 +141,40 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::delete('/{category}', [EquipmentCategoryController::class, 'destroy'])->name('destroy');
             });
 
-            Route::get('/borrow-requests', [EquipmentController::class, 'borrowRequests'])->name('borrow-requests');
-            Route::post('/borrow-requests/onsite', [EquipmentController::class, 'createOnsiteBorrow'])->name('borrow-requests.onsite');
-            Route::post('/', [EquipmentController::class, 'store'])->name('store');
-            Route::put('/{equipment}', [EquipmentController::class, 'update'])->name('update');
-            Route::delete('/{equipment}', [EquipmentController::class, 'destroy'])->name('destroy');
-            Route::patch('/{equipment}/rfid', [EquipmentController::class, 'updateRfid'])->name('update-rfid');
+            Route::get('/borrow-requests', [AdminEquipmentController::class, 'borrowRequests'])->name('borrow-requests');
+            Route::post('/borrow-requests/onsite', [AdminEquipmentController::class, 'createOnsiteBorrow'])->name('borrow-requests.onsite');
+            Route::get('/history', [AdminEquipmentController::class, 'history'])->name('history');
+            Route::post('/', [AdminEquipmentController::class, 'store'])->name('store');
+            Route::put('/{equipment}', [AdminEquipmentController::class, 'update'])->name('update');
+            Route::delete('/{equipment}', [AdminEquipmentController::class, 'destroy'])->name('destroy');
+            Route::patch('/{equipment}/rfid', [AdminEquipmentController::class, 'updateRfid'])->name('update-rfid');
 
             // Equipment Request Management Routes
-            Route::get('/requests/create', [EquipmentController::class, 'createRequest'])->name('create-request');
-            Route::post('/requests', [EquipmentController::class, 'storeRequest'])->name('store-request');
-            Route::delete('/requests/{request}', [EquipmentController::class, 'destroyRequest'])->name('destroy-request');
-            Route::post('/requests/{request}/approve', [EquipmentController::class, 'approveRequest'])->name('approve-request');
-            Route::post('/requests/{request}/reject', [EquipmentController::class, 'rejectRequest'])->name('reject-request');
-            Route::post('/requests/{request}/return', [EquipmentController::class, 'markAsReturned'])->name('return-request');
+            Route::get('/requests/create', [AdminEquipmentController::class, 'createRequest'])->name('create-request');
+            Route::post('/requests', [AdminEquipmentController::class, 'storeRequest'])->name('store-request');
+            Route::delete('/requests/{request}', [AdminEquipmentController::class, 'destroyRequest'])->name('destroy-request');
+            Route::post('/requests/{request}/approve', [AdminEquipmentController::class, 'approveRequest'])->name('approve-request');
+            Route::post('/requests/{request}/reject', [AdminEquipmentController::class, 'rejectRequest'])->name('reject-request');
+            Route::post('/requests/{request}/return', [AdminEquipmentController::class, 'markAsReturned'])->name('return-request');
+            
+            // AJAX route for equipment RFID lookup
+            Route::post('/find-by-rfid', [AdminEquipmentController::class, 'findByRfid'])->name('find-by-rfid');
+        });
+
+        // User Management
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/create', [UserController::class, 'create'])->name('create');
+            Route::post('/', [UserController::class, 'store'])->name('store');
+            Route::get('/{user}', [UserController::class, 'show'])->name('show');
+            Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+            Route::put('/{user}', [UserController::class, 'update'])->name('update');
+            Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+            Route::get('/{user}/reset-password', [UserController::class, 'showResetPasswordForm'])->name('reset-password');
+            Route::post('/{user}/reset-password', [UserController::class, 'resetPassword'])->name('reset-password.store');
+            
+            // AJAX route for RFID lookup
+            Route::post('/find-by-rfid', [UserController::class, 'findByRfid'])->name('find-by-rfid');
         });
     });
 });

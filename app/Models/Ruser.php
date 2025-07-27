@@ -32,6 +32,7 @@ class Ruser extends Authenticatable
         'role',
         'department',
         'contact_number',
+        'rfid_tag',
     ];
 
     /**

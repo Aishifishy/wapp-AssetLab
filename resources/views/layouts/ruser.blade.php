@@ -31,12 +31,15 @@
                     <div class="flex">
                         <!-- Logo -->
                         <div class="flex-shrink-0 flex items-center">
-                            <a href="{{ route('ruser.dashboard') }}" class="text-2xl font-bold text-gray-900">
+                            <a href="{{ route('dashboard') }}" class="text-2xl font-bold text-gray-900">
                                 ResourEase
                             </a>
-                        </div>                        <!-- Navigation Links -->                        <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                            <a href="{{ route('ruser.dashboard') }}" 
-                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('ruser.dashboard') ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium">
+                        </div>
+                        
+                        <!-- Navigation Links -->
+                        <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                            <a href="{{ route('dashboard') }}" 
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('dashboard') ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium">
                                 Dashboard
                             </a>
                         </div>
@@ -48,7 +51,7 @@
                             
                             <ul class="dropdown-menu shadow-lg mt-2" aria-labelledby="dropdownUser1">
                                 <li>
-                                    <a href="{{ route('ruser.profile') }}" class="dropdown-item">
+                                    <a href="{{ route('profile.edit') }}" class="dropdown-item">
                                         <i class="fas fa-user me-2"></i>Profile
                                     </a>
                                 </li>

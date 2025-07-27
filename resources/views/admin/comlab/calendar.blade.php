@@ -11,11 +11,13 @@
         </h1>
         <div class="flex items-center space-x-4">
             <span class="text-gray-500">Current Term: {{ $currentTerm->name }}</span>
-            <a href="{{ route('admin.comlab.schedule.create') }}" 
-               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <i class="fas fa-plus mr-2"></i>
-                Add Schedule
-            </a>
+            @if($selectedLaboratory)
+                <a href="{{ route('admin.comlab.schedule.create', $selectedLaboratory) }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add Schedule
+                </a>
+            @endif
         </div>
     </div>    <!-- Laboratory Information (when specific laboratory is selected) -->
     @if($selectedLaboratory)
@@ -307,7 +309,7 @@
                 <p class="text-gray-500 mb-4">
                     {{ $selectedLaboratory->name }} doesn't have any schedules for the current term.
                 </p>
-                <a href="{{ route('admin.comlab.schedule.create') }}" 
+                <a href="{{ route('admin.comlab.schedule.create', $selectedLaboratory) }}" 
                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                     <i class="fas fa-plus mr-2"></i>
                     Add Schedule

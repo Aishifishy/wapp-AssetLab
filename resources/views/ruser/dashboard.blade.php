@@ -102,15 +102,15 @@
                 
                 <!-- Activity Filter Buttons -->
                 <div class="inline-flex rounded-md shadow-sm">
-                    <a href="{{ route('ruser.dashboard', ['activity_type' => 'all']) }}" 
+                    <a href="{{ route('dashboard', ['activity_type' => 'all']) }}" 
                        class="px-4 py-2 text-sm font-medium {{ $activityType == 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border border-gray-300 rounded-l-md">
                         All
                     </a>
-                    <a href="{{ route('ruser.dashboard', ['activity_type' => 'equipment']) }}" 
+                    <a href="{{ route('dashboard', ['activity_type' => 'equipment']) }}" 
                        class="px-4 py-2 text-sm font-medium {{ $activityType == 'equipment' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300">
                         Equipment
                     </a>
-                    <a href="{{ route('ruser.dashboard', ['activity_type' => 'laboratory']) }}" 
+                    <a href="{{ route('dashboard', ['activity_type' => 'laboratory']) }}" 
                        class="px-4 py-2 text-sm font-medium {{ $activityType == 'laboratory' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300 rounded-r-md">
                         Laboratory
                     </a>

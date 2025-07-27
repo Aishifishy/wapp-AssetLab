@@ -301,4 +301,34 @@ class EquipmentController extends Controller
         return redirect()->route('admin.equipment.borrow-requests')
             ->with('success', 'Equipment has been borrowed successfully.');
     }
-} 
+
+    /**
+     * Find equipment by RFID tag (for AJAX requests)
+     */
+    public function findByRfid(Request $request)
+    {
+        $rfidTag = $request->input('rfid_tag');
+        
+        if (!$rfidTag) {
+            return response()->json(['error' => 'RFID tag is required'], 400);
+        }
+
+        $equipment = Equipment::with('category')
+            ->where('rfid_tag', $rfidTag)
+            ->where('status', Equipment::STATUS_AVAILABLE)
+            ->first();
+
+        if (!$equipment) {
+            return response()->json(['error' => 'Available equipment not found with this RFID tag'], 404);
+        }
+
+        return response()->json([
+            'id' => $equipment->id,
+            'name' => $equipment->name,
+            'category' => $equipment->category->name ?? 'Uncategorized',
+            'description' => $equipment->description,
+            'status' => $equipment->status,
+            'rfid_tag' => $equipment->rfid_tag
+        ]);
+    }
+}
