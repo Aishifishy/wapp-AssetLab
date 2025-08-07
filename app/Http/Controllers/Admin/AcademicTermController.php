@@ -17,44 +17,16 @@ class AcademicTermController extends Controller
 
     public function create(AcademicYear $academicYear)
     {
-        return view('admin.academic.terms.create', compact('academicYear'));
+        // Redirect back since terms are automatically created
+        return redirect()->route('admin.academic.index')
+            ->with('info', 'Academic terms are automatically created when you create an academic year. You can edit existing terms.');
     }
 
     public function store(Request $request, AcademicYear $academicYear)
     {
-        $validated = $request->validate([
-            'term_number' => 'required|integer|min:1|max:3',
-            'start_date' => [
-                'required',
-                'date',
-                'after_or_equal:' . $academicYear->start_date,
-                'before:' . $academicYear->end_date,
-            ],
-            'end_date' => [
-                'required',
-                'date',
-                'after:start_date',
-                'before_or_equal:' . $academicYear->end_date,
-            ],
-            'is_current' => 'boolean',
-        ]);
-
-        // Set the term name based on the term number
-        $termNames = [
-            1 => 'First Term',
-            2 => 'Second Term',
-            3 => 'Third Term'
-        ];
-        $validated['name'] = $termNames[$validated['term_number']];
-
-        $term = $academicYear->terms()->create($validated);
-
-        if ($request->boolean('is_current')) {
-            $term->markAsCurrent();
-        }
-
+        // Prevent manual term creation since terms are automatically created
         return redirect()->route('admin.academic.index')
-            ->with('success', 'Term created successfully.');
+            ->with('error', 'Cannot manually create terms. Terms are automatically created with each academic year.');
     }
 
     public function edit(AcademicYear $academicYear, AcademicTerm $term)

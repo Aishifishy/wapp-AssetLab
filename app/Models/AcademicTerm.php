@@ -37,6 +37,13 @@ class AcademicTerm extends Model
         return $query->where('is_current', true);
     }
 
+    public function scopeActive($query)
+    {
+        $now = now()->startOfDay();
+        return $query->whereDate('start_date', '<=', $now)
+                    ->whereDate('end_date', '>=', $now);
+    }
+
     // Methods
     public function markAsCurrent()
     {
@@ -47,12 +54,42 @@ class AcademicTerm extends Model
             ->update(['is_current' => false]);
         
         $this->update(['is_current' => true]);
+        
+        // Also mark the academic year as current
+        $this->academicYear->markAsCurrent();
     }
 
     public function isActive()
     {
         $now = now()->startOfDay();
         return $now->between($this->start_date, $this->end_date);
+    }
+
+    /**
+     * Get the current academic term based on today's date
+     */
+    public static function getCurrentByDate($date = null)
+    {
+        $date = $date ? \Carbon\Carbon::parse($date)->startOfDay() : now()->startOfDay();
+        
+        return static::whereDate('start_date', '<=', $date)
+                    ->whereDate('end_date', '>=', $date)
+                    ->first();
+    }
+
+    /**
+     * Automatically set the current academic term based on today's date
+     */
+    public static function setCurrentByDate($date = null)
+    {
+        $currentTerm = static::getCurrentByDate($date);
+        
+        if ($currentTerm) {
+            $currentTerm->markAsCurrent();
+            return $currentTerm;
+        }
+        
+        return null;
     }
 
     /**

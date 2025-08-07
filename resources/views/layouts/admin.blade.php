@@ -97,11 +97,21 @@
                         </li>
                     </ul>
                 </li>
-                <li>
-                    <a href="{{ route('admin.users.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                <!-- User Management -->
+                <li class="nav-item mt-2">
+                    <div class="nav-link admin-nav-link text-white mb-2">
                         <i class="fas fa-users me-2"></i>
-                        User Management
-                    </a>
+                        <span class="text-uppercase fw-bold admin-section-header">Users</span>
+                    </div>
+                    <!-- User Management Sub-items -->
+                    <ul class="nav nav-pills flex-column border-start admin-border-start border-secondary ms-3">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.users.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                <i class="fas fa-users me-2"></i>
+                                User Management
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
             <hr>

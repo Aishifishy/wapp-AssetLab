@@ -563,3 +563,38 @@ button, input, optgroup, select, textarea {
     background-color: #f9fafb;
 }
 
+/* Academic Year Terms Edit Interface */
+.term-edit-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.term-edit-card:hover {
+    background-color: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.term-edit-btn {
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.375rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.term-edit-btn:hover {
+    background-color: #dbeafe;
+    transform: translateX(2px);
+}
+
+/* Academic Year Edit Button */
+.academic-year-edit-btn {
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.375rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.academic-year-edit-btn:hover {
+    background-color: #f3f4f6;
+    transform: translateX(2px);
+    color: #374151;
+}
+

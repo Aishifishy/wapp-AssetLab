@@ -72,7 +72,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Guest routes (login)
     Route::middleware('guest:admin')->group(function () {
         Route::get('login', [UnifiedAuthController::class, 'showLoginForm'])->name('login');
-        Route::post('login', [UnifiedAuthController::class, 'login'])->name('login');
+        Route::post('login', [UnifiedAuthController::class, 'login'])->name('login.post');
     });
 
     // Authenticated admin routes
@@ -91,6 +91,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/{academicYear}', [AcademicYearController::class, 'update'])->name('update');
             Route::delete('/{academicYear}', [AcademicYearController::class, 'destroy'])->name('destroy');
             Route::post('/{academicYear}/set-current', [AcademicYearController::class, 'setCurrent'])->name('set-current');
+            Route::post('/set-current-by-date', [AcademicYearController::class, 'setCurrentByDate'])->name('set-current-by-date');
+            Route::get('/daily-overview', [AcademicYearController::class, 'getDailyOverview'])->name('daily-overview');
 
             // Academic Term Management
             Route::prefix('{academicYear}/terms')->name('terms.')->group(function () {

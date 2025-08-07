@@ -25,14 +25,20 @@ class CalendarManager {
     initAcademicCalendar() {
         const calendarEl = document.getElementById('calendar');
         
+        console.log('Calendar element found:', !!calendarEl);
+        console.log('Calendar events available:', !!window.calendarEvents);
+        console.log('FullCalendar available:', typeof FullCalendar !== 'undefined');
+        
         // Only initialize if we're on the academic calendar page
         if (!calendarEl || !window.calendarEvents) {
+            console.log('Academic calendar initialization skipped - missing element or events');
             return;
         }
 
-        // Check if FullCalendar is available
+        // Check if FullCalendar is available, wait if not
         if (typeof FullCalendar === 'undefined') {
-            console.warn('FullCalendar library not loaded');
+            console.log('FullCalendar not ready, waiting...');
+            setTimeout(() => this.initAcademicCalendar(), 100);
             return;
         }
 
@@ -60,7 +66,9 @@ class CalendarManager {
             }
         });
 
+        console.log('Rendering academic calendar with events:', window.calendarEvents);
         calendar.render();
+        console.log('Academic calendar rendered successfully');
     }
 
     initReservationCalendar() {
