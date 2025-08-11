@@ -7,7 +7,9 @@
         <a href="{{ route('admin.laboratory.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             <i class="fas fa-plus mr-2"></i> Add New Laboratory
         </a>
-    </div>    <x-flash-messages />
+    </div>
+
+    <x-flash-messages />
 
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
@@ -35,7 +37,8 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $lab->name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $lab->building }} - {{ $lab->room_number }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $lab->capacity }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $lab->number_of_computers }}</td>                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $lab->number_of_computers }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <x-status-badge :status="$lab->status" type="laboratory" />
                                         <button type="button" class="ml-2 text-blue-600 hover:text-blue-900" data-modal-target="statusModal{{ $lab->id }}">
@@ -95,7 +98,9 @@
                                         </form>
                                     </div>
                                 </div>
-                            </div>                            <!-- Delete Confirmation Modal -->
+                            </div>
+
+                            <!-- Delete Confirmation Modal -->
                             <x-delete-confirmation-modal 
                                 modal-id="deleteModal{{ $lab->id }}"
                                 title="Delete Laboratory" 

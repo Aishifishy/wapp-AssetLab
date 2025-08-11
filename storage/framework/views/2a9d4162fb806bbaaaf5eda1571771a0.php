@@ -1,16 +1,35 @@
-@extends('layouts.admin')
 
-@section('title', 'User Management')
-@section('header', 'User Management')
 
-@section('content')
+<?php $__env->startSection('title', 'User Management'); ?>
+<?php $__env->startSection('header', 'User Management'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="space-y-6">
-    <x-flash-messages />
+    <?php if (isset($component)) { $__componentOriginalcca61bfded94b5a7635453a4dc55dd1d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d = $attributes; } ?>
+<?php $component = App\View\Components\FlashMessages::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('flash-messages'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FlashMessages::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d)): ?>
+<?php $attributes = $__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d; ?>
+<?php unset($__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalcca61bfded94b5a7635453a4dc55dd1d)): ?>
+<?php $component = $__componentOriginalcca61bfded94b5a7635453a4dc55dd1d; ?>
+<?php unset($__componentOriginalcca61bfded94b5a7635453a4dc55dd1d); ?>
+<?php endif; ?>
 
     <!-- Header with action buttons -->
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-semibold text-gray-800">Users</h1>
-        <a href="{{ route('admin.users.create') }}" 
+        <a href="<?php echo e(route('admin.users.create')); ?>" 
            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             <i class="fas fa-plus mr-2"></i> Add New User
         </a>
@@ -25,7 +44,7 @@
             </h2>
         </div>
         <div class="p-6">
-            <form action="{{ route('admin.users.index') }}" method="GET" id="filterForm">
+            <form action="<?php echo e(route('admin.users.index')); ?>" method="GET" id="filterForm">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <!-- Search -->
                 <div>
@@ -36,7 +55,7 @@
                     <input type="text" 
                            name="search" 
                            id="search" 
-                           value="{{ request('search') }}" 
+                           value="<?php echo e(request('search')); ?>" 
                            placeholder="Name, email, department, or RFID..."
                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
                 </div>
@@ -50,12 +69,13 @@
                     <select name="role" 
                             id="role" 
                             class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white">
-                        <option value="all" {{ request('role') == 'all' ? 'selected' : '' }}>All Roles</option>
-                        @foreach($roles as $role)
-                            <option value="{{ $role }}" {{ request('role') == $role ? 'selected' : '' }}>
-                                {{ ucfirst($role) }}
+                        <option value="all" <?php echo e(request('role') == 'all' ? 'selected' : ''); ?>>All Roles</option>
+                        <?php $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($role); ?>" <?php echo e(request('role') == $role ? 'selected' : ''); ?>>
+                                <?php echo e(ucfirst($role)); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
@@ -68,12 +88,13 @@
                     <select name="department" 
                             id="department" 
                             class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white">
-                        <option value="all" {{ request('department') == 'all' ? 'selected' : '' }}>All Departments</option>
-                        @foreach($departments as $dept)
-                            <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>
-                                {{ $dept }}
+                        <option value="all" <?php echo e(request('department') == 'all' ? 'selected' : ''); ?>>All Departments</option>
+                        <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($dept); ?>" <?php echo e(request('department') == $dept ? 'selected' : ''); ?>>
+                                <?php echo e($dept); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
@@ -115,7 +136,7 @@
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-900 flex items-center">
                     <i class="fas fa-users mr-2 text-gray-600"></i>
-                    Users ({{ $users->total() }} total)
+                    Users (<?php echo e($users->total()); ?> total)
                 </h2>
                 <div class="flex items-center space-x-2 text-sm text-gray-500">
                     <i class="fas fa-info-circle"></i>
@@ -124,7 +145,7 @@
             </div>
         </div>
         
-        @if($users->count() > 0)
+        <?php if($users->count() > 0): ?>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -153,70 +174,77 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200" id="usersTableBody">
-                        @foreach($users as $user)
-                            <tr class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onclick="window.location.href='{{ route('admin.users.show', $user) }}'">>>
+                        <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <tr class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onclick="window.location.href='<?php echo e(route('admin.users.show', $user)); ?>'">>>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-10 w-10">
-                                            <div class="h-10 w-10 rounded-full {{ $user->role === 'student' ? 'bg-blue-100' : ($user->role === 'faculty' ? 'bg-green-100' : 'bg-purple-100') }} flex items-center justify-center">
-                                                <i class="fas fa-user {{ $user->role === 'student' ? 'text-blue-600' : ($user->role === 'faculty' ? 'text-green-600' : 'text-purple-600') }}"></i>
+                                            <div class="h-10 w-10 rounded-full <?php echo e($user->role === 'student' ? 'bg-blue-100' : ($user->role === 'faculty' ? 'bg-green-100' : 'bg-purple-100')); ?> flex items-center justify-center">
+                                                <i class="fas fa-user <?php echo e($user->role === 'student' ? 'text-blue-600' : ($user->role === 'faculty' ? 'text-green-600' : 'text-purple-600')); ?>"></i>
                                             </div>
                                         </div>
                                         <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
-                                            <div class="text-sm text-gray-500">{{ $user->email }}</div>
+                                            <div class="text-sm font-medium text-gray-900"><?php echo e($user->name); ?></div>
+                                            <div class="text-sm text-gray-500"><?php echo e($user->email); ?></div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
-                                        {{ $user->role === 'student' ? 'bg-blue-100 text-blue-800' : '' }}
-                                        {{ $user->role === 'faculty' ? 'bg-green-100 text-green-800' : '' }}
-                                        {{ $user->role === 'staff' ? 'bg-purple-100 text-purple-800' : '' }}">
-                                        {{ ucfirst($user->role) }}
+                                        <?php echo e($user->role === 'student' ? 'bg-blue-100 text-blue-800' : ''); ?>
+
+                                        <?php echo e($user->role === 'faculty' ? 'bg-green-100 text-green-800' : ''); ?>
+
+                                        <?php echo e($user->role === 'staff' ? 'bg-purple-100 text-purple-800' : ''); ?>">
+                                        <?php echo e(ucfirst($user->role)); ?>
+
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $user->department ?? 'N/A' }}
+                                    <?php echo e($user->department ?? 'N/A'); ?>
+
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    @if($user->rfid_tag)
+                                    <?php if($user->rfid_tag): ?>
                                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             <i class="fas fa-id-card mr-1"></i>
-                                            {{ $user->rfid_tag }}
+                                            <?php echo e($user->rfid_tag); ?>
+
                                         </span>
-                                    @else
+                                    <?php else: ?>
                                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                                             <i class="fas fa-times mr-1"></i>
                                             Not set
                                         </span>
-                                    @endif
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $user->equipment_requests_count > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium <?php echo e($user->equipment_requests_count > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'); ?>">
                                         <i class="fas fa-box mr-1"></i>
-                                        {{ $user->equipment_requests_count }}
+                                        <?php echo e($user->equipment_requests_count); ?>
+
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <span class="inline-flex items-center">
                                         <i class="fas fa-calendar mr-1"></i>
-                                        {{ $user->created_at->format('M d, Y') }}
+                                        <?php echo e($user->created_at->format('M d, Y')); ?>
+
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex items-center space-x-3" onclick="event.stopPropagation();">
-                                        <a href="{{ route('admin.users.show', $user) }}" 
+                                        <a href="<?php echo e(route('admin.users.show', $user)); ?>" 
                                            class="text-blue-600 hover:text-blue-900 transition-colors duration-150" 
                                            title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('admin.users.edit', $user) }}" 
+                                        <a href="<?php echo e(route('admin.users.edit', $user)); ?>" 
                                            class="text-green-600 hover:text-green-900 transition-colors duration-150" 
                                            title="Edit User">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="{{ route('admin.users.reset-password', $user) }}" 
+                                        <a href="<?php echo e(route('admin.users.reset-password', $user)); ?>" 
                                            class="text-yellow-600 hover:text-yellow-900 transition-colors duration-150" 
                                            title="Reset Password">
                                             <i class="fas fa-key"></i>
@@ -224,22 +252,23 @@
                                         <button type="button" 
                                                 class="text-red-600 hover:text-red-900 transition-colors duration-150" 
                                                 title="Delete User"
-                                                data-modal-target="deleteModal{{ $user->id }}">
+                                                data-modal-target="deleteModal<?php echo e($user->id); ?>">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                 </table>
             </div>
 
             <!-- Pagination -->
             <div class="px-6 py-4 border-t border-gray-200">
-                {{ $users->appends(request()->query())->links() }}
+                <?php echo e($users->appends(request()->query())->links()); ?>
+
             </div>
-        @else
+        <?php else: ?>
             <div class="px-6 py-12 text-center">
                 <div class="max-w-sm mx-auto">
                     <i class="fas fa-users text-gray-400 text-6xl mb-4"></i>
@@ -252,7 +281,7 @@
                             <i class="fas fa-filter mr-2"></i>
                             Clear Filters
                         </button>
-                        <a href="{{ route('admin.users.create') }}" 
+                        <a href="<?php echo e(route('admin.users.create')); ?>" 
                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-medium text-sm text-white hover:bg-blue-700 transition-colors duration-200">
                             <i class="fas fa-plus mr-2"></i>
                             Add New User
@@ -260,23 +289,37 @@
                     </div>
                 </div>
             </div>
-        @endif
+        <?php endif; ?>
     </div>
 </div>
 
 <!-- Delete Confirmation Modals -->
-@foreach($users as $user)
-    <x-delete-confirmation-modal 
-        modal-id="deleteModal{{ $user->id }}"
-        title="Delete User"
-        message="Are you sure you want to delete {{ $user->name }}? This action cannot be undone and will remove all associated data."
-        item-name="{{ $user->name }}"
-        delete-route="{{ route('admin.users.destroy', $user) }}" />
-@endforeach
+<?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php if (isset($component)) { $__componentOriginal8b7b112f0fae85419ee5abf8337434ab = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal8b7b112f0fae85419ee5abf8337434ab = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.delete-confirmation-modal','data' => ['modalId' => 'deleteModal'.e($user->id).'','title' => 'Delete User','message' => 'Are you sure you want to delete '.e($user->name).'? This action cannot be undone and will remove all associated data.','itemName' => ''.e($user->name).'','deleteRoute' => ''.e(route('admin.users.destroy', $user)).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('delete-confirmation-modal'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['modal-id' => 'deleteModal'.e($user->id).'','title' => 'Delete User','message' => 'Are you sure you want to delete '.e($user->name).'? This action cannot be undone and will remove all associated data.','item-name' => ''.e($user->name).'','delete-route' => ''.e(route('admin.users.destroy', $user)).'']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal8b7b112f0fae85419ee5abf8337434ab)): ?>
+<?php $attributes = $__attributesOriginal8b7b112f0fae85419ee5abf8337434ab; ?>
+<?php unset($__attributesOriginal8b7b112f0fae85419ee5abf8337434ab); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal8b7b112f0fae85419ee5abf8337434ab)): ?>
+<?php $component = $__componentOriginal8b7b112f0fae85419ee5abf8337434ab; ?>
+<?php unset($__componentOriginal8b7b112f0fae85419ee5abf8337434ab); ?>
+<?php endif; ?>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function applyFilters() {
     document.getElementById('filterForm').submit();
@@ -359,4 +402,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/users/index.blade.php ENDPATH**/ ?>

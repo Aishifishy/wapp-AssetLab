@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 
-    <title>@yield('title', 'Admin') - {{ config('app.name', 'ResourEase') }}</title>
+    <title><?php echo $__env->yieldContent('title', 'Admin'); ?> - <?php echo e(config('app.name', 'ResourEase')); ?></title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,8 +15,8 @@
     <!-- Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @stack('styles')
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
+    <?php echo $__env->yieldPushContent('styles'); ?>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -26,20 +26,20 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark admin-sidebar">
-            <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <a href="<?php echo e(route('admin.dashboard')); ?>" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                 <i class="fas fa-laptop-code me-2"></i>
                 <span class="fs-4">ResourEase</span>
             </a>
             <hr>
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <a href="<?php echo e(route('admin.dashboard')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.dashboard') ? 'active' : ''); ?>">
                         <i class="fas fa-tachometer-alt me-2"></i>
                         Dashboard
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.academic.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.academic.*') ? 'active' : '' }}">
+                    <a href="<?php echo e(route('admin.academic.index')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.academic.*') ? 'active' : ''); ?>">
                         <i class="fas fa-calendar-alt me-2"></i>
                         Academic Calendar
                     </a>
@@ -53,19 +53,19 @@
                     <!-- Com Lab Sub-items -->
                     <ul class="nav nav-pills flex-column border-start admin-border-start border-secondary ms-3">
                         <li class="nav-item">
-                            <a href="{{ route('admin.laboratory.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.laboratory.index') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.laboratory.index')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.laboratory.index') ? 'active' : ''); ?>">
                             <i class="fas fa-clipboard-list me-2"></i>
                             Laboratories
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('admin.laboratory.reservations') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.laboratory.reservations') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.laboratory.reservations')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.laboratory.reservations') ? 'active' : ''); ?>">
                             <i class="fas fa-calendar-check me-2"></i>
                             Reservations
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('admin.comlab.calendar') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.comlab.*') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.comlab.calendar')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.comlab.*') ? 'active' : ''); ?>">
                             <i class="fas fa-calendar-week me-2"></i>
                             Lab Schedule
                             </a>
@@ -81,22 +81,22 @@
                     <!-- Equipment Sub-items -->
                     <ul class="nav nav-pills flex-column border-start admin-border-start border-secondary ms-3">
                         <li class="nav-item">
-                            <a href="{{ route('admin.equipment.manage') }}" 
-                               class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.manage') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.equipment.manage')); ?>" 
+                               class="nav-link admin-nav-link text-white ps-3 <?php echo e(request()->routeIs('admin.equipment.manage') ? 'active' : ''); ?>">
                                 <i class="fas fa-cog me-2"></i>
                                 Manage Equipment
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('admin.equipment.borrow-requests') }}" 
-                               class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.borrow-requests') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.equipment.borrow-requests')); ?>" 
+                               class="nav-link admin-nav-link text-white ps-3 <?php echo e(request()->routeIs('admin.equipment.borrow-requests') ? 'active' : ''); ?>">
                                 <i class="fas fa-clipboard-list me-2"></i>
                                 Borrowing
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('admin.equipment.categories.index') }}" 
-                               class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.categories.*') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.equipment.categories.index')); ?>" 
+                               class="nav-link admin-nav-link text-white ps-3 <?php echo e(request()->routeIs('admin.equipment.categories.*') ? 'active' : ''); ?>">
                                 <i class="fas fa-tags me-2"></i>
                                 Categories
                             </a>
@@ -112,7 +112,7 @@
                     <!-- User Management Sub-items -->
                     <ul class="nav nav-pills flex-column border-start admin-border-start border-secondary ms-3">
                         <li class="nav-item">
-                            <a href="{{ route('admin.users.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.users.index')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.users.*') ? 'active' : ''); ?>">
                                 <i class="fas fa-users me-2"></i>
                                 User Management
                             </a>
@@ -124,12 +124,12 @@
             <div class="dropdown">
                 <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-user-circle fa-2x me-2"></i>
-                    <strong>{{ Auth::guard('admin')->user()->name ?? 'Admin' }}</strong>
+                    <strong><?php echo e(Auth::guard('admin')->user()->name ?? 'Admin'); ?></strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
                     <li>
-                        <form method="POST" action="{{ route('admin.logout') }}">
-                            @csrf
+                        <form method="POST" action="<?php echo e(route('admin.logout')); ?>">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" class="dropdown-item">
                                 <i class="fas fa-sign-out-alt me-2"></i>Sign out
                             </button>
@@ -143,36 +143,38 @@
         <div class="flex-grow-1 p-4">
             <!-- Page Title -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h2">@yield('page-title', 'Dashboard')</h1>
+                <h1 class="h2"><?php echo $__env->yieldContent('page-title', 'Dashboard'); ?></h1>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
-                        @yield('breadcrumbs')
+                        <li class="breadcrumb-item"><a href="<?php echo e(route('admin.dashboard')); ?>">Home</a></li>
+                        <?php echo $__env->yieldContent('breadcrumbs'); ?>
                     </ol>
                 </nav>
             </div>
 
             <!-- Flash Messages -->
-            @if(session('success'))
+            <?php if(session('success')): ?>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
+                    <?php echo e(session('success')); ?>
 
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-            @endif
+            <?php endif; ?>
+
+            <?php if(session('error')): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?php echo e(session('error')); ?>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
 
             <!-- Main Content -->
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </div>
     </div>
 
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
     <script>
         // Keep equipment submenu open when on equipment pages
         document.addEventListener('DOMContentLoaded', function() {
@@ -197,4 +199,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/layouts/admin.blade.php ENDPATH**/ ?>

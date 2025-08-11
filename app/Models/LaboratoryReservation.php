@@ -30,8 +30,6 @@ class LaboratoryReservation extends Model
 
     protected $casts = [
         'reservation_date' => 'date',
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
         'is_recurring' => 'boolean',
         'recurrence_end_date' => 'date',
     ];
@@ -98,6 +96,10 @@ class LaboratoryReservation extends Model
 
     public function getDurationAttribute()
     {
+        if (!$this->start_time || !$this->end_time) {
+            return 'N/A';
+        }
+        
         $startTime = new \DateTime($this->start_time);
         $endTime = new \DateTime($this->end_time);
         $interval = $startTime->diff($endTime);
@@ -105,6 +107,16 @@ class LaboratoryReservation extends Model
         $minutes = $interval->format('%i');
         
         return $hours > 0 ? "$hours hr $minutes min" : "$minutes min";
+    }
+
+    public function getFormattedStartTimeAttribute()
+    {
+        return $this->start_time ? \Carbon\Carbon::parse($this->start_time)->format('g:i A') : null;
+    }
+
+    public function getFormattedEndTimeAttribute()
+    {
+        return $this->end_time ? \Carbon\Carbon::parse($this->end_time)->format('g:i A') : null;
     }
     
     /**

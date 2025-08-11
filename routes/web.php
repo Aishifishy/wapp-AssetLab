@@ -114,6 +114,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/{laboratory}', [LaboratoryController::class, 'update'])->name('update');
             Route::delete('/{laboratory}', [LaboratoryController::class, 'destroy'])->name('destroy');
             Route::patch('/{laboratory}/status', [LaboratoryController::class, 'updateStatus'])->name('update-status');
+            Route::get('/reservations', [LaboratoryController::class, 'reservations'])->name('reservations');
+            Route::patch('/reservations/{reservation}/approve', [LaboratoryController::class, 'approveRequest'])->name('approve-request');
+            Route::patch('/reservations/{reservation}/reject', [LaboratoryController::class, 'rejectRequest'])->name('reject-request');
         });
 
         // Laboratory Calendar Management

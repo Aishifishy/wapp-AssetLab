@@ -1,8 +1,6 @@
-@extends('layouts.admin')
+<?php $__env->startSection('title', 'Manage Borrows'); ?>
 
-@section('title', 'Manage Borrows')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-semibold text-gray-800">Manage Equipment Borrows</h1>
@@ -21,7 +19,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-1">Pending Requests</h3>
-                    <div class="text-3xl font-bold text-yellow-600">{{ $pendingCount }}</div>
+                    <div class="text-3xl font-bold text-yellow-600"><?php echo e($pendingCount); ?></div>
                 </div>
             </div>
         </div>
@@ -32,7 +30,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-1">Active Borrows</h3>
-                    <div class="text-3xl font-bold text-blue-600">{{ $activeCount }}</div>
+                    <div class="text-3xl font-bold text-blue-600"><?php echo e($activeCount); ?></div>
                 </div>
             </div>
         </div>
@@ -43,7 +41,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-1">Overdue</h3>
-                    <div class="text-3xl font-bold text-red-600">{{ $overdueCount }}</div>
+                    <div class="text-3xl font-bold text-red-600"><?php echo e($overdueCount); ?></div>
                 </div>
             </div>
         </div>
@@ -106,67 +104,88 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($requests as $request)
+                        <?php $__empty_1 = true; $__currentLoopData = $requests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $request): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                             <tr class="request-row" 
-                                data-user="{{ strtolower($request->user->name) }}" 
-                                data-equipment="{{ strtolower($request->equipment->name) }}" 
-                                data-status="{{ $request->status }}"
-                                data-duration="{{ $request->requested_from->format('Y-m-d') }}"
-                                data-search="{{ strtolower($request->user->name . ' ' . $request->user->email . ' ' . $request->equipment->name . ' ' . ($request->equipment->category->name ?? '') . ' ' . ($request->purpose ?? '')) }}">
+                                data-user="<?php echo e(strtolower($request->user->name)); ?>" 
+                                data-equipment="<?php echo e(strtolower($request->equipment->name)); ?>" 
+                                data-status="<?php echo e($request->status); ?>"
+                                data-duration="<?php echo e($request->requested_from->format('Y-m-d')); ?>"
+                                data-search="<?php echo e(strtolower($request->user->name . ' ' . $request->user->email . ' ' . $request->equipment->name . ' ' . ($request->equipment->category->name ?? '') . ' ' . ($request->purpose ?? ''))); ?>">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $request->user->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $request->user->email }}</div>
+                                    <div class="text-sm font-medium text-gray-900"><?php echo e($request->user->name); ?></div>
+                                    <div class="text-sm text-gray-500"><?php echo e($request->user->email); ?></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $request->equipment->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $request->equipment->category->name ?? 'Uncategorized' }}</div>
+                                    <div class="text-sm font-medium text-gray-900"><?php echo e($request->equipment->name); ?></div>
+                                    <div class="text-sm text-gray-500"><?php echo e($request->equipment->category->name ?? 'Uncategorized'); ?></div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">{{ Str::limit($request->purpose, 50) }}</div>
+                                    <div class="text-sm text-gray-900"><?php echo e(Str::limit($request->purpose, 50)); ?></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        {{ $request->requested_from->format('M d, Y') }} -
-                                        {{ $request->requested_until->format('M d, Y') }}
+                                        <?php echo e($request->requested_from->format('M d, Y')); ?> -
+                                        <?php echo e($request->requested_until->format('M d, Y')); ?>
+
                                     </div>
-                                    @if($request->status === 'approved' && $request->requested_until < now())
+                                    <?php if($request->status === 'approved' && $request->requested_until < now()): ?>
                                         <div class="text-xs text-red-600 font-medium">OVERDUE</div>
-                                    @endif
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <x-status-badge :status="$request->status" type="request" />
+                                    <?php if (isset($component)) { $__componentOriginal8860cf004fec956b6e41d036eb967550 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal8860cf004fec956b6e41d036eb967550 = $attributes; } ?>
+<?php $component = App\View\Components\StatusBadge::resolve(['status' => $request->status,'type' => 'request'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('status-badge'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\StatusBadge::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $attributes = $__attributesOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__attributesOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $component = $__componentOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__componentOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    @if($request->status === 'pending')
-                                        <form action="{{ route('admin.equipment.approve-request', $request) }}" method="POST" class="inline">
-                                            @csrf
+                                    <?php if($request->status === 'pending'): ?>
+                                        <form action="<?php echo e(route('admin.equipment.approve-request', $request)); ?>" method="POST" class="inline">
+                                            <?php echo csrf_field(); ?>
                                             <button type="submit" class="text-green-600 hover:text-green-900 mr-3">Approve</button>
                                         </form>
-                                        <form action="{{ route('admin.equipment.reject-request', $request) }}" method="POST" class="inline">
-                                            @csrf
+                                        <form action="<?php echo e(route('admin.equipment.reject-request', $request)); ?>" method="POST" class="inline">
+                                            <?php echo csrf_field(); ?>
                                             <button type="submit" class="text-red-600 hover:text-red-900">Reject</button>
                                         </form>
-                                    @elseif($request->status === 'approved' && !$request->returned_at)
-                                        <button onclick="openReturnModal({{ $request->id }})" class="text-blue-600 hover:text-blue-900">
+                                    <?php elseif($request->status === 'approved' && !$request->returned_at): ?>
+                                        <button onclick="openReturnModal(<?php echo e($request->id); ?>)" class="text-blue-600 hover:text-blue-900">
                                             Return
                                         </button>
-                                    @else
-                                        <span class="text-gray-400">{{ ucfirst($request->status) }}</span>
-                                    @endif
+                                    <?php else: ?>
+                                        <span class="text-gray-400"><?php echo e(ucfirst($request->status)); ?></span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="6" class="px-6 py-4 text-center text-gray-500">
                                     No borrow requests found
                                 </td>
                             </tr>
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
             <div class="mt-4">
-                {{ $requests->links() }}
+                <?php echo e($requests->links()); ?>
+
             </div>
         </div>
     </div>
@@ -177,8 +196,8 @@
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Create Onsite Borrow</h3>
-            <form action="{{ route('admin.equipment.borrow-requests.onsite') }}" method="POST" class="mt-4" id="onsiteBorrowForm">
-                @csrf
+            <form action="<?php echo e(route('admin.equipment.borrow-requests.onsite')); ?>" method="POST" class="mt-4" id="onsiteBorrowForm">
+                <?php echo csrf_field(); ?>
                 
                 <div class="space-y-4">
                     <!-- User Selection with RFID -->
@@ -205,9 +224,9 @@
                         <select name="user_id" id="user_id" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="">Select User Manually</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->department }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($user->id); ?>"><?php echo e($user->name); ?> - <?php echo e($user->department); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                         
                         <!-- User Info Display -->
@@ -246,11 +265,11 @@
                         <select name="equipment_id" id="equipment_id" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="">Select Equipment Manually</option>
-                            @foreach($availableEquipment as $equipment)
-                                <option value="{{ $equipment->id }}">
-                                    {{ $equipment->name }} ({{ $equipment->category->name ?? 'Uncategorized' }})
+                            <?php $__currentLoopData = $availableEquipment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $equipment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($equipment->id); ?>">
+                                    <?php echo e($equipment->name); ?> (<?php echo e($equipment->category->name ?? 'Uncategorized'); ?>)
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                         
                         <!-- Equipment Info Display -->
@@ -278,7 +297,7 @@
                                name="requested_until" 
                                id="requested_until"
                                required
-                               min="{{ now()->format('Y-m-d\TH:i') }}"
+                               min="<?php echo e(now()->format('Y-m-d\TH:i')); ?>"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
                 </div>
@@ -306,7 +325,7 @@
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Return Equipment</h3>
             <form id="returnForm" method="POST" class="mt-4">
-                @csrf
+                <?php echo csrf_field(); ?>
                 
                 <div class="space-y-4">
                     <div>
@@ -344,7 +363,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <!-- Equipment borrowing functionality is now handled by equipment-manager.js module -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -517,11 +536,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Search user by RFID
     function searchUserByRfid(rfidTag) {
-        fetch('{{ route("admin.users.find-by-rfid") }}', {
+        fetch('<?php echo e(route("admin.users.find-by-rfid")); ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
             },
             body: JSON.stringify({ rfid_tag: rfidTag })
         })
@@ -557,11 +576,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Search equipment by RFID
     function searchEquipmentByRfid(rfidTag) {
-        fetch('{{ route("admin.equipment.find-by-rfid") }}', {
+        fetch('<?php echo e(route("admin.equipment.find-by-rfid")); ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
             },
             body: JSON.stringify({ rfid_tag: rfidTag })
         })
@@ -635,5 +654,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/equipment/borrow-requests.blade.php ENDPATH**/ ?>
