@@ -135,7 +135,7 @@
                     <div id="modalContent" class="hidden">
                         <!-- Tab Navigation -->
                         <div class="border-b border-gray-200 mb-4">
-                            <nav class="-mb-px flex space-x-8">
+                            <nav class="-mb-px flex space-x-6">
                                 <button class="modal-tab-btn py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap border-blue-500 text-blue-600" data-tab="equipment">
                                     <i class="fas fa-tools mr-2"></i>Available Equipment
                                 </button>
@@ -144,6 +144,12 @@
                                 </button>
                                 <button class="modal-tab-btn py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="labs">
                                     <i class="fas fa-desktop mr-2"></i>Computer Labs
+                                </button>
+                                <button class="modal-tab-btn py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="labreservations">
+                                    <i class="fas fa-calendar-check mr-2"></i>Laboratory Reservations
+                                </button>
+                                <button class="modal-tab-btn py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="equipmentborrowing">
+                                    <i class="fas fa-hand-holding mr-2"></i>Equipment Borrowing
                                 </button>
                             </nav>
                         </div>
@@ -172,6 +178,20 @@
                         <div id="labs-tab" class="modal-tab-content hidden">
                             <div class="space-y-6" id="labsList">
                                 <!-- Lab schedules will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Laboratory Reservations Tab -->
+                        <div id="labreservations-tab" class="modal-tab-content hidden">
+                            <div class="space-y-4" id="labReservationsList">
+                                <!-- Laboratory reservations will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Equipment Borrowing Tab -->
+                        <div id="equipmentborrowing-tab" class="modal-tab-content hidden">
+                            <div class="space-y-4" id="equipmentBorrowingList">
+                                <!-- Equipment borrowing will be populated here -->
                             </div>
                         </div>
                     </div>
@@ -315,17 +335,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch daily overview data
     async function fetchDailyOverview(date) {
         try {
+            console.log('Fetching daily overview for date:', date);
             const response = await fetch(`/admin/academic/daily-overview?date=${date}`);
-            const data = await response.json();
+            console.log('Response status:', response.status);
             
             if (response.ok) {
+                const data = await response.json();
+                console.log('Received data:', data);
                 populateModalData(data);
             } else {
-                showModalError('Failed to load daily overview data.');
+                const errorText = await response.text();
+                console.error('Server response error:', response.status, errorText);
+                showModalError(`Failed to load daily overview data. Server returned status: ${response.status}`);
             }
         } catch (error) {
             console.error('Error fetching daily overview:', error);
-            showModalError('An error occurred while loading data.');
+            showModalError('An error occurred while loading data: ' + error.message);
         }
     }
 
@@ -335,40 +360,90 @@ document.addEventListener('DOMContentLoaded', function() {
         modalContent.classList.remove('hidden');
         
         // Populate equipment list
-        populateEquipmentList(data.available_equipment);
+        populateEquipmentList(data.available_equipment || []);
         
         // Populate due equipment
-        populateDueEquipment(data.due_equipment, data.overdue_equipment);
+        populateDueEquipment(data.due_equipment || [], data.overdue_equipment || []);
         
         // Populate lab schedules
-        populateLabSchedules(data.lab_schedules);
+        populateLabSchedules(data.lab_schedules || []);
+        
+        // Populate laboratory reservations
+        populateLabReservations(data.lab_reservations || []);
+        
+        // Populate equipment borrowing
+        populateEquipmentBorrowing(data.equipment_borrowing || []);
     }
 
-    function populateEquipmentList(equipment) {
+    function populateEquipmentList(equipmentCategories) {
         const container = document.getElementById('equipmentList');
         container.innerHTML = '';
         
-        if (equipment.length === 0) {
+        if (equipmentCategories.length === 0) {
             container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">No available equipment found.</div>';
             return;
         }
         
-        equipment.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'bg-green-50 border border-green-200 rounded-lg p-4';
-            card.innerHTML = `
-                <div class="flex items-start justify-between">
+        // Change grid to single column for better category display
+        container.className = 'space-y-4';
+        
+        // Remove any existing event listeners by cloning the container
+        const newContainer = container.cloneNode(false);
+        container.parentNode.replaceChild(newContainer, container);
+        
+        equipmentCategories.forEach((categoryData, index) => {
+            const categoryCard = document.createElement('div');
+            categoryCard.className = 'bg-green-50 border border-green-200 rounded-lg p-4';
+            
+            // Use index-based ID to avoid conflicts with special characters
+            const categoryId = `category-${index}`;
+            
+            categoryCard.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h4 class="font-medium text-gray-900">${item.name}</h4>
-                        <p class="text-sm text-gray-600">${item.category}</p>
-                        ${item.rfid_tag ? `<p class="text-xs text-gray-500 mt-1">RFID: ${item.rfid_tag}</p>` : ''}
+                        <h4 class="font-semibold text-gray-900 text-lg">${categoryData.category}</h4>
+                        <p class="text-sm text-gray-600">Total Available: ${categoryData.total_count} items</p>
                     </div>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Available
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        ${categoryData.total_count} Available
                     </span>
                 </div>
+                <div class="mt-3">
+                    <button class="toggle-details text-sm text-blue-600 hover:text-blue-800 focus:outline-none" 
+                            data-target="${categoryId}">
+                        Show Equipment Details
+                    </button>
+                    <div class="equipment-details hidden mt-2 space-y-1" id="details-${categoryId}">
+                        ${categoryData.equipment_list.map(equipment => `
+                            <div class="text-xs bg-white rounded px-2 py-1 border flex justify-between">
+                                <span><strong>ID ${equipment.id}:</strong> ${equipment.name}</span>
+                                ${equipment.rfid_tag ? `<span class="text-gray-500">RFID: ${equipment.rfid_tag}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
             `;
-            container.appendChild(card);
+            
+            newContainer.appendChild(categoryCard);
+        });
+        
+        // Add single event listener using event delegation
+        newContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('toggle-details')) {
+                e.preventDefault();
+                const targetId = e.target.dataset.target;
+                const detailsDiv = document.getElementById(`details-${targetId}`);
+                
+                if (detailsDiv) {
+                    if (detailsDiv.classList.contains('hidden')) {
+                        detailsDiv.classList.remove('hidden');
+                        e.target.textContent = 'Hide Equipment Details';
+                    } else {
+                        detailsDiv.classList.add('hidden');
+                        e.target.textContent = 'Show Equipment Details';
+                    }
+                }
+            }
         });
     }
 
@@ -486,6 +561,80 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             
             container.appendChild(labCard);
+        });
+    }
+
+    function populateLabReservations(reservations) {
+        const container = document.getElementById('labReservationsList');
+        container.innerHTML = '';
+        
+        if (reservations.length === 0) {
+            container.innerHTML = '<div class="text-center py-8 text-gray-500">No laboratory reservations found for this day.</div>';
+            return;
+        }
+        
+        reservations.forEach(reservation => {
+            const card = document.createElement('div');
+            const statusClass = reservation.status === 'approved' ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200';
+            const statusTextClass = reservation.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+            
+            card.className = `${statusClass} border rounded-lg p-4`;
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="font-medium text-gray-900">${reservation.laboratory_name}</h4>
+                        <p class="text-sm text-gray-600">Reserved by: ${reservation.user_name}</p>
+                        <p class="text-sm text-gray-600">Time: ${reservation.start_time} - ${reservation.end_time}</p>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusTextClass}">
+                        ${reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
+                    </span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <p><strong>Purpose:</strong> ${reservation.purpose}</p>
+                    ${reservation.instructor ? `<p><strong>Instructor:</strong> ${reservation.instructor}</p>` : ''}
+                    ${reservation.subject ? `<p><strong>Subject:</strong> ${reservation.subject}</p>` : ''}
+                    <p><strong>Expected Attendees:</strong> ${reservation.expected_attendees}</p>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function populateEquipmentBorrowing(borrowing) {
+        const container = document.getElementById('equipmentBorrowingList');
+        container.innerHTML = '';
+        
+        if (borrowing.length === 0) {
+            container.innerHTML = '<div class="text-center py-8 text-gray-500">No equipment borrowing found for this day.</div>';
+            return;
+        }
+        
+        borrowing.forEach(request => {
+            const card = document.createElement('div');
+            const statusClass = request.status === 'approved' ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200';
+            const statusTextClass = request.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+            
+            card.className = `${statusClass} border rounded-lg p-4`;
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="font-medium text-gray-900">${request.equipment_name}</h4>
+                        <p class="text-sm text-gray-600">Borrower: ${request.user_name}</p>
+                        <p class="text-sm text-gray-600">Time: ${request.borrow_time} - ${request.return_time}</p>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusTextClass}">
+                        ${request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                    </span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <p><strong>Purpose:</strong> ${request.purpose}</p>
+                    <p><strong>Quantity:</strong> ${request.quantity}</p>
+                    ${request.category ? `<p><strong>Category:</strong> ${request.category}</p>` : ''}
+                    ${request.rfid_tag ? `<p><strong>RFID Tag:</strong> ${request.rfid_tag}</p>` : ''}
+                </div>
+            `;
+            container.appendChild(card);
         });
     }
 

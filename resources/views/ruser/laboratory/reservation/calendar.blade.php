@@ -77,7 +77,7 @@
 </div>
 
 <!-- Event Modal -->
-<div id="eventModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+<div id="eventModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 items-center justify-center hidden z-50">
     <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h3 class="text-lg font-medium text-gray-900" id="modal-title">Reservation Details</h3>

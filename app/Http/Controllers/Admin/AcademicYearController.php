@@ -183,19 +183,28 @@ class AcademicYearController extends Controller
         $selectedDate = \Carbon\Carbon::parse($date);
         $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, etc.
 
-        // Get all available equipment
+        // Get all available equipment grouped by category
         $availableEquipment = \App\Models\Equipment::with('category')
             ->available()
             ->get()
-            ->map(function($equipment) {
+            ->groupBy(function($equipment) {
+                return $equipment->category ? $equipment->category->name : 'Uncategorized';
+            })
+            ->map(function($equipmentGroup, $categoryName) {
                 return [
-                    'id' => $equipment->id,
-                    'name' => $equipment->name,
-                    'category' => $equipment->category ? $equipment->category->name : 'Uncategorized',
-                    'rfid_tag' => $equipment->rfid_tag,
-                    'status' => $equipment->status
+                    'category' => $categoryName,
+                    'total_count' => $equipmentGroup->count(),
+                    'equipment_ids' => $equipmentGroup->pluck('id')->toArray(),
+                    'equipment_list' => $equipmentGroup->map(function($equipment) {
+                        return [
+                            'id' => $equipment->id,
+                            'name' => $equipment->name,
+                            'rfid_tag' => $equipment->rfid_tag
+                        ];
+                    })->toArray()
                 ];
-            });
+            })
+            ->values();
 
         // Get equipment due for return on the selected date
         $dueEquipment = \App\Models\EquipmentRequest::with(['equipment', 'user'])
@@ -286,13 +295,53 @@ class AcademicYearController extends Controller
             return $lab;
         });
 
+        // Get laboratory reservations for the selected date
+        $labReservations = \App\Models\LaboratoryReservation::with(['laboratory', 'user'])
+            ->whereDate('reservation_date', $selectedDate->format('Y-m-d'))
+            ->get()
+            ->map(function($reservation) {
+                return [
+                    'id' => $reservation->id,
+                    'laboratory_name' => $reservation->laboratory->name,
+                    'user_name' => $reservation->user->name,
+                    'start_time' => $reservation->start_time ? \Carbon\Carbon::parse($reservation->start_time)->format('h:i A') : 'N/A',
+                    'end_time' => $reservation->end_time ? \Carbon\Carbon::parse($reservation->end_time)->format('h:i A') : 'N/A',
+                    'purpose' => $reservation->purpose ?? 'N/A',
+                    'instructor' => $reservation->course_code ?? 'N/A', // Using course_code since instructor_name doesn't exist
+                    'subject' => $reservation->subject ?? 'N/A',
+                    'expected_attendees' => $reservation->num_students ?? 0,
+                    'status' => $reservation->status
+                ];
+            });
+
+        // Get equipment borrowing for the selected date
+        $equipmentBorrowing = \App\Models\EquipmentRequest::with(['equipment.category', 'user'])
+            ->whereDate('requested_from', $selectedDate->format('Y-m-d'))
+            ->get()
+            ->map(function($request) {
+                return [
+                    'id' => $request->id,
+                    'equipment_name' => $request->equipment->name,
+                    'user_name' => $request->user->name,
+                    'borrow_time' => $request->requested_from->format('h:i A'),
+                    'return_time' => $request->requested_until->format('h:i A'),
+                    'purpose' => $request->purpose ?? 'N/A',
+                    'quantity' => 1, // Default quantity since model doesn't have this field
+                    'category' => $request->equipment->category ? $request->equipment->category->name : 'Uncategorized',
+                    'rfid_tag' => $request->equipment->rfid_tag ?? 'N/A',
+                    'status' => $request->status
+                ];
+            });
+
         return response()->json([
             'date' => $selectedDate->format('F d, Y'),
             'day_name' => $selectedDate->format('l'),
             'available_equipment' => $availableEquipment,
             'due_equipment' => $dueEquipment,
             'overdue_equipment' => $overdueEquipment,
-            'lab_schedules' => $availableSlots
+            'lab_schedules' => $availableSlots,
+            'lab_reservations' => $labReservations,
+            'equipment_borrowing' => $equipmentBorrowing
         ]);
     }
 } 
