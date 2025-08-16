@@ -47,7 +47,7 @@ class EquipmentService extends BaseService
             'status' => $request->input('status')
         ];
 
-        $searchFields = ['name', 'description', 'rfid_tag', 'category.name'];
+        $searchFields = ['name', 'description', 'barcode', 'rfid_tag', 'category.name'];
         
         $equipment = $this->getFilteredData(
             $request, 
@@ -203,26 +203,53 @@ class EquipmentService extends BaseService
     }
 
     /**
-     * Find equipment by RFID
+     * Find equipment by RFID (legacy support)
      */
     public function findByRfid(string $rfidTag)
     {
-        if (empty($rfidTag)) {
+        return $this->findByIdentificationCode($rfidTag, 'rfid_tag');
+    }
+
+    /**
+     * Find equipment by barcode
+     */
+    public function findByBarcode(string $barcode)
+    {
+        return $this->findByIdentificationCode($barcode, 'barcode');
+    }
+
+    /**
+     * Universal method to find equipment by barcode or RFID (legacy)
+     */
+    public function findByIdentificationCode(string $code, string $field = null)
+    {
+        if (empty($code)) {
             return [
                 'success' => false,
-                'message' => 'RFID tag is required'
+                'message' => 'Identification code is required'
             ];
         }
 
-        $equipment = Equipment::with('category')
-            ->where('rfid_tag', $rfidTag)
-            ->where('status', Equipment::STATUS_AVAILABLE)
-            ->first();
+        $query = Equipment::with('category')
+            ->where('status', Equipment::STATUS_AVAILABLE);
+
+        if ($field) {
+            // Search specific field
+            $query->where($field, $code);
+        } else {
+            // Search barcode first, then RFID as fallback
+            $query->where(function($q) use ($code) {
+                $q->where('barcode', $code)
+                  ->orWhere('rfid_tag', $code);
+            });
+        }
+
+        $equipment = $query->first();
 
         if (!$equipment) {
             return [
                 'success' => false,
-                'message' => 'Available equipment not found with this RFID tag'
+                'message' => 'Available equipment not found with this identification code'
             ];
         }
 
@@ -234,7 +261,11 @@ class EquipmentService extends BaseService
                 'category' => $equipment->category->name ?? 'Uncategorized',
                 'description' => $equipment->description,
                 'status' => $equipment->status,
-                'rfid_tag' => $equipment->rfid_tag
+                'identification_code' => $equipment->getIdentificationCode(),
+                'identification_label' => $equipment->getIdentificationLabel(),
+                // Legacy support
+                'rfid_tag' => $equipment->rfid_tag,
+                'barcode' => $equipment->barcode
             ]
         ];
     }

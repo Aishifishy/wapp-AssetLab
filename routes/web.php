@@ -155,6 +155,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/{equipment}', [AdminEquipmentController::class, 'update'])->name('update');
             Route::delete('/{equipment}', [AdminEquipmentController::class, 'destroy'])->name('destroy');
             Route::patch('/{equipment}/rfid', [AdminEquipmentController::class, 'updateRfid'])->name('update-rfid');
+            Route::patch('/{equipment}/identification', [AdminEquipmentController::class, 'updateIdentificationCode'])->name('update-identification');
 
             // Equipment Request Management Routes
             Route::get('/requests/create', [AdminEquipmentController::class, 'createRequest'])->name('create-request');
@@ -164,8 +165,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/requests/{request}/reject', [AdminEquipmentController::class, 'rejectRequest'])->name('reject-request');
             Route::post('/requests/{request}/return', [AdminEquipmentController::class, 'markAsReturned'])->name('return-request');
             
-            // AJAX route for equipment RFID lookup
+            // AJAX routes for equipment identification lookup
             Route::post('/find-by-rfid', [AdminEquipmentController::class, 'findByRfid'])->name('find-by-rfid');
+            Route::post('/find-by-code', [AdminEquipmentController::class, 'findByCode'])->name('find-by-code');
+            
+            // Barcode export routes
+            Route::get('/barcode/export', [AdminEquipmentController::class, 'barcodeExport'])->name('barcode.export');
+            Route::get('/barcode/all', [AdminEquipmentController::class, 'exportAllBarcodes'])->name('barcode.all');
+            Route::post('/barcode/selected', [AdminEquipmentController::class, 'exportSelectedBarcodes'])->name('barcode.selected');
+            Route::get('/{equipment}/barcode', [AdminEquipmentController::class, 'exportSingleBarcode'])->name('barcode.single');
         });
 
         // User Management

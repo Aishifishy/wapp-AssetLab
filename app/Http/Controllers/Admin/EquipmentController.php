@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\ControllerHelpers;
 use App\Services\EquipmentService;
+use App\Services\BarcodeService;
 use App\Models\Equipment;
 use App\Models\EquipmentRequest;
 use App\Models\EquipmentCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class EquipmentController extends Controller
@@ -16,10 +18,12 @@ class EquipmentController extends Controller
     use ControllerHelpers;
 
     protected $equipmentService;
+    protected $barcodeService;
 
-    public function __construct(EquipmentService $equipmentService)
+    public function __construct(EquipmentService $equipmentService, BarcodeService $barcodeService)
     {
         $this->equipmentService = $equipmentService;
+        $this->barcodeService = $barcodeService;
     }
     public function index(Request $request)
     {
@@ -60,10 +64,16 @@ class EquipmentController extends Controller
         $validated = $this->validateRequest($request, [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'rfid_tag' => 'nullable|string|unique:equipment,rfid_tag',
+            'barcode' => 'nullable|string|unique:equipment,barcode',
+            'rfid_tag' => 'nullable|string|unique:equipment,rfid_tag', // Legacy support
             'category_id' => 'required|exists:equipment_categories,id',
             'status' => 'required|in:available,unavailable',
         ]);
+
+        // Auto-generate barcode if not provided
+        if (empty($validated['barcode'])) {
+            $validated['barcode'] = Equipment::generateBarcode();
+        }
 
         $this->equipmentService->createEquipment($validated);
 
@@ -76,7 +86,8 @@ class EquipmentController extends Controller
         $validated = $this->validateRequest($request, [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'rfid_tag' => 'nullable|string|unique:equipment,rfid_tag,' . $equipment->id,
+            'barcode' => 'nullable|string|unique:equipment,barcode,' . $equipment->id,
+            'rfid_tag' => 'nullable|string|unique:equipment,rfid_tag,' . $equipment->id, // Legacy support
             'category' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
             'status' => 'required|in:' . implode(',', [
@@ -104,16 +115,54 @@ class EquipmentController extends Controller
             ->with('success', $result['message']);
     }
 
-    public function updateRfid(Request $request, Equipment $equipment)
+    public function updateIdentificationCode(Request $request, Equipment $equipment)
     {
         $validated = $request->validate([
-            'rfid_tag' => 'required|string|unique:equipment,rfid_tag,' . $equipment->id,
+            'barcode' => 'nullable|string|unique:equipment,barcode,' . $equipment->id,
+            'rfid_tag' => 'nullable|string|unique:equipment,rfid_tag,' . $equipment->id,
         ]);
 
         $equipment->update($validated);
 
         return redirect()->back()
-            ->with('success', 'RFID tag updated successfully.');
+            ->with('success', 'Identification code updated successfully.');
+    }
+
+    // Legacy method for backward compatibility
+    public function updateRfid(Request $request, Equipment $equipment)
+    {
+        return $this->updateIdentificationCode($request, $equipment);
+    }
+
+    /**
+     * Find equipment by barcode or RFID (legacy)
+     */
+    public function findByCode(Request $request)
+    {
+        $code = $request->input('code');
+        $type = $request->input('type'); // Optional: specify search type
+        
+        if ($type) {
+            switch ($type) {
+                case 'barcode':
+                    $result = $this->equipmentService->findByBarcode($code);
+                    break;
+                case 'rfid':
+                    $result = $this->equipmentService->findByRfid($code);
+                    break;
+                default:
+                    $result = $this->equipmentService->findByIdentificationCode($code);
+            }
+        } else {
+            // Universal search across barcode and RFID
+            $result = $this->equipmentService->findByIdentificationCode($code);
+        }
+
+        if (!$result['success']) {
+            return response()->json(['error' => $result['message']], 404);
+        }
+
+        return response()->json($result['data']);
     }
 
     public function approveRequest(EquipmentRequest $request)
@@ -238,5 +287,96 @@ class EquipmentController extends Controller
         }
 
         return response()->json($result['data']);
+    }
+
+    /**
+     * Export single equipment barcode as PDF
+     */
+    public function exportSingleBarcode(Equipment $equipment, Request $request)
+    {
+        $labelSize = $request->input('label_size', 'standard');
+        
+        try {
+            Log::info('Generating barcode for equipment', [
+                'id' => $equipment->id,
+                'name' => $equipment->name,
+                'barcode' => $equipment->getIdentificationCode(),
+                'label_size' => $labelSize
+            ]);
+            
+            $pdf = $this->barcodeService->generateSingleBarcodePDF($equipment, $labelSize);
+            
+            $filename = 'barcode-' . $equipment->name . '-' . $equipment->getIdentificationCode() . '.pdf';
+            $filename = preg_replace('/[^A-Za-z0-9\-_.]/', '', $filename); // Sanitize filename
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            Log::error('Barcode generation error', [
+                'equipment_id' => $equipment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Error generating barcode: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export selected equipment barcodes as PDF
+     */
+    public function exportSelectedBarcodes(Request $request)
+    {
+        $validated = $request->validate([
+            'equipment_ids' => 'required|array|min:1',
+            'equipment_ids.*' => 'exists:equipment,id',
+            'label_size' => 'nullable|in:small,standard,medium,large'
+        ]);
+
+        $labelSize = $validated['label_size'] ?? 'standard';
+        
+        try {
+            $pdf = $this->barcodeService->generateSelectedEquipmentBarcodesPDF(
+                $validated['equipment_ids'], 
+                $labelSize
+            );
+            
+            $filename = 'equipment-barcodes-' . count($validated['equipment_ids']) . '-items-' . date('Y-m-d') . '.pdf';
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error generating barcodes: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export all equipment barcodes as PDF
+     */
+    public function exportAllBarcodes(Request $request)
+    {
+        $labelSize = $request->input('label_size', 'standard');
+        
+        try {
+            $pdf = $this->barcodeService->generateAllEquipmentBarcodesPDF($labelSize);
+            
+            $filename = 'all-equipment-barcodes-' . date('Y-m-d') . '.pdf';
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error generating barcodes: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show barcode export options page
+     */
+    public function barcodeExport()
+    {
+        $equipment = Equipment::whereNotNull('barcode')
+            ->with('category')
+            ->orderBy('name')
+            ->get();
+            
+        $labelSizes = BarcodeService::getLabelSizes();
+        
+        return view('admin.equipment.barcode.export', compact('equipment', 'labelSizes'));
     }
 }

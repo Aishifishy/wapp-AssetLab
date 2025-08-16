@@ -13,7 +13,8 @@ class Equipment extends Model
     protected $fillable = [
         'name',
         'description',
-        'rfid_tag',
+        'rfid_tag', // Keep for backward compatibility during transition
+        'barcode',
         'category_id',
         'status',
         'current_borrower_id',
@@ -70,5 +71,33 @@ class Equipment extends Model
     public function isUnavailable()
     {
         return $this->status === self::STATUS_UNAVAILABLE;
+    }
+
+    /**
+     * Get the primary identification code (barcode preferred, RFID as fallback)
+     */
+    public function getIdentificationCode()
+    {
+        return $this->barcode ?? $this->rfid_tag;
+    }
+
+    /**
+     * Get identification label for display
+     */
+    public function getIdentificationLabel()
+    {
+        return $this->barcode ? 'Barcode' : 'RFID Tag (Legacy)';
+    }
+
+    /**
+     * Generate a unique barcode for equipment
+     */
+    public static function generateBarcode($prefix = 'EQP')
+    {
+        do {
+            $barcode = $prefix . str_pad(random_int(1, 999999), 6, '0', STR_PAD_LEFT);
+        } while (self::where('barcode', $barcode)->exists());
+        
+        return $barcode;
     }
 } 

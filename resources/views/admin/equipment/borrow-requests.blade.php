@@ -226,20 +226,20 @@
                     <div>
                         <label for="equipment_id" class="block text-sm font-medium text-gray-700">Equipment</label>
                         
-                        <!-- RFID Input for Equipment -->
+                        <!-- Barcode Input for Equipment -->
                         <div class="mb-2">
                             <div class="flex">
                                 <input type="text" 
-                                       id="equipment_rfid_input" 
-                                       placeholder="Scan equipment RFID tag here..."
+                                       id="equipment_barcode_input" 
+                                       placeholder="Scan equipment barcode here..."
                                        class="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                 <button type="button" 
-                                        id="scan_equipment_rfid" 
+                                        id="scan_equipment_barcode" 
                                         class="px-3 py-2 bg-green-600 text-white rounded-r-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Click in the input field and scan the equipment's RFID tag</p>
+                            <p class="text-xs text-gray-500 mt-1">Click in the input field and scan the equipment's barcode</p>
                         </div>
                         
                         <!-- Manual Equipment Selection -->
@@ -465,9 +465,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const userSelect = document.getElementById('user_id');
     const userInfo = document.getElementById('user_info');
     
-    // RFID scanning functionality for equipment
-    const equipmentRfidInput = document.getElementById('equipment_rfid_input');
-    const scanEquipmentRfidBtn = document.getElementById('scan_equipment_rfid');
+    // Barcode scanning functionality for equipment
+    const equipmentBarcodeInput = document.getElementById('equipment_barcode_input');
+    const scanEquipmentBarcodeBtn = document.getElementById('scan_equipment_barcode');
     const equipmentSelect = document.getElementById('equipment_id');
     const equipmentInfo = document.getElementById('equipment_info');
     
@@ -477,10 +477,10 @@ document.addEventListener('DOMContentLoaded', function() {
         userRfidInput.select();
     });
     
-    // Focus on equipment RFID input when scan button is clicked
-    scanEquipmentRfidBtn.addEventListener('click', function() {
-        equipmentRfidInput.focus();
-        equipmentRfidInput.select();
+    // Focus on equipment barcode input when scan button is clicked
+    scanEquipmentBarcodeBtn.addEventListener('click', function() {
+        equipmentBarcodeInput.focus();
+        equipmentBarcodeInput.select();
     });
     
     // Handle user RFID input
@@ -499,18 +499,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Handle equipment RFID input
-    equipmentRfidInput.addEventListener('input', function(e) {
-        const rfidTag = e.target.value.trim();
-        if (rfidTag.length > 0) {
+    // Handle equipment barcode input
+    equipmentBarcodeInput.addEventListener('input', function(e) {
+        const barcode = e.target.value.trim();
+        if (barcode.length > 0) {
             // Clear previous timeout
-            if (equipmentRfidInput.timeout) {
-                clearTimeout(equipmentRfidInput.timeout);
+            if (equipmentBarcodeInput.timeout) {
+                clearTimeout(equipmentBarcodeInput.timeout);
             }
             
             // Set a timeout to search after user stops typing
-            equipmentRfidInput.timeout = setTimeout(() => {
-                searchEquipmentByRfid(rfidTag);
+            equipmentBarcodeInput.timeout = setTimeout(() => {
+                searchEquipmentByBarcode(barcode);
             }, 500);
         }
     });
@@ -555,15 +555,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Search equipment by RFID
-    function searchEquipmentByRfid(rfidTag) {
-        fetch('{{ route("admin.equipment.find-by-rfid") }}', {
+    // Search equipment by barcode
+    function searchEquipmentByBarcode(barcode) {
+        fetch('{{ route("admin.equipment.find-by-code") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ rfid_tag: rfidTag })
+            body: JSON.stringify({ code: barcode, type: 'barcode' })
         })
         .then(response => response.json())
         .then(data => {
@@ -583,12 +583,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 equipmentInfo.className = 'mt-2 p-2 bg-green-50 border border-green-200 rounded';
                 equipmentInfo.classList.remove('hidden');
                 
-                // Clear the RFID input
-                equipmentRfidInput.value = '';
+                // Clear the barcode input
+                equipmentBarcodeInput.value = '';
             }
         })
         .catch(error => {
-            console.error('Error searching equipment by RFID:', error);
+            console.error('Error searching equipment by barcode:', error);
             equipmentInfo.className = 'mt-2 p-2 bg-red-50 border border-red-200 rounded';
             equipmentInfo.innerHTML = '<p class="text-sm text-red-800">Error searching for equipment. Please try again.</p>';
             equipmentInfo.classList.remove('hidden');

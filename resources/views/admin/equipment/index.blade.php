@@ -6,6 +6,12 @@
 <x-responsive-header title="Equipment Management">
     <x-slot name="actions">
         <x-responsive-button 
+            variant="secondary" 
+            href="{{ route('admin.equipment.barcode.export') }}"
+            icon="print">
+            Export Barcodes
+        </x-responsive-button>
+        <x-responsive-button 
             variant="primary" 
             data-action="open-add-modal"
             icon="plus">
@@ -59,7 +65,7 @@
             <x-slot name="header">
                 <th class="table-header">ID Number</th>
                 <th class="table-header">Equipment Type</th>
-                <th class="table-header">RFID Tag</th>
+                <th class="table-header">Barcode</th>
                 <th class="table-header">Status</th>
                 <th class="table-header">Location</th>
                 <th class="table-header">Current Borrower</th>
@@ -76,7 +82,7 @@
                     {{ $item->category->name }}
                 </td>
                 <td class="table-cell">
-                    {{ $item->rfid_tag ?? 'Not Set' }}
+                    {{ $item->barcode ?? ($item->rfid_tag ? $item->rfid_tag . ' (Legacy)' : 'Not Set') }}
                 </td>
                 <td class="table-cell">
                     <x-status-badge :status="$item->status" type="equipment" />
@@ -89,6 +95,15 @@
                 </td>
                 <td class="table-cell text-right">
                     <x-responsive-action-group>
+                        @if($item->barcode)
+                            <x-responsive-button 
+                                variant="info" 
+                                size="sm" 
+                                href="{{ route('admin.equipment.barcode.single', $item) }}?label_size=standard"
+                                target="_blank">
+                                <i class="fas fa-print mr-1"></i> Label
+                            </x-responsive-button>
+                        @endif
                         <x-responsive-button 
                             variant="secondary" 
                             size="sm" 
@@ -145,9 +160,26 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="rfid_tag">RFID Tag</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="barcode">Barcode</label>
+                    <div class="flex rounded-md shadow-sm">
+                        <input type="text" name="barcode" id="barcode"
+                            class="flex-1 shadow appearance-none border rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            placeholder="Leave empty to auto-generate">
+                        <button type="button" onclick="generateBarcode('barcode')"
+                            class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r bg-gray-50 text-gray-500 text-sm hover:bg-gray-100">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="rfid_tag">RFID Tag (Legacy - Optional)</label>
                     <input type="text" name="rfid_tag" id="rfid_tag"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        placeholder="RFID tag (optional)">
+                    <p class="text-xs text-amber-600 mt-1">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        RFID is legacy. Barcode is recommended.
+                    </p>
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="location">Location</label>
@@ -186,9 +218,25 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_rfid_tag">RFID Tag</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_barcode">Barcode</label>
+                    <div class="flex rounded-md shadow-sm">
+                        <input type="text" name="barcode" id="edit_barcode"
+                            class="flex-1 shadow appearance-none border rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <button type="button" onclick="generateBarcode('edit_barcode')"
+                            class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r bg-gray-50 text-gray-500 text-sm hover:bg-gray-100">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_rfid_tag">RFID Tag (Legacy - Optional)</label>
                     <input type="text" name="rfid_tag" id="edit_rfid_tag"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        placeholder="RFID tag (optional)">
+                    <p class="text-xs text-amber-600 mt-1">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        RFID is legacy. Barcode is recommended.
+                    </p>
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_location">Location</label>
@@ -211,5 +259,12 @@
         </div>
     </div>
 </div>
+
+<script>
+function generateBarcode(inputId) {
+    const barcode = 'EQP' + String(Math.floor(Math.random() * 900000) + 100000);
+    document.getElementById(inputId).value = barcode;
+}
+</script>
 
 @endsection

@@ -49,13 +49,40 @@
                         </div>
 
                         <div>
-                            <label for="rfid_tag" class="block text-sm font-medium text-gray-700">RFID Tag</label>
+                            <label for="barcode" class="block text-sm font-medium text-gray-700">Barcode</label>
+                            <div class="mt-1 flex rounded-md shadow-sm">
+                                <input type="text" 
+                                       id="barcode" 
+                                       name="barcode" 
+                                       value="{{ old('barcode') }}"
+                                       class="flex-1 block w-full rounded-l-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                       placeholder="Leave empty to auto-generate">
+                                <button type="button" 
+                                        id="generate_barcode"
+                                        class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 text-sm hover:bg-gray-100">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <x-form-error field="barcode" />
+                            <p class="mt-1 text-sm text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Barcode will be auto-generated if left empty
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="rfid_tag" class="block text-sm font-medium text-gray-700">RFID Tag (Legacy - Optional)</label>
                             <input type="text" 
                                    id="rfid_tag" 
                                    name="rfid_tag" 
                                    value="{{ old('rfid_tag') }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                   placeholder="RFID tag number">                            <x-form-error field="rfid_tag" />
+                                   placeholder="RFID tag number (optional)">
+                            <x-form-error field="rfid_tag" />
+                            <p class="mt-1 text-sm text-amber-600">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                RFID is legacy. Barcode is recommended for cost efficiency.
+                            </p>
                         </div>
                     </div>
 
@@ -97,4 +124,18 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const generateBarcodeBtn = document.getElementById('generate_barcode');
+    
+    function generateBarcode() {
+        return 'EQP' + String(Math.floor(Math.random() * 900000) + 100000);
+    }
+    
+    generateBarcodeBtn.addEventListener('click', function() {
+        document.getElementById('barcode').value = generateBarcode();
+    });
+});
+</script>
 @endsection 

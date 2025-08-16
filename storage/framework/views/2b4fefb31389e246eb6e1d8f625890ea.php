@@ -50,6 +50,23 @@
             .mobile-admin-header {
                 display: none;
             }
+            /* Create balanced spacing - remove sidebar right padding and restore equal content padding */
+            .admin-sidebar {
+                padding-right: 0 !important;
+                width: 280px !important;
+                flex-shrink: 0 !important;
+            }
+            .admin-content {
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+            }
+            .admin-content .p-4 {
+                padding-left: 1.5rem !important; /* Match Bootstrap p-4 spacing (top, right, bottom) */
+            }
+            /* Remove any flexbox gaps */
+            .d-flex {
+                gap: 0 !important;
+            }
         }
         .sidebar-overlay {
             display: none;
@@ -70,7 +87,7 @@
 </head>
 <body class="bg-light">
     <!-- Mobile Header -->
-    <div class="mobile-admin-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+    <div class="mobile-admin-header bg-dark text-white p-3 d-flex justify-content-between align-items-center d-md-none">
         <button class="btn btn-outline-light mobile-menu-toggle" type="button">
             <i class="fas fa-bars"></i>
         </button>
@@ -212,7 +229,8 @@
         </div>
 
         <!-- Main content -->
-        <div class="flex-grow-1 p-4 admin-content" style="margin-left: 280px;">
+        <div class="flex-grow-1 admin-content">
+            <div class="p-4">
             <!-- Page Title -->
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
                 <h1 class="h2 mb-2 mb-md-0"><?php echo $__env->yieldContent('page-title', 'Dashboard'); ?></h1>
@@ -243,6 +261,7 @@
 
             <!-- Main Content -->
             <?php echo $__env->yieldContent('content'); ?>
+            </div>
         </div>
     </div>
 
