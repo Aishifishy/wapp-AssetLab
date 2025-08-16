@@ -17,7 +17,7 @@
                 <h3 class="text-lg font-medium text-gray-900">Schedule Details</h3>
             </div>
         </div>
-        <div class="p-6">            <form action="{{ route('admin.comlab.schedule.store') }}" method="POST">
+        <div class="p-6">            <form action="{{ route('admin.comlab.schedule.store-generic') }}" method="POST">
                 @csrf
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

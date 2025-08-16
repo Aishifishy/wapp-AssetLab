@@ -122,6 +122,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Laboratory Calendar Management
         Route::prefix('comlab')->name('comlab.')->group(function () {
             Route::get('/calendar', [ComputerLabCalendarController::class, 'index'])->name('calendar');
+            Route::get('/schedule/create', [ComputerLabCalendarController::class, 'create'])->name('schedule.create-generic');
+            Route::post('/schedule', [ComputerLabCalendarController::class, 'store'])->name('schedule.store-generic');
             Route::get('/{laboratory}/schedule/create', [ComputerLabCalendarController::class, 'create'])->name('schedule.create');
             Route::post('/{laboratory}/schedule', [ComputerLabCalendarController::class, 'store'])->name('schedule.store');
             Route::get('/{laboratory}/schedule/{schedule}/edit', [ComputerLabCalendarController::class, 'edit'])->name('schedule.edit');

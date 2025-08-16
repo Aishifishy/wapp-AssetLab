@@ -1,1 +1,0 @@
-<?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/users/reset-password.blade.php ENDPATH**/ ?>

@@ -46,12 +46,26 @@ class ComputerLabCalendarController extends Controller
         $schedules = $schedulesQuery->get()->groupBy('laboratory_id');
 
         return view('admin.comlab.calendar', compact('laboratories', 'currentTerm', 'schedules', 'selectedLaboratory'));
-    }/**
+    }
+
+    /**
      * Show the form for creating a new schedule.
      */
-    public function create()
+    public function create(ComputerLaboratory $laboratory = null)
     {
-        // Get all laboratories for the dropdown
+        // If laboratory is provided (from route parameter), show the laboratory-specific form
+        if ($laboratory) {
+            $currentTerm = AcademicTerm::where('is_current', true)->first();
+            
+            if (!$currentTerm) {
+                return redirect()->route('admin.academic.index')
+                    ->with('error', 'Please set a current academic term first.');
+            }
+
+            return view('admin.comlab.schedule.create', compact('laboratory', 'currentTerm'));
+        }
+
+        // Otherwise, show the generic form with laboratory selection
         $laboratories = ComputerLaboratory::orderBy('building')
             ->orderBy('room_number')
             ->get();
@@ -65,16 +79,16 @@ class ComputerLabCalendarController extends Controller
     }    /**
      * Store a newly created schedule in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, ComputerLaboratory $laboratory = null)
     {
         $validated = $request->validate([
-            'laboratory_id' => 'required|exists:computer_laboratories,id',
+            'laboratory_id' => $laboratory ? 'nullable' : 'required|exists:computer_laboratories,id',
             'academic_term_id' => 'required|exists:academic_terms,id',
             'subject_code' => 'nullable|string|max:20',
             'subject_name' => 'required|string|max:100',
             'instructor_name' => 'required|string|max:100',
             'section' => 'required|string|max:20',
-            'day_of_week' => 'required|integer|min:1|max:6',            'start_time' => [
+            'day_of_week' => 'required|integer|min:0|max:6',            'start_time' => [
                 'required',
                 'date_format:H:i',
             ],
@@ -85,8 +99,23 @@ class ComputerLabCalendarController extends Controller
             ],
             'notes' => 'nullable|string|max:500',        ]);
 
+        // Use laboratory from route parameter if available, otherwise from form data
+        $targetLaboratory = $laboratory ?: ComputerLaboratory::findOrFail($validated['laboratory_id']);
+        $laboratoryId = $targetLaboratory->id;
+
+        // For laboratory-specific routes, use current academic term if not provided
+        if ($laboratory && !isset($validated['academic_term_id'])) {
+            $currentTerm = AcademicTerm::where('is_current', true)->first();
+            if (!$currentTerm) {
+                return back()->withInput()->withErrors([
+                    'academic_term_id' => 'No current academic term is set.'
+                ]);
+            }
+            $validated['academic_term_id'] = $currentTerm->id;
+        }
+
         // Check for schedule conflicts using centralized logic
-        $conflictingSchedule = LaboratorySchedule::where('laboratory_id', $validated['laboratory_id'])
+        $conflictingSchedule = LaboratorySchedule::where('laboratory_id', $laboratoryId)
             ->where('academic_term_id', $validated['academic_term_id'])
             ->where('day_of_week', $validated['day_of_week']);
             
@@ -101,12 +130,18 @@ class ComputerLabCalendarController extends Controller
                 'start_time' => 'The selected time slot conflicts with an existing schedule.'
             ]);
         }
-
-        $laboratory = ComputerLaboratory::findOrFail($validated['laboratory_id']);
         
-        $schedule = $laboratory->schedules()->create([
-            ...$validated,
-            'type' => 'regular'
+        $schedule = $targetLaboratory->schedules()->create([
+            'academic_term_id' => $validated['academic_term_id'],
+            'subject_code' => $validated['subject_code'],
+            'subject_name' => $validated['subject_name'],
+            'instructor_name' => $validated['instructor_name'],
+            'section' => $validated['section'],
+            'day_of_week' => $validated['day_of_week'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'notes' => $validated['notes'],
+            'type' => $validated['type'] ?? 'regular'
         ]);
 
         return redirect()->route('admin.comlab.calendar')
