@@ -6,26 +6,26 @@
 @section('content')
 <div class="row">
     <!-- Equipment Overview -->
-    <div class="col-md-6 mb-4">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="bg-white rounded-lg shadow p-6">
             <div class="d-flex justify-content-between align-items-center mb-6">
                 <h3 class="text-lg font-semibold">Equipment Status</h3>
                 <i class="fas fa-tools text-blue-500 text-2xl"></i>
             </div>
-            <div class="row g-4">
-                <div class="col-4">
+            <div class="row g-2">
+                <div class="col-12 col-sm-4">
                     <div class="p-3 bg-blue-50 rounded-lg text-center">
                         <div class="text-gray-600 text-sm">Total Equipment</div>
                         <div class="font-bold text-blue-600 text-xl mt-2">{{ $totalEquipment ?? 0 }}</div>
                     </div>
                 </div>
-                <div class="col-4">
+                <div class="col-12 col-sm-4">
                     <div class="p-3 bg-yellow-50 rounded-lg text-center">
                         <div class="text-gray-600 text-sm">Currently Borrowed</div>
                         <div class="font-bold text-yellow-600 text-xl mt-2">{{ $borrowedEquipment ?? 0 }}</div>
                     </div>
                 </div>
-                <div class="col-4">
+                <div class="col-12 col-sm-4">
                     <div class="p-3 bg-red-50 rounded-lg text-center">
                         <div class="text-gray-600 text-sm">Pending Requests</div>
                         <div class="font-bold text-red-600 text-xl mt-2">{{ $pendingRequests ?? 0 }}</div>
@@ -39,26 +39,26 @@
     </div>
 
     <!-- Laboratory Overview -->
-    <div class="col-md-6 mb-4">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="bg-white rounded-lg shadow p-6">
             <div class="d-flex justify-content-between align-items-center mb-6">
                 <h3 class="text-lg font-semibold">Laboratory Status</h3>
                 <i class="fas fa-desktop text-green-500 text-2xl"></i>
             </div>
-                        <div class="row g-4">
-                <div class="col-4">
+                        <div class="row g-2">
+                <div class="col-12 col-sm-4">
                     <div class="p-3 bg-green-50 rounded-lg text-center">
                         <div class="text-gray-600 text-sm">Today's Bookings</div>
                         <div class="font-bold text-green-600 text-xl mt-2">{{ $todaysBookings ?? 0 }}</div>
                     </div>
                 </div>
-                <div class="col-4">
+                <div class="col-12 col-sm-4">
                     <div class="p-3 bg-orange-50 rounded-lg text-center">
                         <div class="text-gray-600 text-sm">Pending Reservation</div>
                         <div class="font-bold text-orange-600 text-xl mt-2">{{ $pendingReservations ?? 0 }}</div>
                     </div>
                 </div>
-                <div class="col-4">
+                <div class="col-12 col-sm-4">
                     <div class="p-3 bg-purple-50 rounded-lg text-center">
                         <div class="text-gray-600 text-sm">Active Classes</div>
                         <div class="font-bold text-purple-600 text-xl mt-2">{{ $activeClasses ?? 0 }}</div>

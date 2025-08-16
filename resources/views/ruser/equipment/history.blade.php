@@ -2,9 +2,9 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-3 sm:space-y-0">
         <h1 class="text-2xl font-bold text-gray-900">Equipment Borrowing History</h1>
-        <a href="{{ route('ruser.equipment.borrow') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+        <a href="{{ route('ruser.equipment.borrow') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-center">
             Borrow Equipment
         </a>
     </div>

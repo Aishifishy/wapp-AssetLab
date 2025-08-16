@@ -1,4 +1,7 @@
-@extends('layouts.ruser')
+@extends('l            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="truncate">Calendar View</span>ts.ruser')
 
 @section('title', 'My Laboratory Reservations')
 @section('header', 'My Laboratory Reservations')
@@ -6,9 +9,9 @@
 @section('content')
 <div class="space-y-6">
     <!-- Action Buttons -->
-    <div class="flex flex-wrap gap-4">
+    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
         <a href="{{ route('ruser.laboratory.reservations.calendar') }}" 
-           class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center">
+           class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center sm:justify-start">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
@@ -16,18 +19,19 @@
         </a>
         
         <a href="{{ route('ruser.laboratory.reservations.quick') }}" 
-           class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+           class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center sm:justify-start">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Quick Reserve
+            <span class="truncate">Quick Reserve</span>
         </a>
         
         <a href="{{ route('ruser.laboratory.index') }}" 
-           class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center ml-auto">
-            <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+           class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center sm:justify-start sm:ml-auto">
+            <svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
+            <span class="truncate">Browse Laboratories</span>
             Make New Reservation
         </a>
     </div>
@@ -83,11 +87,13 @@
                                     </td>                                    <td class="px-6 py-4 whitespace-nowrap">
                                         <x-status-badge status="pending" type="reservation" />
                                     </td>                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900 mr-4">View</a>
-                                        <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST" class="inline">
-                                            @csrf
-                                            <button type="submit" class="text-red-600 hover:text-red-900 confirm-action" data-confirm-message="Are you sure you want to cancel this reservation?">Cancel</button>
-                                        </form>
+                                        <div class="flex flex-col sm:flex-row sm:justify-end space-y-1 sm:space-y-0 sm:space-x-4">
+                                            <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900 text-center sm:text-left">View</a>
+                                            <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="text-red-600 hover:text-red-900 confirm-action w-full sm:w-auto" data-confirm-message="Are you sure you want to cancel this reservation?">Cancel</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -149,18 +155,20 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900 mr-4">View</a>
-                                        @php
-                                            $canCancel = \Carbon\Carbon::parse($reservation->reservation_date . ' ' . $reservation->start_time)->diffInHours(now()) >= 24;
-                                        @endphp
-                                          @if($canCancel)
-                                            <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-red-600 hover:text-red-900 confirm-action" data-confirm-message="Are you sure you want to cancel this reservation?">Cancel</button>
-                                            </form>
-                                        @else
-                                            <span class="text-gray-400" title="Reservations cannot be cancelled within 24 hours of start time">Cannot Cancel</span>
-                                        @endif
+                                        <div class="flex flex-col sm:flex-row sm:justify-end space-y-1 sm:space-y-0 sm:space-x-4">
+                                            <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900 text-center sm:text-left">View</a>
+                                            @php
+                                                $canCancel = \Carbon\Carbon::parse($reservation->reservation_date . ' ' . $reservation->start_time)->diffInHours(now()) >= 24;
+                                            @endphp
+                                              @if($canCancel)
+                                                <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-red-600 hover:text-red-900 confirm-action w-full sm:w-auto" data-confirm-message="Are you sure you want to cancel this reservation?">Cancel</button>
+                                                </form>
+                                            @else
+                                                <span class="text-gray-400 text-center sm:text-left" title="Reservations cannot be cancelled within 24 hours of start time">Cannot Cancel</span>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -226,7 +234,9 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900">View</a>
+                                        <div class="flex justify-center sm:justify-end">
+                                            <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900">View</a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

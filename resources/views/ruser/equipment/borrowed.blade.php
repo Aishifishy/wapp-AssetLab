@@ -2,9 +2,9 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-3 sm:space-y-0">
         <h1 class="text-2xl font-bold text-gray-900">Currently Borrowed Equipment</h1>
-        <a href="{{ route('ruser.equipment.borrow') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+        <a href="{{ route('ruser.equipment.borrow') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-center">
             Borrow More Equipment
         </a>
     </div>
@@ -13,11 +13,11 @@
         <div class="grid gap-6">
             @foreach($borrowedRequests as $request)
                 <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex justify-between items-start">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start space-y-4 lg:space-y-0">
                         <div class="flex-1">
                             <h3 class="text-lg font-semibold text-gray-900">{{ $request->equipment->name }}</h3>
                             <p class="text-gray-600 mt-1">{{ $request->equipment->description }}</p>
-                            <div class="mt-3 grid grid-cols-2 gap-4 text-sm">
+                            <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <span class="font-medium text-gray-700">Borrowed From:</span>
                                     <p class="text-gray-600">{{ $request->requested_from->format('M d, Y g:i A') }}</p>
@@ -26,7 +26,7 @@
                                     <span class="font-medium text-gray-700">Return By:</span>
                                     <p class="text-gray-600">{{ $request->requested_until->format('M d, Y g:i A') }}</p>
                                 </div>
-                                <div>
+                                <div class="sm:col-span-2">
                                     <span class="font-medium text-gray-700">Purpose:</span>
                                     <p class="text-gray-600">{{ $request->purpose }}</p>
                                 </div>

@@ -39,7 +39,7 @@
                     </select>
                 </div>
                 <div class="flex items-end">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                    <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
                         Apply Filters
                     </button>
                 </div>

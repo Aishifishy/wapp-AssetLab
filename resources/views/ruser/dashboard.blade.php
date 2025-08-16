@@ -92,7 +92,7 @@
     </div>    <!-- Recent Activities -->
     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
         <div class="px-4 py-3 border-b border-gray-200">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                 <h2 class="text-lg font-medium text-gray-900 flex items-center">
                     <svg class="h-5 w-5 mr-2 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -101,17 +101,17 @@
                 </h2>
                 
                 <!-- Activity Filter Buttons -->
-                <div class="inline-flex rounded-md shadow-sm">
+                <div class="inline-flex rounded-md shadow-sm w-full sm:w-auto">
                     <a href="{{ route('dashboard', ['activity_type' => 'all']) }}" 
-                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border border-gray-300 rounded-l-md">
+                       class="px-4 py-2 text-sm font-medium flex-1 sm:flex-none text-center {{ $activityType == 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border border-gray-300 rounded-l-md">
                         All
                     </a>
                     <a href="{{ route('dashboard', ['activity_type' => 'equipment']) }}" 
-                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'equipment' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300">
+                       class="px-4 py-2 text-sm font-medium flex-1 sm:flex-none text-center {{ $activityType == 'equipment' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300">
                         Equipment
                     </a>
                     <a href="{{ route('dashboard', ['activity_type' => 'laboratory']) }}" 
-                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'laboratory' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300 rounded-r-md">
+                       class="px-4 py-2 text-sm font-medium flex-1 sm:flex-none text-center {{ $activityType == 'laboratory' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300 rounded-r-md">
                         Laboratory
                     </a>
                 </div>

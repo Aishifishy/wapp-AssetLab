@@ -1,116 +1,125 @@
 @extends('layouts.admin')
 
 @section('title', 'Equipment')
-@section('header', 'Equipment Management')
 
 @section('content')
+<x-responsive-header title="Equipment Management">
+    <x-slot name="actions">
+        <x-responsive-button 
+            variant="primary" 
+            data-action="open-add-modal"
+            icon="plus">
+            Add Equipment
+        </x-responsive-button>
+    </x-slot>
+</x-responsive-header>
+
 <div class="space-y-6">
     <!-- Equipment Overview -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white shadow-sm rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Available Equipment</h3>
+        <x-responsive-card title="Available Equipment" class="border-l-4 border-green-500">
             <div class="text-3xl font-bold text-green-600">
                 {{ $equipment->where('status', 'available')->count() }}
             </div>
-        </div>
-        <div class="bg-white shadow-sm rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Borrowed Equipment</h3>
+        </x-responsive-card>
+        
+        <x-responsive-card title="Borrowed Equipment" class="border-l-4 border-yellow-500">
             <div class="text-3xl font-bold text-yellow-600">
                 {{ $equipment->where('status', 'borrowed')->count() }}
             </div>
-        </div>
-        <div class="bg-white shadow-sm rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Unavailable Equipment</h3>
+        </x-responsive-card>
+        
+        <x-responsive-card title="Unavailable Equipment" class="border-l-4 border-red-500">
             <div class="text-3xl font-bold text-red-600">
                 {{ $equipment->where('status', 'unavailable')->count() }}
             </div>
-        </div>
+        </x-responsive-card>
     </div>
 
     <!-- Equipment List -->
-    <div class="bg-white shadow-sm rounded-lg">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold text-gray-800">Equipment List</h2>
-                <button data-action="open-add-modal" class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
-                    Add Equipment
-                </button>
-            </div>
-
+    <x-responsive-card title="Equipment List">
+        <x-slot name="actions">
             <!-- Filters -->
-            <div class="mb-6">
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <input type="text" id="search" placeholder="Search equipment..." 
-                            class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                    </div>                    <select id="status-filter" class="px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">All Status</option>
-                        <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Available</option>
-                        <option value="borrowed" {{ request('status') === 'borrowed' ? 'selected' : '' }}>Borrowed</option>
-                        <option value="unavailable" {{ request('status') === 'unavailable' ? 'selected' : '' }}>Unavailable</option>
-                    </select>
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <div class="flex-1">
+                    <input type="text" id="search" placeholder="Search equipment..." 
+                        value="{{ request('search') }}"
+                        class="input-primary">
                 </div>
+                <select id="status-filter" class="input-primary">
+                    <option value="">All Status</option>
+                    <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Available</option>
+                    <option value="borrowed" {{ request('status') === 'borrowed' ? 'selected' : '' }}>Borrowed</option>
+                    <option value="unavailable" {{ request('status') === 'unavailable' ? 'selected' : '' }}>Unavailable</option>
+                </select>
             </div>
+        </x-slot>
 
-            <!-- Equipment Table -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Number</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipment Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RFID Tag</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Borrower</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($equipment as $item)
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $item->name }}</div>
-                                <div class="text-sm text-gray-500">{{ Str::limit($item->description, 50) }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $item->category->name }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $item->rfid_tag ?? 'Not Set' }}
-                            </td>                            <td class="px-6 py-4 whitespace-nowrap">
-                                <x-status-badge :status="$item->status" type="equipment" />
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $item->location ?? 'Not Set' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $item->currentBorrower ? $item->currentBorrower->name : 'None' }}
-                            </td>                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button data-action="edit-equipment" data-equipment-id="{{ $item->id }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-                                <button data-action="delete-equipment" data-equipment-id="{{ $item->id }}" class="text-red-600 hover:text-red-900">Delete</button>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                                No equipment found
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+        <x-responsive-table>
+            <x-slot name="header">
+                <th class="table-header">ID Number</th>
+                <th class="table-header">Equipment Type</th>
+                <th class="table-header">RFID Tag</th>
+                <th class="table-header">Status</th>
+                <th class="table-header">Location</th>
+                <th class="table-header">Current Borrower</th>
+                <th class="table-header text-right">Actions</th>
+            </x-slot>
 
-            <!-- Pagination -->
-            <div class="mt-6">
-                {{ $equipment->links() }}
-            </div>
+            @forelse($equipment as $item)
+            <tr class="table-row">
+                <td class="table-cell">
+                    <div class="text-sm font-medium text-gray-900">{{ $item->name }}</div>
+                    <div class="text-sm text-gray-500">{{ Str::limit($item->description, 50) }}</div>
+                </td>
+                <td class="table-cell">
+                    {{ $item->category->name }}
+                </td>
+                <td class="table-cell">
+                    {{ $item->rfid_tag ?? 'Not Set' }}
+                </td>
+                <td class="table-cell">
+                    <x-status-badge :status="$item->status" type="equipment" />
+                </td>
+                <td class="table-cell">
+                    {{ $item->location ?? 'Not Set' }}
+                </td>
+                <td class="table-cell">
+                    {{ $item->currentBorrower ? $item->currentBorrower->name : 'None' }}
+                </td>
+                <td class="table-cell text-right">
+                    <x-responsive-action-group>
+                        <x-responsive-button 
+                            variant="secondary" 
+                            size="sm" 
+                            data-action="edit-equipment" 
+                            data-equipment-id="{{ $item->id }}">
+                            Edit
+                        </x-responsive-button>
+                        <x-responsive-button 
+                            variant="danger" 
+                            size="sm" 
+                            data-action="delete-equipment" 
+                            data-equipment-id="{{ $item->id }}">
+                            Delete
+                        </x-responsive-button>
+                    </x-responsive-action-group>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="7" class="table-cell text-center text-gray-500">
+                    No equipment found
+                </td>
+            </tr>
+            @endforelse
+        </x-responsive-table>
+
+        <!-- Pagination -->
+        <div class="mt-6">
+            {{ $equipment->links() }}
         </div>
-    </div>
+    </x-responsive-card>
 </div>
 
 <!-- Add Equipment Modal -->

@@ -2,6 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===================================
+   RESPONSIVE UTILITIES
+   =================================== */
+
+@layer components {
+    /* Input styles */
+    .input-primary {
+        @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500;
+    }
+
+    /* Responsive Flex Utilities */
+    .flex-responsive {
+        @apply flex flex-col sm:flex-row;
+    }
+
+    .flex-responsive-center {
+        @apply flex flex-col sm:flex-row sm:items-center;
+    }
+
+    .flex-responsive-between {
+        @apply flex flex-col sm:flex-row sm:justify-between sm:items-center;
+    }
+
+    .flex-responsive-end {
+        @apply flex flex-col sm:flex-row sm:justify-end;
+    }
+
+    /* Responsive Spacing */
+    .space-responsive {
+        @apply space-y-3 sm:space-y-0 sm:space-x-3;
+    }
+
+    .space-responsive-lg {
+        @apply space-y-4 sm:space-y-0 sm:space-x-4;
+    }
+
+    .space-responsive-sm {
+        @apply space-y-2 sm:space-y-0 sm:space-x-2;
+    }
+
+    /* Button Styles */
+    .btn-base {
+        @apply inline-flex items-center justify-center font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-md shadow-sm;
+    }
+
+    .btn-sm {
+        @apply px-3 py-1.5 text-xs;
+    }
+
+    .btn-md {
+        @apply px-4 py-2 text-sm;
+    }
+
+    .btn-lg {
+        @apply px-6 py-3 text-base;
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        @apply overflow-x-auto;
+    }
+
+    .table-base {
+        @apply min-w-full divide-y divide-gray-200;
+    }
+
+    .table-header {
+        @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+    }
+
+    .table-body {
+        @apply bg-white divide-y divide-gray-200;
+    }
+
+    .table-row {
+        @apply hover:bg-gray-50;
+    }
+
+    .table-cell {
+        @apply px-6 py-4 whitespace-nowrap;
+    }
+}
+
 /* Alpine.js utility to hide elements before the JS loads */
 [x-cloak] {
     display: none !important;

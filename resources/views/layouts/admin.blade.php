@@ -15,17 +15,89 @@
     <!-- Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/common-utilities.js'])
     @stack('styles')
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <style>
+        /* Mobile responsive styles for admin */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: 1050;
+                width: 280px;
+            }
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+            .admin-content {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+            .mobile-admin-header {
+                display: block;
+            }
+        }
+        @media (min-width: 769px) {
+            .mobile-admin-header {
+                display: none;
+            }
+        }
+        .sidebar-overlay {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .sidebar-overlay.show {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+            }
+        }
+    </style>
 </head>
 <body class="bg-light">
+    <!-- Mobile Header -->
+    <div class="mobile-admin-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+        <button class="btn btn-outline-light mobile-menu-toggle" type="button">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h5 class="mb-0">ResourEase Admin</h5>
+        <div class="dropdown">
+            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-user"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="dropdown-item">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <div class="d-flex">
         <!-- Sidebar -->
-        <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark admin-sidebar">
+        <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark admin-sidebar" id="adminSidebar">
             <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                 <i class="fas fa-laptop-code me-2"></i>
                 <span class="fs-4">ResourEase</span>
@@ -140,10 +212,10 @@
         </div>
 
         <!-- Main content -->
-        <div class="flex-grow-1 p-4">
+        <div class="flex-grow-1 p-4 admin-content" style="margin-left: 280px;">
             <!-- Page Title -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h2">@yield('page-title', 'Dashboard')</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                <h1 class="h2 mb-2 mb-md-0">@yield('page-title', 'Dashboard')</h1>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
@@ -174,9 +246,27 @@
 
     @stack('scripts')
     <script>
-        // Keep equipment submenu open when on equipment pages
         document.addEventListener('DOMContentLoaded', function() {
-            // Get the current URL path
+            // Mobile menu toggle
+            const mobileToggle = document.querySelector('.mobile-menu-toggle');
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                });
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                });
+            }
+
+            // Keep equipment submenu open when on equipment pages
             const currentPath = window.location.pathname;
             
             // Check if we're on an equipment-related page
@@ -192,6 +282,17 @@
             submenuLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.stopPropagation(); // Prevent event from bubbling up
+                });
+            });
+
+            // Close mobile menu when clicking nav links on mobile
+            const navLinks = document.querySelectorAll('.admin-sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('show');
+                        overlay.classList.remove('show');
+                    }
                 });
             });
         });
