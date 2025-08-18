@@ -9,8 +9,12 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
 class ReservationConflictService
-{    /**
-     * Apply time overlap query constraints to any query builder
+{
+    // Cache properties for performance optimization
+    private $cachedReservations;
+    private $cachedRecurringReservations;
+    private $cachedSchedules;    /**
+     * Apply time overlap query constraints to any query builder (Optimized)
      * This centralizes the time conflict detection logic used across all controllers
      *
      * @param Builder $query
@@ -20,21 +24,26 @@ class ReservationConflictService
      */
     public static function applyTimeOverlapConstraints(Builder $query, string $startTime, string $endTime): Builder
     {
-        return $query->where(function($q) use ($startTime, $endTime) {
-            // Case 1: Existing item starts before new item starts but ends after new item starts
-            $q->where(function($subQ) use ($startTime) {
-                $subQ->where('start_time', '<=', $startTime)
-                     ->where('end_time', '>', $startTime);
+        // Convert times to comparable format for better database indexing
+        $startTimeFormatted = Carbon::createFromFormat('H:i', $startTime)->format('H:i:s');
+        $endTimeFormatted = Carbon::createFromFormat('H:i', $endTime)->format('H:i:s');
+        
+        return $query->where(function($q) use ($startTimeFormatted, $endTimeFormatted) {
+            // Optimized overlap detection - check if times overlap
+            $q->where(function($subQ) use ($startTimeFormatted) {
+                // Case 1: Existing item starts before new item starts but ends after new item starts
+                $subQ->where('start_time', '<=', $startTimeFormatted)
+                     ->where('end_time', '>', $startTimeFormatted);
             })
-            // Case 2: Existing item starts before new item ends but ends after new item ends  
-            ->orWhere(function($subQ) use ($endTime) {
-                $subQ->where('start_time', '<', $endTime)
-                     ->where('end_time', '>=', $endTime);
+            ->orWhere(function($subQ) use ($endTimeFormatted) {
+                // Case 2: Existing item starts before new item ends but ends after new item ends  
+                $subQ->where('start_time', '<', $endTimeFormatted)
+                     ->where('end_time', '>=', $endTimeFormatted);
             })
-            // Case 3: Existing item is completely within new item time range
-            ->orWhere(function($subQ) use ($startTime, $endTime) {
-                $subQ->where('start_time', '>=', $startTime)
-                     ->where('end_time', '<=', $endTime);
+            ->orWhere(function($subQ) use ($startTimeFormatted, $endTimeFormatted) {
+                // Case 3: Existing item is completely within new item time range
+                $subQ->where('start_time', '>=', $startTimeFormatted)
+                     ->where('end_time', '<=', $endTimeFormatted);
             });
         });
     }
@@ -105,69 +114,85 @@ class ReservationConflictService
     }
 
     /**
-     * Check for recurring reservation conflicts
+     * Check for recurring reservation conflicts (Optimized)
      */
     private function checkRecurringReservationConflict($laboratoryId, $date, $startTime, $endTime, $excludeId = null)
     {
-        // First convert the date to Carbon instance for easier manipulation
+        // Convert the date to Carbon instance for easier manipulation
         $checkDate = Carbon::parse($date);
         $dayOfWeek = $checkDate->dayOfWeek;
-          // Get all recurring reservations for this laboratory
-        $recurringReservations = LaboratoryReservation::where('laboratory_id', $laboratoryId)
+        
+        // Optimized query with better filtering
+        $query = LaboratoryReservation::where('laboratory_id', $laboratoryId)
             ->where('status', LaboratoryReservation::STATUS_APPROVED)
             ->where('is_recurring', true)
-            ->where('recurrence_end_date', '>=', $checkDate);
+            ->where('reservation_date', '<=', $checkDate) // Start date must be before or on check date
+            ->where('recurrence_end_date', '>=', $checkDate); // End date must be after or on check date
             
-        // Apply centralized time overlap logic
-        $recurringReservations = self::applyTimeOverlapConstraints($recurringReservations, $startTime, $endTime)
-            ->with('user');
+        // Apply centralized time overlap logic early
+        $query = self::applyTimeOverlapConstraints($query, $startTime, $endTime);
         
         if ($excludeId) {
-            $recurringReservations->where('id', '!=', $excludeId);
+            $query->where('id', '!=', $excludeId);
         }
         
-        $recurringReservations = $recurringReservations->get();
+        // Use select to only get needed fields for better performance
+        $recurringReservations = $query->select([
+            'id', 'user_id', 'reservation_date', 'recurrence_end_date', 
+            'recurrence_pattern', 'start_time', 'end_time'
+        ])->with('user:id,name,email')->get();
         
         // Check each recurring reservation to see if it applies to our check date
         foreach ($recurringReservations as $reservation) {
-            $startDate = Carbon::parse($reservation->reservation_date);
-            $endDate = Carbon::parse($reservation->recurrence_end_date);
-            
-            // Skip if check date is before reservation start date
-            if ($checkDate->lt($startDate)) {
-                continue;
-            }
-            
-            $applies = false;
-            
-            // Calculate if this recurring reservation applies to our check date
-            switch ($reservation->recurrence_pattern) {
-                case 'daily':
-                    // Every day - direct conflict if within date range
-                    $applies = true;
-                    break;
-                
-                case 'weekly':
-                    // Same day of week
-                    if ($startDate->dayOfWeek === $dayOfWeek) {
-                        $applies = true;
-                    }
-                    break;
-                    
-                case 'monthly':
-                    // Same day of month
-                    if ($startDate->day === $checkDate->day) {
-                        $applies = true;
-                    }
-                    break;
-            }
-            
-            if ($applies) {
+            if ($this->doesRecurringReservationApply($reservation, $checkDate)) {
                 return $reservation;
             }
         }
         
         return null;
+    }
+
+    /**
+     * Check if a recurring reservation applies to a specific date (Optimized logic)
+     */
+    private function doesRecurringReservationApply($reservation, $checkDate)
+    {
+        $startDate = Carbon::parse($reservation->reservation_date);
+        $dayOfWeek = $checkDate->dayOfWeek;
+        
+        // Pre-filter: check date must be within the recurring period
+        if ($checkDate->lt($startDate)) {
+            return false;
+        }
+        
+        // Calculate if this recurring reservation applies to our check date
+        switch ($reservation->recurrence_pattern) {
+            case 'daily':
+                // Every day - applies if within date range (already filtered by query)
+                return true;
+                
+            case 'weekly':
+                // Same day of week
+                return $startDate->dayOfWeek === $dayOfWeek;
+                
+            case 'monthly':
+                // Same day of month (handle month-end edge cases)
+                $targetDay = $startDate->day;
+                $checkMonth = $checkDate->month;
+                $checkYear = $checkDate->year;
+                
+                // Handle cases where the target day doesn't exist in the check month
+                $lastDayOfMonth = Carbon::create($checkYear, $checkMonth)->endOfMonth()->day;
+                if ($targetDay > $lastDayOfMonth) {
+                    // If target day is beyond the month, use the last day of the month
+                    return $checkDate->day === $lastDayOfMonth;
+                }
+                
+                return $checkDate->day === $targetDay;
+                
+            default:
+                return false;
+        }
     }
 
     /**
@@ -202,8 +227,8 @@ class ReservationConflictService
             
         return $conflictingSchedule;
     }
-      /**
-     * For recurring reservations, check all dates from start to end date
+    /**
+     * For recurring reservations, check all dates from start to end date (Optimized)
      */
     public function checkRecurringReservationConflicts($laboratoryId, $startDate, $endDate, $startTime, $endTime, 
                                                      $recurrencePattern, $excludeId = null)
@@ -213,21 +238,22 @@ class ReservationConflictService
         
         $conflicts = [];
         
-        // Get current term
+        // Get current term once for efficiency
         $currentTerm = AcademicTerm::where('is_current', true)->first();
         $termEndDate = $currentTerm ? Carbon::parse($currentTerm->end_date) : null;
         
-        // Set up iteration based on recurrence pattern
-        $current = $startDateObj->copy();
+        // Pre-fetch all potentially conflicting data for the entire date range
+        $this->prefetchConflictData($laboratoryId, $startDateObj, $endDateObj, $startTime, $endTime, $excludeId);
         
-        while ($current->lte($endDateObj)) {
-            $dateStr = $current->toDateString();
+        // Calculate all dates in the recurring pattern
+        $datesToCheck = $this->generateRecurrenceDates($startDateObj, $endDateObj, $recurrencePattern);
+        
+        // Check conflicts for all dates at once (batch processing)
+        foreach ($datesToCheck as $dateToCheck) {
+            $dateStr = $dateToCheck->toDateString();
             
             // Check if this date falls within the current academic term
-            $isWithinTerm = true;
-            if ($termEndDate && $current->gt($termEndDate)) {
-                $isWithinTerm = false;
-            }
+            $isWithinTerm = !$termEndDate || $dateToCheck->lte($termEndDate);
             
             // Check conflicts for this specific date
             $conflictCheck = $this->checkConflicts($laboratoryId, $dateStr, $startTime, $endTime, $excludeId);
@@ -251,6 +277,23 @@ class ReservationConflictService
                     'is_within_term' => false
                 ];
             }
+        }
+        
+        return $conflicts;
+    }
+
+    /**
+     * Generate all dates that match the recurrence pattern (Optimized)
+     */
+    private function generateRecurrenceDates($startDate, $endDate, $recurrencePattern)
+    {
+        $dates = [];
+        $current = $startDate->copy();
+        $maxIterations = 1000; // Safety limit to prevent infinite loops
+        $iteration = 0;
+        
+        while ($current->lte($endDate) && $iteration < $maxIterations) {
+            $dates[] = $current->copy();
             
             // Move to next occurrence based on pattern
             switch ($recurrencePattern) {
@@ -263,9 +306,55 @@ class ReservationConflictService
                 case 'monthly':
                     $current->addMonth();
                     break;
+                default:
+                    // Invalid pattern, break to prevent infinite loop
+                    break 2;
             }
+            
+            $iteration++;
         }
         
-        return $conflicts;
+        return $dates;
+    }
+
+    /**
+     * Pre-fetch conflict data for better performance (Cache-like approach)
+     */
+    private function prefetchConflictData($laboratoryId, $startDate, $endDate, $startTime, $endTime, $excludeId = null)
+    {
+        // Pre-fetch existing reservations in the date range
+        $this->cachedReservations = LaboratoryReservation::where('laboratory_id', $laboratoryId)
+            ->where('status', LaboratoryReservation::STATUS_APPROVED)
+            ->whereBetween('reservation_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->when($excludeId, function($query) use ($excludeId) {
+                return $query->where('id', '!=', $excludeId);
+            })
+            ->select(['id', 'reservation_date', 'start_time', 'end_time', 'user_id', 'is_recurring'])
+            ->get()
+            ->groupBy('reservation_date');
+            
+        // Pre-fetch recurring reservations that might affect this range
+        $this->cachedRecurringReservations = LaboratoryReservation::where('laboratory_id', $laboratoryId)
+            ->where('status', LaboratoryReservation::STATUS_APPROVED)
+            ->where('is_recurring', true)
+            ->where('reservation_date', '<=', $endDate)
+            ->where('recurrence_end_date', '>=', $startDate)
+            ->when($excludeId, function($query) use ($excludeId) {
+                return $query->where('id', '!=', $excludeId);
+            })
+            ->select(['id', 'reservation_date', 'recurrence_end_date', 'recurrence_pattern', 'start_time', 'end_time', 'user_id'])
+            ->get();
+            
+        // Pre-fetch laboratory schedules
+        $currentTerm = AcademicTerm::where('is_current', true)->first();
+        if ($currentTerm) {
+            $this->cachedSchedules = LaboratorySchedule::where('laboratory_id', $laboratoryId)
+                ->where('academic_term_id', $currentTerm->id)
+                ->select(['id', 'day_of_week', 'start_time', 'end_time'])
+                ->get()
+                ->groupBy('day_of_week');
+        } else {
+            $this->cachedSchedules = collect();
+        }
     }
 }

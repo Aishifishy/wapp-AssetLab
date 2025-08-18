@@ -163,8 +163,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.querySelector('.mobile-menu-button');
             const mobileMenu = document.querySelector('.mobile-menu');
+            
+            // Check if mobile menu elements exist before proceeding
+            if (!mobileMenuButton || !mobileMenu) {
+                return;
+            }
+            
             const menuIcon = mobileMenuButton.querySelector('svg:first-child');
             const closeIcon = mobileMenuButton.querySelector('svg:last-child');
+            
+            // Check if menu icons exist
+            if (!menuIcon || !closeIcon) {
+                return;
+            }
 
             mobileMenuButton.addEventListener('click', function() {
                 const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
@@ -191,6 +202,7 @@
                     closeIcon.classList.add('hidden');
                 }
             });
+        });
         });
     </script>
     

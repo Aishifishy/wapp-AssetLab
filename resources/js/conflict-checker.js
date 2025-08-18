@@ -5,6 +5,9 @@
 class ConflictChecker {
     constructor() {
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        this.cache = new Map(); // Add caching for repeated requests
+        this.lastRequestTime = 0;
+        this.debounceDelay = 300; // ms
     }
 
     /**
@@ -24,6 +27,23 @@ class ConflictChecker {
                 error: 'End time must be after start time'
             };
         }
+
+        // Check cache first
+        const cacheKey = this.generateCacheKey('single', params);
+        if (this.cache.has(cacheKey)) {
+            return this.cache.get(cacheKey);
+        }
+
+        // Debounce rapid requests
+        const now = Date.now();
+        if (now - this.lastRequestTime < this.debounceDelay) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(this.checkReservationConflict(params));
+                }, this.debounceDelay);
+            });
+        }
+        this.lastRequestTime = now;
 
         try {
             const response = await fetch('/api/reservation/check-conflict', {
@@ -45,7 +65,15 @@ class ConflictChecker {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            return await response.json();
+            const result = await response.json();
+            
+            // Cache successful results for 30 seconds
+            if (result.success) {
+                this.cache.set(cacheKey, result);
+                setTimeout(() => this.cache.delete(cacheKey), 30000);
+            }
+            
+            return result;
         } catch (error) {
             console.error('Conflict check failed:', error);
             return {
@@ -170,6 +198,20 @@ class ConflictChecker {
                 Checking for conflicts...
             </div>`;
         }
+    }
+
+    /**
+     * Generate cache key for requests
+     */
+    generateCacheKey(type, params) {
+        return `${type}_${JSON.stringify(params)}`;
+    }
+
+    /**
+     * Clear the request cache
+     */
+    clearCache() {
+        this.cache.clear();
     }
 }
 

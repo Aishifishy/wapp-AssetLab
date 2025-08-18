@@ -240,34 +240,52 @@ class LaboratoryReservationService extends BaseService
         }
 
         // Create the reservation
-        $reservation = new LaboratoryReservation([
-            'user_id' => Auth::id(),
-            'laboratory_id' => $laboratory->id,
-            'reservation_date' => $reservationDate,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'purpose' => $validatedData['purpose'],
-            'num_students' => $validatedData['num_students'],
-            'course_code' => $validatedData['course_code'] ?? null,
-            'subject' => $validatedData['subject'] ?? null,
-            'section' => $validatedData['section'] ?? null,
-            'status' => LaboratoryReservation::STATUS_PENDING,
-        ]);
-        
-        // Handle recurring reservations if requested
-        if (!empty($validatedData['is_recurring'])) {
-            $reservation->is_recurring = true;
-            $reservation->recurrence_pattern = $validatedData['recurrence_pattern'];
-            $reservation->recurrence_end_date = $validatedData['recurrence_end_date'];
+        $userId = Auth::id();
+        if (!$userId) {
+            return [
+                'success' => false,
+                'reservation' => null,
+                'message' => 'User not authenticated. Please log in and try again.'
+            ];
         }
-        
-        $reservation->save();
-        
-        return [
-            'success' => true,
-            'reservation' => $reservation,
-            'message' => 'Laboratory reservation request submitted successfully. It will be reviewed by the administrator.'
-        ];
+
+        try {
+            $reservation = new LaboratoryReservation([
+                'user_id' => $userId,
+                'laboratory_id' => $laboratory->id,
+                'reservation_date' => $reservationDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'purpose' => $validatedData['purpose'],
+                'num_students' => $validatedData['num_students'],
+                'course_code' => $validatedData['course_code'] ?? null,
+                'subject' => $validatedData['subject'] ?? null,
+                'section' => $validatedData['section'] ?? null,
+                'status' => LaboratoryReservation::STATUS_PENDING,
+            ]);
+            
+            // Handle recurring reservations if requested
+            if (!empty($validatedData['is_recurring'])) {
+                $reservation->is_recurring = true;
+                $reservation->recurrence_pattern = $validatedData['recurrence_pattern'];
+                $reservation->recurrence_end_date = $validatedData['recurrence_end_date'];
+            }
+            
+            $reservation->save();
+            
+            return [
+                'success' => true,
+                'reservation' => $reservation,
+                'message' => 'Laboratory reservation request submitted successfully. It will be reviewed by the administrator.'
+            ];
+            
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'reservation' => null,
+                'message' => 'An error occurred while creating the reservation. Please try again.'
+            ];
+        }
     }
 
     /**
@@ -299,24 +317,11 @@ class LaboratoryReservationService extends BaseService
                 'status' => LaboratoryReservation::STATUS_CANCELLED
             ]);
 
-            // Log the cancellation
-            Log::info('Reservation canceled', [
-                'reservation_id' => $reservation->id,
-                'user_id' => Auth::id(),
-                'laboratory_id' => $reservation->laboratory_id,
-                'date' => $reservation->reservation_date
-            ]);
-
             return [
                 'success' => true,
                 'message' => 'Reservation canceled successfully.'
             ];
         } catch (\Exception $e) {
-            Log::error('Failed to cancel reservation', [
-                'reservation_id' => $reservation->id,
-                'error' => $e->getMessage()
-            ]);
-
             return [
                 'success' => false,
                 'message' => 'Failed to cancel reservation. Please try again.'
