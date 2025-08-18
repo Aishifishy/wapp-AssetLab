@@ -1,12 +1,10 @@
-@extends('layouts.admin')
+<?php $__env->startSection('title', 'Export Equipment Barcodes'); ?>
 
-@section('title', 'Export Equipment Barcodes')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="p-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-3 sm:space-y-0">
         <h1 class="text-2xl font-semibold text-gray-800">Export Equipment Barcodes</h1>
-        <a href="{{ route('admin.equipment.manage') }}" 
+        <a href="<?php echo e(route('admin.equipment.manage')); ?>" 
            class="inline-flex items-center justify-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
             <i class="fas fa-arrow-left mr-2"></i> Back to Equipment
         </a>
@@ -33,7 +31,7 @@
                             </div>
                             <div class="ml-3 flex-1">
                                 <h5 class="text-sm font-medium text-blue-900">Export All Equipment Barcodes</h5>
-                                <p class="text-sm text-blue-700 mb-3">Generate PDF with all {{ $equipment->count() }} equipment barcodes</p>
+                                <p class="text-sm text-blue-700 mb-3">Generate PDF with all <?php echo e($equipment->count()); ?> equipment barcodes</p>
                                 <button type="button" onclick="exportAllBarcodes()" 
                                         class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                     <i class="fas fa-file-pdf mr-1"></i> Export All
@@ -121,38 +119,58 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($equipment as $item)
+                    <?php $__empty_1 = true; $__currentLoopData = $equipment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <input type="checkbox" class="equipment-checkbox" value="{{ $item->id }}" onchange="updateSelectedCount()">
+                                <input type="checkbox" class="equipment-checkbox" value="<?php echo e($item->id); ?>" onchange="updateSelectedCount()">
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $item->name }}</div>
-                                <div class="text-sm text-gray-500">{{ Str::limit($item->description, 50) }}</div>
+                                <div class="text-sm font-medium text-gray-900"><?php echo e($item->name); ?></div>
+                                <div class="text-sm text-gray-500"><?php echo e(Str::limit($item->description, 50)); ?></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $item->category->name ?? 'Uncategorized' }}
+                                <?php echo e($item->category->name ?? 'Uncategorized'); ?>
+
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <code class="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{{ $item->barcode }}</code>
+                                <code class="text-sm font-mono bg-gray-100 px-2 py-1 rounded"><?php echo e($item->barcode); ?></code>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <x-status-badge :status="$item->status" type="equipment" />
+                                <?php if (isset($component)) { $__componentOriginal8860cf004fec956b6e41d036eb967550 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal8860cf004fec956b6e41d036eb967550 = $attributes; } ?>
+<?php $component = App\View\Components\StatusBadge::resolve(['status' => $item->status,'type' => 'equipment'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('status-badge'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\StatusBadge::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $attributes = $__attributesOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__attributesOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $component = $__componentOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__componentOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('admin.equipment.barcode.single', $item) }}" 
+                                <a href="<?php echo e(route('admin.equipment.barcode.single', $item)); ?>" 
                                    class="text-blue-600 hover:text-blue-900">
                                     <i class="fas fa-download mr-1"></i> Single
                                 </a>
                             </td>
                         </tr>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="6" class="px-6 py-4 text-center text-gray-500">
                                 No equipment with barcodes found
                             </td>
                         </tr>
-                    @endforelse
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -165,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function exportAllBarcodes() {
-    window.open(`{{ route('admin.equipment.barcode.all') }}`, '_blank');
+    window.open(`<?php echo e(route('admin.equipment.barcode.all')); ?>`, '_blank');
 }
 
 function exportSelectedBarcodes() {
@@ -177,14 +195,14 @@ function exportSelectedBarcodes() {
     
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = '{{ route("admin.equipment.barcode.selected") }}';
+    form.action = '<?php echo e(route("admin.equipment.barcode.selected")); ?>';
     form.target = '_blank';
     
     // Add CSRF token
     const csrfToken = document.createElement('input');
     csrfToken.type = 'hidden';
     csrfToken.name = '_token';
-    csrfToken.value = '{{ csrf_token() }}';
+    csrfToken.value = '<?php echo e(csrf_token()); ?>';
     form.appendChild(csrfToken);
     
     // Add selected equipment IDs
@@ -234,4 +252,6 @@ function toggleSelectAll() {
     updateSelectedCount();
 }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/equipment/barcode/export.blade.php ENDPATH**/ ?>

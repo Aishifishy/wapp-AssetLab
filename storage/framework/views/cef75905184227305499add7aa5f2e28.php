@@ -174,50 +174,53 @@
     </style>
 </head>
 <body>
-    @foreach($pages as $pageIndex => $pageLabels)
+    <?php $__currentLoopData = $pages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pageIndex => $pageLabels): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <div class="page">
             
             <div class="page-content">
-                @if($pageIndex === 0)
+                <?php if($pageIndex === 0): ?>
                     <div class="header">
                         <h1>Equipment Barcode Labels</h1>
                         <div class="info">
-                            Total Labels: {{ $totalLabels }} | Generated: {{ $generatedAt }}
+                            Total Labels: <?php echo e($totalLabels); ?> | Generated: <?php echo e($generatedAt); ?>
+
                         </div>
                     </div>
-                @endif
+                <?php endif; ?>
                 
                 <div class="labels-container">
                     <div class="labels-grid">
-                        @foreach($pageLabels as $item)
+                        <?php $__currentLoopData = $pageLabels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="label">
-                                <div class="equipment-name">{{ Str::limit($item['equipment']->name, 25) }}</div>
+                                <div class="equipment-name"><?php echo e(Str::limit($item['equipment']->name, 25)); ?></div>
                                 
-                                @if($item['equipment']->category)
-                                    <div class="equipment-category">{{ Str::limit($item['equipment']->category->name, 20) }}</div>
-                                @endif
+                                <?php if($item['equipment']->category): ?>
+                                    <div class="equipment-category"><?php echo e(Str::limit($item['equipment']->category->name, 20)); ?></div>
+                                <?php endif; ?>
                                 
                                 <div class="barcode-container">
-                                    <img src="{{ $item['barcodeImage'] }}" alt="Barcode" class="barcode-image">
-                                    <div class="barcode-text">{{ $item['barcode'] }}</div>
+                                    <img src="<?php echo e($item['barcodeImage']); ?>" alt="Barcode" class="barcode-image">
+                                    <div class="barcode-text"><?php echo e($item['barcode']); ?></div>
                                 </div>
                                 
-                                <div class="equipment-id">ID: {{ $item['equipment']->id }}</div>
+                                <div class="equipment-id">ID: <?php echo e($item['equipment']->id); ?></div>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         
-                        {{-- Fill empty slots if needed --}}
-                        @for($i = $pageLabels->count(); $i < $labelsPerPage; $i++)
+                        
+                        <?php for($i = $pageLabels->count(); $i < $labelsPerPage; $i++): ?>
                             <div class="label" style="border: none; box-shadow: none;"></div>
-                        @endfor
+                        <?php endfor; ?>
                     </div>
                 </div>
             </div>
         </div>
-    @endforeach
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     
     <div class="footer">
-        ResourEase Equipment Management System - Generated on {{ $generatedAt }}
+        ResourEase Equipment Management System - Generated on <?php echo e($generatedAt); ?>
+
     </div>
 </body>
 </html>
+<?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/equipment/barcode/multiple-labels.blade.php ENDPATH**/ ?>

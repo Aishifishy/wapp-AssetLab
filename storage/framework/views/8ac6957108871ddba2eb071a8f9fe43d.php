@@ -20,6 +20,28 @@
             background-color: white;
         }
         
+        .page {
+            width: 8.5in;
+            height: 14in;
+            padding: 0.6in;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        /* Document border for professional appearance */
+        .document-border {
+            position: absolute;
+            top: 0.3in;
+            left: 0.3in;
+            right: 0.3in;
+            bottom: 0.3in;
+            border: 2px solid #000;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        
         .label-container {
             flex-grow: 1;
             display: flex;
@@ -126,21 +148,27 @@
     </style>
 </head>
 <body>
-    <div class="label-container">
-        <div class="label">
-            <div class="equipment-name">{{ $equipment->name }}</div>                
-                @if($equipment->category)
-                <div class="equipment-category">{{ $equipment->category->name }}</div>
-                @endif
-                <div class="barcode-container">
-                    <img src="{{ $barcodeImage }}" alt="Barcode" class="barcode-image">
-                    <div class="barcode-text">{{ $barcode }}</div>
-                </div>
-            <div class="equipment-id">ID: {{ $equipment->id }}</div>
+    
+        <div class="label-container">
+            <div class="label">
+                <div class="equipment-name"><?php echo e($equipment->name); ?></div>                
+                    <?php if($equipment->category): ?>
+                    <div class="equipment-category"><?php echo e($equipment->category->name); ?></div>
+                    <?php endif; ?>
+                    <div class="barcode-container">
+                        <img src="<?php echo e($barcodeImage); ?>" alt="Barcode" class="barcode-image">
+                        <div class="barcode-text"><?php echo e($barcode); ?></div>
+                    </div>
+                <div class="equipment-id">ID: <?php echo e($equipment->id); ?></div>
+            </div>
         </div>
-    </div>
-    <div class="footer">
-        ResourEase Equipment Management System - Generated: {{ $generatedAt }}
-    </div>
+        <div class="footer">
+        ResourEase Equipment Management System - Generated: <?php echo e($generatedAt); ?>
+
+        </div>
+    </div>    
+    
+    
 </body>
 </html>
+<?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/equipment/barcode/single-label.blade.php ENDPATH**/ ?>
