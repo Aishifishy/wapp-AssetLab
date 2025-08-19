@@ -20,19 +20,25 @@ class EquipmentRequest extends Model
         'returned_at',
         'return_condition',
         'return_notes',
+        'checked_out_at',
+        'checked_out_by',
     ];
 
     protected $casts = [
         'requested_from' => 'datetime',
         'requested_until' => 'datetime',
         'returned_at' => 'datetime',
+        'checked_out_at' => 'datetime',
     ];
 
     // Status constants
     const STATUS_PENDING = 'pending';
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
-    const STATUS_RETURNED = 'returned';    // Relationships
+    const STATUS_RETURNED = 'returned';
+    const STATUS_CHECKED_OUT = 'checked_out';
+
+    // Relationships
     public function user()
     {
         return $this->belongsTo(Ruser::class, 'user_id');
@@ -41,6 +47,11 @@ class EquipmentRequest extends Model
     public function equipment()
     {
         return $this->belongsTo(Equipment::class);
+    }
+
+    public function checkedOutBy()
+    {
+        return $this->belongsTo(Radmin::class, 'checked_out_by');
     }
 
     // Status check methods
@@ -64,6 +75,11 @@ class EquipmentRequest extends Model
         return !is_null($this->returned_at);
     }
 
+    public function isCheckedOut()
+    {
+        return !is_null($this->checked_out_at);
+    }
+
     public function isOverdue()
     {
         return $this->isApproved() 
@@ -85,6 +101,11 @@ class EquipmentRequest extends Model
     public function scopeActive($query)
     {
         return $query->approved()->whereNull('returned_at');
+    }
+
+    public function scopeCheckedOut($query)
+    {
+        return $query->approved()->whereNotNull('checked_out_at')->whereNull('returned_at');
     }
 
     public function scopeOverdue($query)

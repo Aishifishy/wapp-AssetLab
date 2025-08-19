@@ -11,6 +11,7 @@ use App\Models\EquipmentRequest;
 use App\Models\EquipmentCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class EquipmentController extends Controller
@@ -176,6 +177,17 @@ class EquipmentController extends Controller
         return back()->with('success', $result['message']);
     }
 
+    public function checkOutEquipment(EquipmentRequest $request)
+    {
+        $result = $this->equipmentService->checkOutEquipment($request);
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return back()->with('success', $result['message']);
+    }
+
     public function markAsReturned(EquipmentRequest $request, Request $validatedRequest)
     {
         $validatedData = $this->validateRequest($validatedRequest, [
@@ -249,29 +261,84 @@ class EquipmentController extends Controller
         ]);
 
         $equipment = Equipment::findOrFail($validated['equipment_id']);
+        $userId = $validated['user_id'];
 
+        // First, check if there's an existing approved request for this user and equipment
+        $existingRequest = EquipmentRequest::where('user_id', $userId)
+            ->where('equipment_id', $equipment->id)
+            ->where('status', EquipmentRequest::STATUS_APPROVED)
+            ->whereNull('checked_out_at')
+            ->whereNull('returned_at')
+            ->first();
+
+        if ($existingRequest) {
+            // Check out the existing approved request
+            $result = $this->equipmentService->checkOutEquipment($existingRequest);
+            
+            if (!$result['success']) {
+                return back()->with('error', $result['message']);
+            }
+
+            return redirect()->route('admin.equipment.borrow-requests')
+                ->with('success', 'Approved equipment request has been checked out successfully.');
+        }
+
+        // No existing approved request found, create new onsite borrow
         if (!$equipment->isAvailable()) {
             return back()->with('error', 'This equipment is no longer available.');
         }
 
         // Create and automatically approve the request for onsite borrowing
         $borrowRequest = EquipmentRequest::create([
-            'user_id' => $validated['user_id'],
+            'user_id' => $userId,
             'equipment_id' => $equipment->id,
-            'status' => EquipmentRequest::STATUS_APPROVED, // Automatically approved
+            'status' => EquipmentRequest::STATUS_APPROVED,
             'purpose' => $validated['purpose'],
             'requested_from' => now(),
             'requested_until' => $validated['requested_until'],
         ]);
 
-        // Update equipment status
-        $equipment->update([
-            'status' => Equipment::STATUS_BORROWED,
-            'current_borrower_id' => $validated['user_id']
-        ]);
+        // Immediately check out the equipment
+        $result = $this->equipmentService->checkOutEquipment($borrowRequest);
+        
+        if (!$result['success']) {
+            // If checkout fails, delete the created request
+            $borrowRequest->delete();
+            return back()->with('error', $result['message']);
+        }
 
         return redirect()->route('admin.equipment.borrow-requests')
-            ->with('success', 'Equipment has been borrowed successfully.');
+            ->with('success', 'Equipment has been borrowed and checked out successfully.');
+    }
+
+    /**
+     * Check if there's an approved request for the given user and equipment
+     */
+    public function checkApprovedRequest(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:rusers,id',
+            'equipment_id' => 'required|exists:equipment,id',
+        ]);
+
+        $approvedRequest = EquipmentRequest::where('user_id', $validated['user_id'])
+            ->where('equipment_id', $validated['equipment_id'])
+            ->where('status', EquipmentRequest::STATUS_APPROVED)
+            ->whereNull('checked_out_at')
+            ->whereNull('returned_at')
+            ->first();
+
+        if ($approvedRequest) {
+            return response()->json([
+                'hasApprovedRequest' => true,
+                'requestDate' => $approvedRequest->created_at->format('M d, Y'),
+                'purpose' => Str::limit($approvedRequest->purpose, 50),
+            ]);
+        }
+
+        return response()->json([
+            'hasApprovedRequest' => false,
+        ]);
     }
 
     /**

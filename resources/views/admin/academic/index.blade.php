@@ -335,13 +335,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch daily overview data
     async function fetchDailyOverview(date) {
         try {
-            console.log('Fetching daily overview for date:', date);
             const response = await fetch(`/admin/academic/daily-overview?date=${date}`);
-            console.log('Response status:', response.status);
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('Received data:', data);
                 populateModalData(data);
             } else {
                 const errorText = await response.text();
@@ -707,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 dayMaxEvents: true,
                 events: window.calendarEvents,
                 eventClick: function(info) {
-                    console.log('Event clicked:', info.event.title, info.event.extendedProps);
+                    // Event clicked
                 },
                 dateClick: function(info) {
                     // Open modal with daily overview for clicked date

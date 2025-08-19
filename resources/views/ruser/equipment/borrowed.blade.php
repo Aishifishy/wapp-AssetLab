@@ -20,11 +20,16 @@
                             <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <span class="font-medium text-gray-700">Borrowed From:</span>
-                                    <p class="text-gray-600">{{ $request->requested_from->format('M d, Y g:i A') }}</p>
+                                    <div class="text-gray-900 mt-1">{{ $request->requested_from->format('M d, Y') }}</div>
+                                    <div class="text-xs text-gray-600">{{ $request->requested_from->format('g:i A') }}</div>
                                 </div>
                                 <div>
                                     <span class="font-medium text-gray-700">Return By:</span>
-                                    <p class="text-gray-600">{{ $request->requested_until->format('M d, Y g:i A') }}</p>
+                                    <div class="text-gray-900 mt-1">{{ $request->requested_until->format('M d, Y') }}</div>
+                                    <div class="text-xs text-gray-600">{{ $request->requested_until->format('g:i A') }}</div>
+                                    @if($request->requested_until < now())
+                                        <div class="text-red-600 text-sm font-medium mt-1">⚠️ OVERDUE</div>
+                                    @endif
                                 </div>
                                 <div class="sm:col-span-2">
                                     <span class="font-medium text-gray-700">Purpose:</span>

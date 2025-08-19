@@ -150,6 +150,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::get('/borrow-requests', [AdminEquipmentController::class, 'borrowRequests'])->name('borrow-requests');
             Route::post('/borrow-requests/onsite', [AdminEquipmentController::class, 'createOnsiteBorrow'])->name('borrow-requests.onsite');
+            Route::post('/check-approved-request', [AdminEquipmentController::class, 'checkApprovedRequest'])->name('check-approved-request');
             Route::get('/history', [AdminEquipmentController::class, 'history'])->name('history');
             Route::post('/', [AdminEquipmentController::class, 'store'])->name('store');
             Route::put('/{equipment}', [AdminEquipmentController::class, 'update'])->name('update');
@@ -162,6 +163,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/requests', [AdminEquipmentController::class, 'storeRequest'])->name('store-request');
             Route::delete('/requests/{request}', [AdminEquipmentController::class, 'destroyRequest'])->name('destroy-request');
             Route::post('/requests/{request}/approve', [AdminEquipmentController::class, 'approveRequest'])->name('approve-request');
+            Route::post('/requests/{request}/checkout', [AdminEquipmentController::class, 'checkOutEquipment'])->name('checkout-request');
             Route::post('/requests/{request}/reject', [AdminEquipmentController::class, 'rejectRequest'])->name('reject-request');
             Route::post('/requests/{request}/return', [AdminEquipmentController::class, 'markAsReturned'])->name('return-request');
             

@@ -37,8 +37,18 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    <div>{{ $request->requested_from->format('M d, Y') }}</div>
-                                    <div class="text-gray-500">to {{ $request->requested_until->format('M d, Y') }}</div>
+                                    <div class="space-y-1">
+                                        <div>
+                                            <span class="font-medium text-gray-700">From:</span>
+                                            <div class="text-gray-900">{{ $request->requested_from->format('M d, Y') }}</div>
+                                            <div class="text-xs text-gray-500">{{ $request->requested_from->format('g:i A') }}</div>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-gray-700">To:</span>
+                                            <div class="text-gray-900">{{ $request->requested_until->format('M d, Y') }}</div>
+                                            <div class="text-xs text-gray-500">{{ $request->requested_until->format('g:i A') }}</div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($request->status === 'returned')

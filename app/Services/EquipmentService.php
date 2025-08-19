@@ -6,6 +6,8 @@ use App\Models\Equipment;
 use App\Models\EquipmentRequest;
 use App\Models\EquipmentCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 /**
@@ -70,16 +72,19 @@ class EquipmentService extends BaseService
      */
     public function getBorrowRequests()
     {
+        // Run background auto-repair for all equipment before loading page
+        $this->autoRepairAllEquipment();
+        
         $requests = EquipmentRequest::with(['user', 'equipment'])
             ->latest()
             ->paginate(15);
 
         $statistics = [
             'pending' => EquipmentRequest::where('status', 'pending')->count(),
-            'active' => EquipmentRequest::where('status', 'approved')
+            'active' => EquipmentRequest::checkedOut()
                 ->whereNull('returned_at')
                 ->count(),
-            'overdue' => EquipmentRequest::where('status', 'approved')
+            'overdue' => EquipmentRequest::checkedOut()
                 ->whereNull('returned_at')
                 ->where('requested_until', '<', Carbon::now())
                 ->count()
@@ -152,6 +157,12 @@ class EquipmentService extends BaseService
             ];
         }
 
+        // Auto-repair equipment status before checking availability
+        $this->autoRepairEquipmentStatus($request->equipment);
+        
+        // Refresh equipment data after potential auto-repair
+        $request->equipment->refresh();
+
         if ($request->equipment->status !== Equipment::STATUS_AVAILABLE) {
             return [
                 'success' => false,
@@ -159,15 +170,230 @@ class EquipmentService extends BaseService
             ];
         }
 
-        $request->update(['status' => 'approved']);
-        $request->equipment->update(['status' => Equipment::STATUS_BORROWED]);
+                $request->update(['status' => EquipmentRequest::STATUS_APPROVED]);
 
         $this->logAction('approve_request', $request);
 
         return [
             'success' => true,
-            'message' => 'Equipment request approved successfully.'
+            'message' => 'Equipment request approved successfully. Equipment can now be checked out.'
         ];
+    }
+
+    /**
+     * Check out equipment to borrower
+     */
+    public function checkOutEquipment(EquipmentRequest $request)
+    {
+        if (!$request->isApproved() || $request->isCheckedOut()) {
+            return [
+                'success' => false,
+                'message' => 'This equipment cannot be checked out.'
+            ];
+        }
+
+        $equipment = $request->equipment;
+        
+        // Auto-repair: Check if equipment status is inconsistent and fix it
+        $this->autoRepairEquipmentStatus($equipment);
+        
+        // Refresh equipment data after potential auto-repair
+        $equipment->refresh();
+        
+        // Check for time slot conflicts with other approved/checked-out requests
+        $conflictingRequest = EquipmentRequest::where('equipment_id', $equipment->id)
+            ->where('status', 'approved')
+            ->where('id', '!=', $request->id)
+            ->where(function($query) use ($request) {
+                // Check if the requested time overlaps with existing requests
+                $query->where(function($q) use ($request) {
+                    // New request starts during existing request
+                    $q->where('requested_from', '<=', $request->requested_from)
+                      ->where('requested_until', '>', $request->requested_from);
+                })->orWhere(function($q) use ($request) {
+                    // New request ends during existing request  
+                    $q->where('requested_from', '<', $request->requested_until)
+                      ->where('requested_until', '>=', $request->requested_until);
+                })->orWhere(function($q) use ($request) {
+                    // New request completely encompasses existing request
+                    $q->where('requested_from', '>=', $request->requested_from)
+                      ->where('requested_until', '<=', $request->requested_until);
+                });
+            })
+            ->whereNull('returned_at')
+            ->first();
+
+        if ($conflictingRequest) {
+            return [
+                'success' => false,
+                'message' => 'This equipment has a time slot conflict with another approved request.'
+            ];
+        }
+        
+        // Check if equipment is currently checked out by someone else
+        $currentActiveCheckout = EquipmentRequest::where('equipment_id', $equipment->id)
+            ->where('status', 'approved')
+            ->whereNotNull('checked_out_at')
+            ->whereNull('returned_at')
+            ->where('id', '!=', $request->id) // Exclude current request
+            ->first();
+
+        if ($currentActiveCheckout) {
+            return [
+                'success' => false,
+                'message' => 'This equipment is currently checked out by another user.'
+            ];
+        }
+
+        // For equipment marked as borrowed, check if it's for this specific request's user and time slot
+        if ($equipment->status === Equipment::STATUS_BORROWED) {
+            // Allow checkout if equipment is marked as borrowed for this user and no conflicting checkouts
+            if ($equipment->current_borrower_id !== $request->user_id) {
+                return [
+                    'success' => false,
+                    'message' => 'This equipment is currently borrowed by another user.'
+                ];
+            }
+        }
+
+        // Equipment should be available or already assigned to this user
+        $isAvailableForCheckout = ($equipment->status === Equipment::STATUS_AVAILABLE) ||
+            ($equipment->status === Equipment::STATUS_BORROWED && $equipment->current_borrower_id === $request->user_id);
+
+        if (!$isAvailableForCheckout) {
+            return [
+                'success' => false,
+                'message' => 'This equipment is not available for checkout. Status: ' . $equipment->status
+            ];
+        }
+
+        $request->update([
+            'status' => EquipmentRequest::STATUS_CHECKED_OUT,
+            'checked_out_at' => Carbon::now(),
+            'checked_out_by' => auth('admin')->id(),
+        ]);
+
+        $request->equipment->update([
+            'status' => Equipment::STATUS_BORROWED,
+            'current_borrower_id' => $request->user_id,
+        ]);
+
+        $this->logAction('checkout_equipment', $request);
+
+        return [
+            'success' => true,
+            'message' => 'Equipment checked out successfully.'
+        ];
+    }
+
+    /**
+     * Auto-repair status for a specific equipment
+     */
+    private function autoRepairEquipmentStatus(Equipment $equipment)
+    {
+        try {
+            // Check if equipment is marked as borrowed but has no active checkout
+            if ($equipment->status === 'borrowed') {
+                $hasActiveCheckout = EquipmentRequest::where('equipment_id', $equipment->id)
+                    ->where('status', 'checked_out')
+                    ->whereNull('returned_at')
+                    ->exists();
+
+                if (!$hasActiveCheckout) {
+                    $equipment->update(['status' => 'available']);
+                    Log::info('Auto-repair: Fixed orphaned borrowed status', [
+                        'equipment_id' => $equipment->id,
+                        'name' => $equipment->name
+                    ]);
+                    return true;
+                }
+            }
+
+            // Check if equipment is marked as available but has active checkout
+            if ($equipment->status === 'available') {
+                $hasActiveCheckout = EquipmentRequest::where('equipment_id', $equipment->id)
+                    ->where('status', 'checked_out')
+                    ->whereNull('returned_at')
+                    ->exists();
+
+                if ($hasActiveCheckout) {
+                    $equipment->update(['status' => 'borrowed']);
+                    Log::info('Auto-repair: Fixed orphaned available status', [
+                        'equipment_id' => $equipment->id,
+                        'name' => $equipment->name
+                    ]);
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            Log::error('Auto-repair failed for equipment', [
+                'equipment_id' => $equipment->id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Auto-repair all equipment status inconsistencies
+     */
+    private function autoRepairAllEquipment()
+    {
+        try {
+            $repaired = 0;
+            
+            // Find equipment marked as borrowed but with no active checkout
+            $orphanedBorrowed = Equipment::where('status', 'borrowed')
+                ->whereNotExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('equipment_requests')
+                        ->whereColumn('equipment_requests.equipment_id', 'equipment.id')
+                        ->where('equipment_requests.status', 'checked_out')
+                        ->whereNull('equipment_requests.returned_at');
+                })
+                ->get();
+
+            foreach ($orphanedBorrowed as $equipment) {
+                $equipment->update(['status' => 'available']);
+                $repaired++;
+                Log::info('Auto-repair: Fixed orphaned borrowed status', [
+                    'equipment_id' => $equipment->id,
+                    'name' => $equipment->name
+                ]);
+            }
+
+            // Find equipment marked as available but with active checkouts
+            $orphanedAvailable = Equipment::where('status', 'available')
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('equipment_requests')
+                        ->whereColumn('equipment_requests.equipment_id', 'equipment.id')
+                        ->where('equipment_requests.status', 'checked_out')
+                        ->whereNull('equipment_requests.returned_at');
+                })
+                ->get();
+
+            foreach ($orphanedAvailable as $equipment) {
+                $equipment->update(['status' => 'borrowed']);
+                $repaired++;
+                Log::info('Auto-repair: Fixed orphaned available status', [
+                    'equipment_id' => $equipment->id,
+                    'name' => $equipment->name
+                ]);
+            }
+
+            if ($repaired > 0) {
+                Log::info("Auto-repair completed: Fixed {$repaired} equipment status inconsistencies");
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Auto-repair failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     /**
@@ -175,14 +401,23 @@ class EquipmentService extends BaseService
      */
     public function returnEquipment(EquipmentRequest $request, array $returnData)
     {
-        if (!$request->isApproved() || $request->returned_at) {
+        // Allow return if request is approved OR checked out, not already returned, and has been checked out
+        $canReturn = ($request->isApproved() || $request->status === EquipmentRequest::STATUS_CHECKED_OUT) 
+                    && !$request->returned_at 
+                    && $request->isCheckedOut();
+                    
+        if (!$canReturn) {
             return [
                 'success' => false,
-                'message' => 'This equipment cannot be marked as returned.'
+                'message' => 'This equipment cannot be marked as returned. Status: ' . $request->status
             ];
         }
 
+        // Auto-repair equipment status before processing return
+        $this->autoRepairEquipmentStatus($request->equipment);
+
         $request->update([
+            'status' => EquipmentRequest::STATUS_RETURNED,
             'returned_at' => Carbon::now(),
             'return_condition' => $returnData['condition'],
             'return_notes' => $returnData['notes'] ?? null,
@@ -191,7 +426,8 @@ class EquipmentService extends BaseService
         $request->equipment->update([
             'status' => $returnData['condition'] === 'good' 
                 ? Equipment::STATUS_AVAILABLE 
-                : Equipment::STATUS_UNAVAILABLE
+                : Equipment::STATUS_UNAVAILABLE,
+            'current_borrower_id' => null,
         ]);
 
         $this->logAction('return_equipment', $request, $returnData);

@@ -6,10 +6,18 @@
 <div class="p-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-3 sm:space-y-0">
         <h1 class="text-2xl font-semibold text-gray-800">Manage Equipment Borrows</h1>
-        <button onclick="openOnsiteBorrowModal()" 
-                class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            <i class="fas fa-plus mr-2"></i> Create Onsite Borrow
-        </button>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <!-- Notification Feature (Placeholder) -->
+            <button onclick="alert('Email notification feature coming soon!')" 
+                    class="inline-flex items-center justify-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 opacity-75 cursor-not-allowed"
+                    disabled>
+                <i class="fas fa-envelope mr-2"></i> Notify Borrowers
+            </button>
+            <button onclick="openOnsiteBorrowModal()" 
+                    class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-hand-holding mr-2"></i> Onsite Borrow/Checkout
+            </button>
+        </div>
     </div>
 
     <!-- Status Overview -->
@@ -68,6 +76,7 @@
                         <option value="">All Statuses</option>
                         <option value="pending">Pending</option>
                         <option value="approved">Approved</option>
+                        <option value="checked_out">Borrowed</option>
                         <option value="rejected">Rejected</option>
                         <option value="returned">Returned</option>
                     </select>
@@ -90,7 +99,7 @@
                                 </div>
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="duration">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-48" data-sort="duration">
                                 <div class="flex items-center">
                                     Duration
                                     <i class="fas fa-sort ml-2 text-gray-400"></i>
@@ -126,15 +135,44 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        {{ $request->requested_from->format('M d, Y') }} -
-                                        {{ $request->requested_until->format('M d, Y') }}
+                                        <div class="mb-.5">{{ $request->requested_from->format('M d, Y') }} -</div>
+                                        <div class="text-xs text-gray-600">{{ $request->requested_from->format('g:i A') }}</div>
                                     </div>
-                                    @if($request->status === 'approved' && $request->requested_until < now())
-                                        <div class="text-xs text-red-600 font-medium">OVERDUE</div>
+                                    <div class="text-sm text-gray-900 mt-2">
+                                        <div class="mb-.5">{{ $request->requested_until->format('M d, Y') }}</div>
+                                        <div class="text-xs text-gray-600">{{ $request->requested_until->format('g:i A') }}</div>
+                                    </div>
+                                    @if(($request->status === 'approved' || $request->status === 'checked_out') && !$request->returned_at && $request->requested_until < now())
+                                        <div class="text-xs text-red-600 font-medium mt-1">OVERDUE</div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <x-status-badge :status="$request->status" type="request" />
+                                    @php
+                                        $displayStatus = $request->status;
+                                        if ($request->returned_at) {
+                                            $displayStatus = 'returned';
+                                        } elseif ($request->isCheckedOut() && !$request->returned_at) {
+                                            $displayStatus = 'checked_out';
+                                        }
+                                    @endphp
+                                    <x-status-badge :status="$displayStatus" type="request" />
+                                    
+                                    @if($request->isCheckedOut())
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            <div>Checked out: {{ $request->checked_out_at->format('M d, Y g:i A') }}</div>
+                                        </div>
+                                    @endif
+                                    
+                                    @if($request->returned_at)
+                                        <div class="text-xs text-green-600 mt-1">
+                                            <div>Returned: {{ $request->returned_at->format('M d, Y g:i A') }}</div>
+                                            @if($request->return_condition)
+                                                <div class="text-xs {{ $request->return_condition === 'good' ? 'text-green-600' : ($request->return_condition === 'damaged' ? 'text-red-600' : 'text-yellow-600') }}">
+                                                    Condition: {{ ucfirst($request->return_condition) }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     @if($request->status === 'pending')
@@ -146,8 +184,13 @@
                                             @csrf
                                             <button type="submit" class="text-red-600 hover:text-red-900">Reject</button>
                                         </form>
-                                    @elseif($request->status === 'approved' && !$request->returned_at)
-                                        <button onclick="openReturnModal({{ $request->id }})" class="text-blue-600 hover:text-blue-900">
+                                    @elseif($request->status === 'approved' && !$request->isCheckedOut() && !$request->returned_at)
+                                        <form action="{{ route('admin.equipment.checkout-request', $request) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="text-blue-600 hover:text-blue-900 mr-3">Check Out</button>
+                                        </form>
+                                    @elseif($request->isCheckedOut() && !$request->returned_at)
+                                        <button onclick="openReturnModal({{ $request->id }})" class="text-purple-600 hover:text-purple-900">
                                             Return
                                         </button>
                                     @else
@@ -176,7 +219,8 @@
 <div id="onsiteBorrowModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Create Onsite Borrow</h3>
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Onsite Borrow & Checkout</h3>
+            <p class="text-sm text-gray-600 mt-1">Scan user and equipment details. This will either check out an approved request or create a new onsite borrow.</p>
             <form action="{{ route('admin.equipment.borrow-requests.onsite') }}" method="POST" class="mt-4" id="onsiteBorrowForm">
                 @csrf
                 
@@ -219,6 +263,17 @@
                                 <br>
                                 <strong>Role:</strong> <span id="selected_user_role"></span>
                             </p>
+                        </div>
+                        
+                        <!-- Action Preview -->
+                        <div id="action_preview" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded hidden">
+                            <div class="flex items-center">
+                                <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-blue-800" id="action_text">Scan equipment to see what action will be performed</p>
+                                    <p class="text-xs text-blue-600" id="action_detail"></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -292,7 +347,7 @@
                     </button>
                     <button type="submit" 
                             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Create Borrow
+                        Process Borrow/Checkout
                     </button>
                 </div>
             </form>
@@ -382,8 +437,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const searchData = row.dataset.search;
             const statusData = row.dataset.status;
             
+            // Check if row represents a checked out request
+            const statusBadge = row.querySelector('x-status-badge, .status-badge');
+            const isCheckedOut = statusBadge && statusBadge.textContent.trim() === 'Borrowed';
+            
             const matchesSearch = searchData.includes(searchTerm);
-            const matchesStatus = !statusValue || statusData === statusValue;
+            let matchesStatus = true;
+            
+            if (statusValue) {
+                if (statusValue === 'checked_out') {
+                    matchesStatus = isCheckedOut;
+                } else {
+                    matchesStatus = statusData === statusValue && !isCheckedOut;
+                }
+            }
             
             if (matchesSearch && matchesStatus) {
                 row.style.display = '';
@@ -545,6 +612,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Clear the RFID input
                 userRfidInput.value = '';
+                
+                // Check for action preview
+                checkActionPreview();
             }
         })
         .catch(error => {
@@ -552,6 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
             userInfo.className = 'mt-2 p-2 bg-red-50 border border-red-200 rounded';
             userInfo.innerHTML = '<p class="text-sm text-red-800">Error searching for user. Please try again.</p>';
             userInfo.classList.remove('hidden');
+            hideActionPreview();
         });
     }
     
@@ -573,6 +644,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 equipmentInfo.innerHTML = `<p class="text-sm text-red-800">${data.error}</p>`;
                 equipmentInfo.classList.remove('hidden');
                 equipmentSelect.value = '';
+                hideActionPreview();
             } else {
                 // Equipment found, populate the form
                 equipmentSelect.value = data.id;
@@ -585,6 +657,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Clear the barcode input
                 equipmentBarcodeInput.value = '';
+                
+                // Check for action preview
+                checkActionPreview();
             }
         })
         .catch(error => {
@@ -592,7 +667,59 @@ document.addEventListener('DOMContentLoaded', function() {
             equipmentInfo.className = 'mt-2 p-2 bg-red-50 border border-red-200 rounded';
             equipmentInfo.innerHTML = '<p class="text-sm text-red-800">Error searching for equipment. Please try again.</p>';
             equipmentInfo.classList.remove('hidden');
+            hideActionPreview();
         });
+    }
+    
+    // Check what action will be performed and show preview
+    function checkActionPreview() {
+        const userId = userSelect.value;
+        const equipmentId = equipmentSelect.value;
+        
+        if (!userId || !equipmentId) {
+            hideActionPreview();
+            return;
+        }
+        
+        // Check if there's an existing approved request
+        fetch('{{ route("admin.equipment.check-approved-request") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ 
+                user_id: userId, 
+                equipment_id: equipmentId 
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const actionPreview = document.getElementById('action_preview');
+            const actionText = document.getElementById('action_text');
+            const actionDetail = document.getElementById('action_detail');
+            
+            if (data.hasApprovedRequest) {
+                actionText.textContent = '✓ Will CHECK OUT approved equipment request';
+                actionDetail.textContent = `Request submitted: ${data.requestDate} | Purpose: ${data.purpose}`;
+                actionPreview.className = 'mt-2 p-3 bg-green-50 border border-green-200 rounded';
+            } else {
+                actionText.textContent = '+ Will CREATE NEW onsite borrow and check out';
+                actionDetail.textContent = 'No existing approved request found. New borrow will be created.';
+                actionPreview.className = 'mt-2 p-3 bg-blue-50 border border-blue-200 rounded';
+            }
+            
+            actionPreview.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error checking approved request:', error);
+            hideActionPreview();
+        });
+    }
+    
+    // Hide action preview
+    function hideActionPreview() {
+        document.getElementById('action_preview').classList.add('hidden');
     }
     
     // Clear info displays when manual selection changes
@@ -607,9 +734,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 userInfo.className = 'mt-2 p-2 bg-blue-50 border border-blue-200 rounded';
                 userInfo.classList.remove('hidden');
+                
+                // Check for action preview
+                checkActionPreview();
             }
         } else {
             userInfo.classList.add('hidden');
+            hideActionPreview();
         }
     });
     
@@ -628,9 +759,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 equipmentInfo.className = 'mt-2 p-2 bg-blue-50 border border-blue-200 rounded';
                 equipmentInfo.classList.remove('hidden');
+                
+                // Check for action preview
+                checkActionPreview();
             }
         } else {
             equipmentInfo.classList.add('hidden');
+            hideActionPreview();
         }
     });
 });

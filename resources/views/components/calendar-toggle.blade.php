@@ -69,7 +69,8 @@ class CalendarToggleManager {
         this.switchView(this.defaultView);
         this.initialized = true;
         
-        console.log('Calendar toggle initialized successfully');
+        // Calendar toggle initialized
+    </script>
     }
     
     bindEvents() {

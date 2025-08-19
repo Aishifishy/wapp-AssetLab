@@ -39,7 +39,9 @@ class EquipmentController extends Controller
 
         if (!$equipment->isAvailable()) {
             return back()->with('error', 'This equipment is no longer available.');
-        }        $request = EquipmentRequest::create([
+        }
+
+        $request = EquipmentRequest::create([
             'equipment_id' => $equipment->id,
             'user_id' => Auth::id(),
             'status' => EquipmentRequest::STATUS_PENDING,
