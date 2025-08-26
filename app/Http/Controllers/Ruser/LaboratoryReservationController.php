@@ -77,7 +77,7 @@ class LaboratoryReservationController extends Controller
         $result = $this->reservationService->createReservation($laboratory, $validatedData);
         
         if ($result['success']) {
-            return redirect()->route('ruser.laboratory.reservations.index')
+            return redirect()->route('ruser.laboratory.reservations.confirmation', $result['reservation'])
                 ->with('success', $result['message']);
         } 
         else {
@@ -127,6 +127,20 @@ class LaboratoryReservationController extends Controller
         
         return view('ruser.laboratory.reservation.show', compact('reservation'));
     }
+
+    /**
+     * Show reservation confirmation page
+     */
+    public function confirmation(LaboratoryReservation $reservation)
+    {
+        // Check if the reservation belongs to the user
+        if ($reservation->user_id !== Auth::id()) {
+            return redirect()->route('ruser.laboratory.reservations.index')
+                ->with('error', 'You do not have permission to view this reservation.');
+        }
+        
+        return view('ruser.laboratory.reservation.confirmation', compact('reservation'));
+    }
     
     /**
      * Cancel a pending reservation
@@ -162,7 +176,7 @@ class LaboratoryReservationController extends Controller
     /**
      * Show the quick reservation form
      */
-    public function quickReserveForm()
+    public function quickReserve()
     {
         $recentReservations = LaboratoryReservation::where('user_id', Auth::id())
             ->where(function($query) {
@@ -235,7 +249,7 @@ class LaboratoryReservationController extends Controller
         
         $reservation->save();
         
-        return redirect()->route('ruser.laboratory.reservations.index')
+        return redirect()->route('ruser.laboratory.reservations.confirmation', $reservation)
             ->with('success', 'Quick reservation request submitted successfully. It will be reviewed by the administrator.');
     }
     

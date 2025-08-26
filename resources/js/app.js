@@ -10,6 +10,9 @@ import './reservation-manager';
 import './calendar-manager';
 import './view-manager';
 import './date-validation-manager';
+import './reservation-form';
+import './quick-reserve';
+import './calendar';
 
 import Alpine from 'alpinejs';
 

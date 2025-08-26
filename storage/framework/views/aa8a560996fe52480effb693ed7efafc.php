@@ -1,9 +1,9 @@
-@extends('layouts.ruser')
 
-@section('title', 'Profile Settings')
-@section('header', 'Profile Settings')
 
-@section('content')
+<?php $__env->startSection('title', 'Profile Settings'); ?>
+<?php $__env->startSection('header', 'Profile Settings'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="space-y-4">
     <!-- Profile Information Section -->
     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
@@ -17,22 +17,60 @@
         </div>
         
         <div class="p-4">
-            <form method="post" action="{{ route('profile.update') }}" class="space-y-6">
-                @csrf
-                @method('patch')
+            <form method="post" action="<?php echo e(route('profile.update')); ?>" class="space-y-6">
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('patch'); ?>
 
                 <div>
                     <label for="name" class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Name</label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}"
+                    <input type="text" name="name" id="name" value="<?php echo e(old('name', $user->name)); ?>"
                         class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors">
-                    <x-form-error field="name" />
+                    <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'name'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                 </div>
 
                 <div>
                     <label for="email" class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
-                    <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}"
+                    <input type="email" name="email" id="email" value="<?php echo e(old('email', $user->email)); ?>"
                         class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors">
-                    <x-form-error field="email" />
+                    <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'email'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t border-gray-200">
@@ -45,17 +83,17 @@
                             Save Changes
                         </button>
 
-                        @if (session('status') === 'profile-updated')
+                        <?php if(session('status') === 'profile-updated'): ?>
                             <div class="flex items-center text-green-600">
                                 <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                                 <span class="text-sm font-medium">Profile updated successfully!</span>
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
                     
-                    <a href="{{ route('dashboard') }}" 
+                    <a href="<?php echo e(route('dashboard')); ?>" 
                        class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
                         <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -95,15 +133,34 @@
                 </div>
             </div>
 
-            <form method="post" action="{{ route('profile.destroy') }}" class="space-y-6">
-                @csrf
-                @method('delete')
+            <form method="post" action="<?php echo e(route('profile.destroy')); ?>" class="space-y-6">
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('delete'); ?>
 
                 <div>
                     <label for="password" class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Confirm Password</label>
                     <input type="password" name="password" id="password" placeholder="Enter your current password"
                         class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 focus:outline-none transition-colors">
-                    <x-form-error field="password" bag="userDeletion" />
+                    <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'password'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['bag' => 'userDeletion']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t border-gray-200">
@@ -124,4 +181,5 @@
         </div>
     </div>
 </div>
-@endsection 
+<?php $__env->stopSection(); ?> 
+<?php echo $__env->make('layouts.ruser', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/profile/edit.blade.php ENDPATH**/ ?>

@@ -13,14 +13,41 @@ class EquipmentController extends Controller
 {
     /**
      * Display equipment available for borrowing.
-     */    public function index()
-    {        $equipment = Equipment::where('status', Equipment::STATUS_AVAILABLE)
+     */
+    public function index(Request $request)
+    {
+        $categoryId = $request->get('category');
+        
+        if ($categoryId) {
+            // Show equipment for specific category
+            return $this->showCategory($categoryId);
+        }
+        
+        // Show categories overview
+        $categories = EquipmentCategory::withCount(['equipment' => function ($query) {
+            $query->where('status', Equipment::STATUS_AVAILABLE);
+        }])
+        ->orderBy('name')
+        ->get()
+        ->where('equipment_count', '>', 0);
+        
+        return view('ruser.equipment.categories', compact('categories'));
+    }
+
+    /**
+     * Show equipment for a specific category
+     */
+    public function showCategory($categoryId)
+    {
+        $selectedCategory = EquipmentCategory::findOrFail($categoryId);
+        
+        $equipment = Equipment::where('status', Equipment::STATUS_AVAILABLE)
+            ->where('category_id', $categoryId)
+            ->with('category')
             ->latest()
             ->paginate(12);
         
-        $categories = EquipmentCategory::all();
-            
-        return view('ruser.equipment.borrow', compact('equipment', 'categories'));
+        return view('ruser.equipment.borrow', compact('equipment', 'selectedCategory'));
     }
 
     /**

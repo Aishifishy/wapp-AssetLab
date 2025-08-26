@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/{laboratory}/create', [RuserLaboratoryReservationController::class, 'create'])->name('create');
             Route::post('/{laboratory}', [RuserLaboratoryReservationController::class, 'store'])->name('store');
             Route::get('/{reservation}/show', [RuserLaboratoryReservationController::class, 'show'])->name('show');
+            Route::get('/{reservation}/confirmation', [RuserLaboratoryReservationController::class, 'confirmation'])->name('confirmation');
             Route::post('/{reservation}/cancel', [RuserLaboratoryReservationController::class, 'cancel'])->name('cancel');
         });
     });

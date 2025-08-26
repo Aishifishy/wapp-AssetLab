@@ -1,255 +1,75 @@
-@extends('l            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-            </svg>
-            <span class="truncate">Calendar View</span>ts.ruser')
+@extends('layouts.app')
 
 @section('title', 'My Laboratory Reservations')
-@section('header', 'My Laboratory Reservations')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Action Buttons -->
-    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-        <a href="{{ route('ruser.laboratory.reservations.calendar') }}" 
-           class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center sm:justify-start">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Calendar View
-        </a>
-        
-        <a href="{{ route('ruser.laboratory.reservations.quick') }}" 
-           class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center sm:justify-start">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span class="truncate">Quick Reserve</span>
-        </a>
-        
-        <a href="{{ route('ruser.laboratory.index') }}" 
-           class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center sm:justify-start sm:ml-auto">
-            <svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span class="truncate">Browse Laboratories</span>
-            Make New Reservation
-        </a>
-    </div>
-
-    <!-- Pending Reservations Section -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Pending Reservations</h2>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">My Laboratory Reservations</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage your laboratory reservations</p>
         </div>
-        <div class="p-6">
-            @if($pendingReservations->count() > 0)
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Laboratory</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($pendingReservations as $reservation)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            {{ $reservation->laboratory->name }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            {{ $reservation->laboratory->building }}, Room {{ $reservation->laboratory->room_number }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">
-                                            {{ $reservation->reservation_date->format('M d, Y') }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">
-                                            {{ \Carbon\Carbon::parse($reservation->start_time)->format('H:i') }} - 
-                                            {{ \Carbon\Carbon::parse($reservation->end_time)->format('H:i') }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            Duration: {{ $reservation->duration }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900 truncate max-w-xs">
-                                            {{ \Illuminate\Support\Str::limit($reservation->purpose, 50) }}
-                                        </div>
-                                    </td>                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <x-status-badge status="pending" type="reservation" />
-                                    </td>                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex flex-col sm:flex-row sm:justify-end space-y-1 sm:space-y-0 sm:space-x-4">
-                                            <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900 text-center sm:text-left">View</a>
-                                            <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-red-600 hover:text-red-900 confirm-action w-full sm:w-auto" data-confirm-message="Are you sure you want to cancel this reservation?">Cancel</button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <p class="text-gray-500">You don't have any pending laboratory reservations.</p>
-            @endif
+        <div class="flex space-x-4">
+            <a href="{{ route('ruser.laboratory.reservations.calendar') }}" 
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2h3z" />
+                </svg>
+                View Calendar
+            </a>
+            <a href="{{ route('ruser.laboratory.index') }}" 
+               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                New Reservation
+            </a>
         </div>
     </div>
 
-    <!-- Upcoming Reservations Section -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Upcoming Reservations</h2>
-        </div>
-        <div class="p-6">
-            @if($upcomingReservations->count() > 0)
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Laboratory</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($upcomingReservations as $reservation)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            {{ $reservation->laboratory->name }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            {{ $reservation->laboratory->building }}, Room {{ $reservation->laboratory->room_number }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">
-                                            {{ $reservation->reservation_date->format('M d, Y') }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">
-                                            {{ \Carbon\Carbon::parse($reservation->start_time)->format('H:i') }} - 
-                                            {{ \Carbon\Carbon::parse($reservation->end_time)->format('H:i') }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            Duration: {{ $reservation->duration }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900 truncate max-w-xs">
-                                            {{ \Illuminate\Support\Str::limit($reservation->purpose, 50) }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex flex-col sm:flex-row sm:justify-end space-y-1 sm:space-y-0 sm:space-x-4">
-                                            <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900 text-center sm:text-left">View</a>
-                                            @php
-                                                $canCancel = \Carbon\Carbon::parse($reservation->reservation_date . ' ' . $reservation->start_time)->diffInHours(now()) >= 24;
-                                            @endphp
-                                              @if($canCancel)
-                                                <form action="{{ route('ruser.laboratory.reservations.cancel', $reservation) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" class="text-red-600 hover:text-red-900 confirm-action w-full sm:w-auto" data-confirm-message="Are you sure you want to cancel this reservation?">Cancel</button>
-                                                </form>
-                                            @else
-                                                <span class="text-gray-400 text-center sm:text-left" title="Reservations cannot be cancelled within 24 hours of start time">Cannot Cancel</span>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <p class="text-gray-500">You don't have any upcoming laboratory reservations.</p>
-            @endif
-        </div>
-    </div>
+    <div class="space-y-8">
+        <!-- Pending Reservations -->
+        @include('ruser.laboratory.reservation.partials.section', [
+            'title' => 'Pending Reservations',
+            'reservations' => $pendingReservations,
+            'emptyMessage' => 'You don\'t have any pending laboratory reservations.',
+            'isPending' => true,
+            'showActions' => true
+        ])
 
-    <!-- Past/Rejected Reservations Section -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Past/Cancelled/Rejected Reservations</h2>
-        </div>
-        <div class="p-6">
-            @if($pastReservations->count() > 0)
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Laboratory</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($pastReservations as $reservation)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            {{ $reservation->laboratory->name }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            {{ $reservation->laboratory->building }}, Room {{ $reservation->laboratory->room_number }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">
-                                            {{ $reservation->reservation_date->format('M d, Y') }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">
-                                            {{ \Carbon\Carbon::parse($reservation->start_time)->format('H:i') }} - 
-                                            {{ \Carbon\Carbon::parse($reservation->end_time)->format('H:i') }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        @if($reservation->status == 'rejected')
-                                            bg-red-100 text-red-800
-                                        @elseif($reservation->status == 'cancelled')
-                                            bg-gray-100 text-gray-800
-                                        @else
-                                            bg-blue-100 text-blue-800
-                                        @endif">
-                                            {{ ucfirst($reservation->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex justify-center sm:justify-end">
-                                            <a href="{{ route('ruser.laboratory.reservations.show', $reservation) }}" class="text-blue-600 hover:text-blue-900">View</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    {{ $pastReservations->links() }}
-                </div>
-            @else
-                <p class="text-gray-500">You don't have any past laboratory reservations.</p>
-            @endif
-        </div>
+        <!-- Upcoming Reservations -->
+        @include('ruser.laboratory.reservation.partials.section', [
+            'title' => 'Upcoming Reservations',
+            'reservations' => $upcomingReservations,
+            'emptyMessage' => 'You don\'t have any upcoming laboratory reservations.',
+            'isPending' => false,
+            'showActions' => true
+        ])
+
+        <!-- Past/Rejected Reservations -->
+        @include('ruser.laboratory.reservation.partials.section', [
+            'title' => 'Past/Cancelled/Rejected Reservations',
+            'reservations' => $pastReservations,
+            'emptyMessage' => 'You don\'t have any past laboratory reservations.',
+            'isPending' => false,
+            'showActions' => false,
+            'showPagination' => true
+        ])
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirm action functionality
+    document.querySelectorAll('.confirm-action').forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const message = this.dataset.confirmMessage || 'Are you sure?';
+            if (confirm(message)) {
+                this.closest('form').submit();
+            }
+        });
+    });
+});
+</script>
 @endsection
