@@ -14,7 +14,7 @@
                             Dashboard
                         </a>
                         @if(auth()->guard('admin')->check())
-                            <a href="{{ route('admin.equipment.manage') }}" 
+                            <a href="{{ route('admin.equipment.index') }}" 
                                class="nav-link {{ request()->routeIs('admin.equipment.*') ? 'text-accent-dark' : 'text-primary' }}">
                                 Equipment
                             </a>

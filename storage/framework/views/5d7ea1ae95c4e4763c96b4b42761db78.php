@@ -1,25 +1,23 @@
-@extends('layouts.admin')
+<?php $__env->startSection('title', 'Manage Equipment'); ?>
+<?php $__env->startSection('header', 'Barcode Equipment Management'); ?>
 
-@section('title', 'Manage Equipment')
-@section('header', 'Barcode Equipment Management')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="space-y-6">
     <!-- Header with action buttons -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
         <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-            <a href="{{ route('admin.equipment.barcode.export') }}" 
+            <a href="<?php echo e(route('admin.equipment.barcode.export')); ?>" 
                class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 <i class="fas fa-print mr-2"></i> Export Barcodes
             </a>
-            <a href="{{ route('admin.equipment.borrow-requests') }}" 
+            <a href="<?php echo e(route('admin.equipment.borrow-requests')); ?>" 
                class="inline-flex items-center justify-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                 <i class="fas fa-clipboard-list mr-2"></i> Manage Borrows
             </a>
-            <a href="{{ route('admin.equipment.create') }}" 
+            <a href="<?php echo e(route('admin.equipment.create')); ?>" 
                class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <i class="fas fa-plus mr-2"></i> Add New Equipment
-            </a>            <a href="{{ route('admin.equipment.categories.index') }}" 
+            </a>            <a href="<?php echo e(route('admin.equipment.categories.index')); ?>" 
                class="inline-flex items-center justify-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                 <i class="fas fa-tags mr-2"></i> Manage Equipment Types
             </a>
@@ -31,19 +29,22 @@
         <div class="bg-white shadow-sm rounded-lg p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Available Equipment</h3>
             <div class="text-3xl font-bold text-green-600">
-                {{ $equipment->where('status', 'available')->count() }}
+                <?php echo e($equipment->where('status', 'available')->count()); ?>
+
             </div>
         </div>
         <div class="bg-white shadow-sm rounded-lg p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Borrowed Equipment</h3>
             <div class="text-3xl font-bold text-yellow-600">
-                {{ $equipment->where('status', 'borrowed')->count() }}
+                <?php echo e($equipment->where('status', 'borrowed')->count()); ?>
+
             </div>
         </div>
         <div class="bg-white shadow-sm rounded-lg p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Unavailable Equipment</h3>
             <div class="text-3xl font-bold text-red-600">
-                {{ $equipment->where('status', 'unavailable')->count() }}
+                <?php echo e($equipment->where('status', 'unavailable')->count()); ?>
+
             </div>
         </div>
     </div>    <!-- Equipment List -->
@@ -57,7 +58,7 @@
                     <input type="text" 
                            id="search" 
                            name="search"
-                           value="{{ request('search') }}"
+                           value="<?php echo e(request('search')); ?>"
                            placeholder="Search equipment by ID number or equipment type" 
                            class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
@@ -65,16 +66,16 @@
                         name="status"
                         class="px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Status</option>
-                    <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Available</option>
-                    <option value="borrowed" {{ request('status') === 'borrowed' ? 'selected' : '' }}>Borrowed</option>
-                    <option value="unavailable" {{ request('status') === 'unavailable' ? 'selected' : '' }}>Unavailable</option>
+                    <option value="available" <?php echo e(request('status') === 'available' ? 'selected' : ''); ?>>Available</option>
+                    <option value="borrowed" <?php echo e(request('status') === 'borrowed' ? 'selected' : ''); ?>>Borrowed</option>
+                    <option value="unavailable" <?php echo e(request('status') === 'unavailable' ? 'selected' : ''); ?>>Unavailable</option>
                 </select>
                 <button type="button" 
                         id="search-btn"
                         class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <i class="fas fa-search mr-2"></i> Search
                 </button>
-                <a href="{{ route('admin.equipment.manage') }}" 
+                <a href="<?php echo e(route('admin.equipment.index')); ?>" 
                    class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                     <i class="fas fa-times mr-2"></i> Clear
                 </a>
@@ -94,56 +95,77 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($equipment as $item)
+                    <?php $__empty_1 = true; $__currentLoopData = $equipment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $item->name }}</div>
+                                <div class="text-sm font-medium text-gray-900"><?php echo e($item->name); ?></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-500">{{ $item->category->name ?? 'Uncategorized' }}</div>
+                                <div class="text-sm text-gray-500"><?php echo e($item->category->name ?? 'Uncategorized'); ?></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-500">
-                                    {{ $item->barcode ?? ($item->rfid_tag ? $item->rfid_tag . ' (Legacy)' : 'Not Set') }}
+                                    <?php echo e($item->barcode ?? ($item->rfid_tag ? $item->rfid_tag . ' (Legacy)' : 'Not Set')); ?>
+
                                 </div>
                             </td>                            <td class="px-6 py-4 whitespace-nowrap">
-                                <x-status-badge :status="$item->status" type="equipment" />
+                                <?php if (isset($component)) { $__componentOriginal8860cf004fec956b6e41d036eb967550 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal8860cf004fec956b6e41d036eb967550 = $attributes; } ?>
+<?php $component = App\View\Components\StatusBadge::resolve(['status' => $item->status,'type' => 'equipment'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('status-badge'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\StatusBadge::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $attributes = $__attributesOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__attributesOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $component = $__componentOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__componentOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-500">
-                                    {{ $item->currentBorrower ? $item->currentBorrower->name : 'None' }}
+                                    <?php echo e($item->currentBorrower ? $item->currentBorrower->name : 'None'); ?>
+
                                 </div>
                             </td>                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
-                                    <button data-action="edit-equipment" data-equipment-id="{{ $item->id }}" class="text-blue-600 hover:text-blue-900">
+                                    <button data-action="edit-equipment" data-equipment-id="<?php echo e($item->id); ?>" class="text-blue-600 hover:text-blue-900">
                                         <i class="fas fa-edit mr-1"></i>Edit
                                     </button>
-                                    @if($item->barcode)
-                                        <a href="{{ route('admin.equipment.barcode.single', $item->id) }}" 
+                                    <?php if($item->barcode): ?>
+                                        <a href="<?php echo e(route('admin.equipment.barcode.single', $item->id)); ?>" 
                                            class="text-green-600 hover:text-green-900" 
                                            title="Print Barcode Label">
                                             <i class="fas fa-print mr-1"></i>Label
                                         </a>
-                                    @endif
-                                    @if($item->status !== 'borrowed')
-                                        <form action="{{ route('admin.equipment.destroy', $item) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
+                                    <?php endif; ?>
+                                    <?php if($item->status !== 'borrowed'): ?>
+                                        <form action="<?php echo e(route('admin.equipment.destroy', $item)); ?>" method="POST" class="inline">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
                                             <button type="submit" class="text-red-600 hover:text-red-900 confirm-action" data-confirm-message="Are you sure you want to delete this equipment?">
                                                 <i class="fas fa-trash mr-1"></i>Delete
                                             </button>
                                         </form>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                No equipment found. <a href="{{ route('admin.equipment.create') }}" class="text-blue-600 hover:text-blue-900">Add some</a>
+                                No equipment found. <a href="<?php echo e(route('admin.equipment.create')); ?>" class="text-blue-600 hover:text-blue-900">Add some</a>
                             </td>
                         </tr>
-                    @endforelse
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -156,8 +178,8 @@
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Edit Equipment</h3>
             <form id="editForm" method="POST" class="mt-4">
-                @csrf
-                @method('PUT')
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('PUT'); ?>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_name">ID Number</label>
                     <input type="text" name="name" id="edit_name" required
@@ -172,9 +194,9 @@
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_category">Equipment Type</label>
                     <select name="category_id" id="edit_category" required
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                        @endforeach
+                        <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($category->id); ?>"><?php echo e($category->name); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div class="mb-4">
@@ -217,10 +239,10 @@
     </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
-<script src="{{ asset('js/equipment-manager.js') }}"></script>
+<?php $__env->startSection('scripts'); ?>
+<script src="<?php echo e(asset('js/equipment-manager.js')); ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search');
@@ -279,4 +301,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/equipment/index.blade.php ENDPATH**/ ?>

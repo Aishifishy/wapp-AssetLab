@@ -32,7 +32,7 @@
                     </div>
                 </div>
             </div>
-            <a href="{{ route('admin.equipment.manage') }}" class="mt-4 d-inline-flex align-items-center text-blue-600 hover:text-blue-800 text-sm">
+            <a href="{{ route('admin.equipment.index') }}" class="mt-4 d-inline-flex align-items-center text-blue-600 hover:text-blue-800 text-sm">
                 Manage Equipment <i class="fas fa-arrow-right ms-1"></i>
             </a>
         </div>

@@ -28,14 +28,8 @@ class EquipmentController extends Controller
     }
     public function index(Request $request)
     {
-        // Redirect to manage page to avoid duplication
-        return redirect()->route('admin.equipment.manage');
-    }
-
-    public function manage(Request $request)
-    {
         $data = $this->equipmentService->getEquipmentManage($request);
-        return view('admin.equipment.manage', $data);
+        return view('admin.equipment.index', $data);
     }
 
     public function create()
@@ -92,7 +86,7 @@ class EquipmentController extends Controller
 
         $this->equipmentService->createEquipment($validated);
 
-        return redirect()->route('admin.equipment.manage')
+        return redirect()->route('admin.equipment.index')
             ->with('success', 'Equipment added successfully.');
     }
 
@@ -126,7 +120,7 @@ class EquipmentController extends Controller
             return redirect()->back()->with('error', $result['message']);
         }
 
-        return redirect()->route('admin.equipment.manage')
+        return redirect()->route('admin.equipment.index')
             ->with('success', $result['message']);
     }
 

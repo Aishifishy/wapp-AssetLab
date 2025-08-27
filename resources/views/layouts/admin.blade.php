@@ -170,8 +170,8 @@
                     <!-- Equipment Sub-items -->
                     <ul class="nav nav-pills flex-column border-start admin-border-start border-secondary ms-3">
                         <li class="nav-item">
-                            <a href="{{ route('admin.equipment.manage') }}" 
-                               class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.manage') ? 'active' : '' }}">
+                            <a href="{{ route('admin.equipment.index') }}" 
+                               class="nav-link admin-nav-link text-white ps-3 {{ request()->routeIs('admin.equipment.index') || request()->routeIs('admin.equipment.create') || request()->routeIs('admin.equipment.edit') ? 'active' : '' }}">
                                 <i class="fas fa-cog me-2"></i>
                                 Manage Equipment
                             </a>

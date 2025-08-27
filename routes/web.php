@@ -136,7 +136,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Equipment Management
         Route::prefix('equipment')->name('equipment.')->group(function () {
             Route::get('/', [AdminEquipmentController::class, 'index'])->name('index');
-            Route::get('/manage', [AdminEquipmentController::class, 'manage'])->name('manage');
             Route::get('/create', [AdminEquipmentController::class, 'create'])->name('create');
             
             // Equipment Categories
