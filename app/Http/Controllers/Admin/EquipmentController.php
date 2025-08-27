@@ -28,8 +28,8 @@ class EquipmentController extends Controller
     }
     public function index(Request $request)
     {
-        $equipment = $this->equipmentService->getEquipmentIndex($request);
-        return view('admin.equipment.index', compact('equipment'));
+        // Redirect to manage page to avoid duplication
+        return redirect()->route('admin.equipment.manage');
     }
 
     public function manage(Request $request)
@@ -42,6 +42,20 @@ class EquipmentController extends Controller
     {
         $categories = EquipmentCategory::all();
         return view('admin.equipment.create', compact('categories'));
+    }
+
+    public function show(Equipment $equipment)
+    {
+        return response()->json([
+            'id' => $equipment->id,
+            'name' => $equipment->name,
+            'description' => $equipment->description,
+            'category_id' => $equipment->category_id,
+            'barcode' => $equipment->barcode,
+            'rfid_tag' => $equipment->rfid_tag,
+            'location' => $equipment->location,
+            'status' => $equipment->status
+        ]);
     }
 
     public function borrowRequests()
@@ -78,7 +92,7 @@ class EquipmentController extends Controller
 
         $this->equipmentService->createEquipment($validated);
 
-        return redirect()->route('admin.equipment.index')
+        return redirect()->route('admin.equipment.manage')
             ->with('success', 'Equipment added successfully.');
     }
 
@@ -112,7 +126,7 @@ class EquipmentController extends Controller
             return redirect()->back()->with('error', $result['message']);
         }
 
-        return redirect()->route('admin.equipment.index')
+        return redirect()->route('admin.equipment.manage')
             ->with('success', $result['message']);
     }
 

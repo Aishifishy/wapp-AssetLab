@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ReservationConflictController;
+use App\Http\Controllers\Admin\EquipmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,11 @@ use App\Http\Controllers\Api\ReservationConflictController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+// Equipment API routes (protected by web middleware for CSRF)
+Route::middleware('web')->group(function () {
+    Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('api.equipment.show');
 });
 
 // Reservation conflict checking endpoints
