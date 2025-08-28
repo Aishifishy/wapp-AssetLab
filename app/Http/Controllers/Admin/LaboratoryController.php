@@ -98,12 +98,12 @@ class LaboratoryController extends Controller
      */
     public function reservations()
     {
-        $pendingRequests = LaboratoryReservation::with(['user', 'laboratory'])
+        $pendingRequests = LaboratoryReservation::with(['user', 'laboratory', 'approvedBy', 'rejectedBy'])
             ->pending()
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $recentRequests = LaboratoryReservation::with(['user', 'laboratory'])
+        $recentRequests = LaboratoryReservation::with(['user', 'laboratory', 'approvedBy', 'rejectedBy'])
             ->whereIn('status', ['approved', 'rejected'])
             ->orderBy('updated_at', 'desc')
             ->take(10)

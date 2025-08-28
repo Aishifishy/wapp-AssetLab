@@ -75,7 +75,7 @@ class EquipmentService extends BaseService
         // Run background auto-repair for all equipment before loading page
         $this->autoRepairAllEquipment();
         
-        $requests = EquipmentRequest::with(['user', 'equipment'])
+        $requests = EquipmentRequest::with(['user', 'equipment', 'approvedBy', 'rejectedBy', 'checkedOutBy'])
             ->latest()
             ->paginate(15);
 

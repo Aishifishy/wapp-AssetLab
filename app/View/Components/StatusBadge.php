@@ -30,30 +30,30 @@ class StatusBadge extends Component
     {
         $configs = [
             'equipment' => [
-                'available' => ['bg-green-100 text-green-800', 'Available'],
-                'borrowed' => ['bg-yellow-100 text-yellow-800', 'Borrowed'],
-                'unavailable' => ['bg-red-100 text-red-800', 'Unavailable'],
-                'maintenance' => ['bg-red-100 text-red-800', 'Under Maintenance'],
+                'available' => ['bg-green-100 text-green-800 text-center', 'Available'],
+                'borrowed' => ['bg-yellow-100 text-yellow-800 text-center', 'Borrowed'],
+                'unavailable' => ['bg-red-100 text-red-800 text-center', 'Unavailable'],
+                'maintenance' => ['bg-red-100 text-red-800 text-center', 'Under Maintenance'],
             ],
             'laboratory' => [
-                'available' => ['bg-green-100 text-green-800', 'Available'],
-                'in_use' => ['bg-yellow-100 text-yellow-800', 'In Use'],
-                'under_maintenance' => ['bg-red-100 text-red-800', 'Under Maintenance'],
-                'reserved' => ['bg-blue-100 text-blue-800', 'Reserved'],
+                'available' => ['bg-green-100 text-green-800 text-center', 'Available'],
+                'in_use' => ['bg-yellow-100 text-yellow-800 text-center', 'In Use'],
+                'under_maintenance' => ['bg-red-100 text-red-800 text-center', 'Under Maintenance'],
+                'reserved' => ['bg-blue-100 text-blue-800 text-center', 'Reserved'],
             ],
             'reservation' => [
-                'pending' => ['bg-yellow-100 text-yellow-800', 'Pending'],
-                'approved' => ['bg-green-100 text-green-800', 'Approved'],
-                'rejected' => ['bg-red-100 text-red-800', 'Rejected'],
-                'cancelled' => ['bg-gray-100 text-gray-800', 'Cancelled'],
+                'pending' => ['bg-yellow-100 text-yellow-800 text-center', 'Pending'],
+                'approved' => ['bg-green-100 text-green-800 text-center', 'Approved'],
+                'rejected' => ['bg-red-100 text-red-800 text-center', 'Rejected'],
+                'cancelled' => ['bg-gray-100 text-gray-800 text-center', 'Cancelled'],
             ],
             'request' => [
-                'pending' => ['bg-yellow-100 text-yellow-800', 'Pending'],
-                'approved' => ['bg-green-100 text-green-800', 'Approved'],
-                'checked_out' => ['bg-blue-100 text-blue-800', 'Borrowed'],
-                'returned' => ['bg-purple-100 text-purple-800', 'Returned'],
-                'rejected' => ['bg-red-100 text-red-800', 'Rejected'],
-                'cancelled' => ['bg-gray-100 text-gray-800', 'Cancelled'],
+                'pending' => ['bg-yellow-100 text-yellow-800 text-center', 'Pending'],
+                'approved' => ['bg-green-100 text-green-800 text-center', 'Approved'],
+                'checked_out' => ['bg-blue-100 text-blue-800 text-center', 'Borrowed'],
+                'returned' => ['bg-purple-100 text-purple-800 text-center', 'Returned'],
+                'rejected' => ['bg-red-100 text-red-800 text-center', 'Rejected'],
+                'cancelled' => ['bg-gray-100 text-gray-800 text-center', 'Cancelled'],
             ],
         ];
 

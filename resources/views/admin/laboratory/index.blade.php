@@ -39,7 +39,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $lab->capacity }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $lab->number_of_computers }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
+                                    <div class="flex items-center justify-center">
                                         <x-status-badge :status="$lab->status" type="laboratory" />
                                         <button type="button" class="ml-2 text-blue-600 hover:text-blue-900" data-modal-target="statusModal{{ $lab->id }}">
                                             <i class="fas fa-edit"></i>

@@ -9,6 +9,7 @@ use App\Models\AcademicTerm;
 use App\Services\ReservationConflictService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * User Laboratory Reservation service
@@ -56,7 +57,7 @@ class UserLaboratoryService extends BaseService
      */
     public function getRecentActivities($userId, $limit = 15)
     {
-        return LaboratoryReservation::with(['laboratory'])
+        return LaboratoryReservation::with(['laboratory', 'approvedBy', 'rejectedBy'])
             ->forUser($userId)
             ->latest()
             ->take($limit)
@@ -231,33 +232,83 @@ class UserLaboratoryService extends BaseService
         
         switch($reservation->status) {
             case LaboratoryReservation::STATUS_PENDING:
-                $activityText = "Requested reservation for {$reservation->laboratory->name}";
+                $activityText = "<strong>Requested</strong> laboratory reservation for {$reservation->laboratory->name}";
+                if ($reservation->reservation_date) {
+                    $activityText .= '<br><small class="text-gray-600">Date: ' . 
+                                   $reservation->reservation_date->format('M j, Y') . '</small>';
+                }
+                if ($reservation->formatted_start_time && $reservation->formatted_end_time) {
+                    $activityText .= '<br><small class="text-gray-600">Time: ' . 
+                                   $reservation->formatted_start_time . ' - ' . $reservation->formatted_end_time . '</small>';
+                }
                 $statusClass = 'yellow';
                 break;
+                
             case LaboratoryReservation::STATUS_APPROVED:
-                $activityText = "Laboratory reservation approved for {$reservation->laboratory->name}";
+                $activityText = "<strong>Laboratory reservation approved</strong> for {$reservation->laboratory->name}";
+                if ($reservation->reservation_date) {
+                    $activityText .= '<br><small class="text-green-600">Date: ' . 
+                                   $reservation->reservation_date->format('M j, Y') . '</small>';
+                }
+                if ($reservation->formatted_start_time && $reservation->formatted_end_time) {
+                    $activityText .= '<br><small class="text-green-600">Time: ' . 
+                                   $reservation->formatted_start_time . ' - ' . $reservation->formatted_end_time . '</small>';
+                }
+                if ($reservation->approvedBy) {
+                    $activityText .= '<br><small class="text-green-600">Approved by: ' . 
+                                   $reservation->approvedBy->name . ' on ' . 
+                                   $reservation->approved_at->format('M j, Y g:i A') . '</small>';
+                }
                 $statusClass = 'green';
                 break;
+                
             case LaboratoryReservation::STATUS_REJECTED:
-                $activityText = "Laboratory reservation rejected for {$reservation->laboratory->name}";
+                $activityText = "<strong>Laboratory reservation rejected</strong> for {$reservation->laboratory->name}";
+                if ($reservation->reservation_date) {
+                    $activityText .= '<br><small class="text-gray-600">Requested date: ' . 
+                                   $reservation->reservation_date->format('M j, Y') . '</small>';
+                }
+                if ($reservation->formatted_start_time && $reservation->formatted_end_time) {
+                    $activityText .= '<br><small class="text-gray-600">Requested time: ' . 
+                                   $reservation->formatted_start_time . ' - ' . $reservation->formatted_end_time . '</small>';
+                }
+                if ($reservation->rejectedBy) {
+                    $activityText .= '<br><small class="text-red-600">Rejected by: ' . 
+                                   $reservation->rejectedBy->name . ' on ' . 
+                                   $reservation->rejected_at->format('M j, Y g:i A') . '</small>';
+                }
+                if ($reservation->rejection_reason) {
+                    $activityText .= '<br><small class="text-red-600">Reason: ' . 
+                                   Str::limit($reservation->rejection_reason, 60) . '</small>';
+                }
                 $statusClass = 'red';
                 break;
+                
             case LaboratoryReservation::STATUS_CANCELLED:
-                $activityText = "Cancelled reservation for {$reservation->laboratory->name}";
+                $activityText = "<strong>Cancelled</strong> laboratory reservation for {$reservation->laboratory->name}";
+                if ($reservation->reservation_date) {
+                    $activityText .= '<br><small class="text-gray-600">Originally scheduled: ' . 
+                                   $reservation->reservation_date->format('M j, Y') . '</small>';
+                }
+                $statusClass = 'gray';
+                break;
+                
+            default:
+                $activityText = "Unknown status for {$reservation->laboratory->name}";
                 $statusClass = 'gray';
                 break;
         }
         
         return [
             'id' => $reservation->id,
-            'time' => $reservation->created_at,
+            'time' => $reservation->updated_at ?? $reservation->created_at, // Use updated_at for status changes
             'description' => $activityText,
             'status' => $reservation->status,
             'status_class' => $statusClass,
             'equipment_name' => $reservation->laboratory->name,
             'category_name' => 'Laboratory',
             'purpose' => $reservation->purpose,
-            'activity_type' => 'laboratory',
+            'activity_type' => 'reservation', // Use 'reservation' type for proper status badge colors
             'reservation_date' => $reservation->reservation_date,
             'start_time' => $reservation->formatted_start_time,
             'end_time' => $reservation->formatted_end_time

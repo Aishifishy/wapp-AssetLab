@@ -105,6 +105,7 @@
                                     <i class="fas fa-sort ml-2 text-gray-400"></i>
                                 </div>
                             </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin Actions</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -146,12 +147,36 @@
                                 <div class="text-xs text-gray-500">{{ $request->duration }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                                    @if($request->status === 'approved') bg-green-100 text-green-800
-                                    @elseif($request->status === 'rejected') bg-red-100 text-red-800
-                                    @else bg-yellow-100 text-yellow-800 @endif">
-                                    {{ ucfirst($request->status) }}
-                                </span>
+                                <div class="flex justify-center">
+                                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium
+                                        @if($request->status === 'approved') bg-green-100 text-green-800
+                                        @elseif($request->status === 'rejected') bg-red-100 text-red-800
+                                        @else bg-yellow-100 text-yellow-800 @endif">
+                                        {{ ucfirst($request->status) }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($request->status === 'approved' && $request->approvedBy)
+                                    <div class="text-xs text-green-600">
+                                        <div class="font-medium">Approved by:</div>
+                                        <div>{{ $request->approvedBy->name }}</div>
+                                        <div class="text-gray-500">{{ $request->approved_at->format('M d, Y g:i A') }}</div>
+                                    </div>
+                                @elseif($request->status === 'rejected' && $request->rejectedBy)
+                                    <div class="text-xs text-red-600">
+                                        <div class="font-medium">Rejected by:</div>
+                                        <div>{{ $request->rejectedBy->name }}</div>
+                                        <div class="text-gray-500">{{ $request->rejected_at->format('M d, Y g:i A') }}</div>
+                                        @if($request->rejection_reason)
+                                            <div class="text-gray-600 mt-1">{{ Str::limit($request->rejection_reason, 30) }}</div>
+                                        @endif
+                                    </div>
+                                @elseif($request->status === 'pending')
+                                    <div class="text-xs text-gray-400">
+                                        <div>Awaiting admin action</div>
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 @if($request->status === 'pending')
@@ -222,7 +247,7 @@
                         @endif
                         @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                                 No reservation requests found
                             </td>
                         </tr>

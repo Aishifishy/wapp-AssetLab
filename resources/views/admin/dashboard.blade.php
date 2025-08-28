@@ -134,7 +134,9 @@
                                 {{ $activity->item_name ?? 'N/A' }}
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <x-status-badge :status="$activity->status ?? 'unknown'" :type="$activity->activity_type === 'equipment' ? 'request' : 'reservation'" />
+                                <div class="flex justify-center">
+                                    <x-status-badge :status="$activity->status ?? 'unknown'" :type="$activity->activity_type === 'equipment' ? 'request' : 'reservation'" />
+                                </div>
                             </td>
                             <td class="px-4 py-4 text-sm whitespace-nowrap">
                                 @if($activity->activity_type === 'equipment')
