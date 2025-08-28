@@ -3,30 +3,32 @@
 namespace App\Http\Controllers\Ruser;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\ControllerHelpers;
 use App\Models\ComputerLaboratory;
 use App\Models\LaboratoryReservation;
-use App\Models\LaboratorySchedule;
-use App\Models\AcademicTerm;
-use App\Mail\LaboratoryReservationStatusChanged;
 use App\Services\ReservationConflictService;
 use App\Services\LaboratoryReservationService;
+use App\Services\UserLaboratoryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class LaboratoryReservationController extends Controller
 {
+    use ControllerHelpers;
+
     protected $conflictService;
     protected $reservationService;
+    protected $userLaboratoryService;
 
-    public function __construct(ReservationConflictService $conflictService, LaboratoryReservationService $reservationService)
-    {
+    public function __construct(
+        ReservationConflictService $conflictService, 
+        LaboratoryReservationService $reservationService,
+        UserLaboratoryService $userLaboratoryService
+    ) {
         $this->conflictService = $conflictService;
         $this->reservationService = $reservationService;
+        $this->userLaboratoryService = $userLaboratoryService;
     }
 
     /**
@@ -34,31 +36,9 @@ class LaboratoryReservationController extends Controller
      */
     public function create(ComputerLaboratory $laboratory)
     {
-        $currentTerm = AcademicTerm::where('is_current', true)->first();
+        $data = $this->userLaboratoryService->getReservationFormData($laboratory);
         
-        // Get regular schedules for availability checking
-        $schedules = collect([]);
-        if ($currentTerm) {
-            $schedules = LaboratorySchedule::where('laboratory_id', $laboratory->id)
-                ->where('academic_term_id', $currentTerm->id)
-                ->get();
-        }
-        
-        // Get existing reservations for the next 14 days
-        $startDate = now()->startOfDay();
-        $endDate = now()->addDays(14)->endOfDay();
-        
-        $existingReservations = LaboratoryReservation::where('laboratory_id', $laboratory->id)
-            ->whereBetween('reservation_date', [$startDate, $endDate])
-            ->where('status', LaboratoryReservation::STATUS_APPROVED)
-            ->get();
-            
-        return view('ruser.laboratory.reservation.create', compact(
-            'laboratory', 
-            'schedules', 
-            'existingReservations', 
-            'currentTerm'
-        ));
+        return view('ruser.laboratory.reservation.create', $data);
     }
 
     /**
@@ -66,13 +46,10 @@ class LaboratoryReservationController extends Controller
      */
     public function store(Request $request, ComputerLaboratory $laboratory)
     {
-        // Get base validation rules from service
         $rules = $this->reservationService->getValidationRules();
-        
-        // Override capacity validation for this specific laboratory
         $rules['num_students'] = 'required|integer|min:1|max:' . $laboratory->capacity;
         
-        $validatedData = $request->validate($rules);
+        $validatedData = $this->validateRequest($request, $rules);
         
         $result = $this->reservationService->createReservation($laboratory, $validatedData);
         
@@ -80,9 +57,8 @@ class LaboratoryReservationController extends Controller
             return redirect()->route('ruser.laboratory.reservations.confirmation', $result['reservation'])
                 ->with('success', $result['message']);
         } 
-        else {
-            return back()->withInput()->with('error', $result['message']);
-        }
+        
+        return back()->withInput()->with('error', $result['message']);
     }
 
     /**
@@ -90,28 +66,9 @@ class LaboratoryReservationController extends Controller
      */
     public function index(Request $request)
     {
-        $reservations = $this->reservationService->getUserReservations($request);
+        $data = $this->userLaboratoryService->getUserReservationsData(Auth::id(), $request);
         
-        // For backward compatibility, we'll still separate them by status
-        $upcomingReservations = LaboratoryReservation::where('user_id', Auth::id())
-            ->where('status', LaboratoryReservation::STATUS_APPROVED)
-            ->where('reservation_date', '>=', now()->toDateString())
-            ->orderBy('reservation_date')
-            ->orderBy('start_time')
-            ->with('laboratory')
-            ->get();
-            
-        $pendingReservations = LaboratoryReservation::where('user_id', Auth::id())
-            ->where('status', LaboratoryReservation::STATUS_PENDING)
-            ->orderBy('created_at', 'desc')
-            ->with('laboratory')
-            ->get();
-        
-        return view('ruser.laboratory.reservation.index', compact(
-            'upcomingReservations',
-            'pendingReservations',
-            'reservations'
-        ));
+        return view('ruser.laboratory.reservation.index', $data);
     }
     
     /**
@@ -119,8 +76,7 @@ class LaboratoryReservationController extends Controller
      */
     public function show(LaboratoryReservation $reservation)
     {
-        // Check if the reservation belongs to the user
-        if ($reservation->user_id !== Auth::id()) {
+        if (!$this->userLaboratoryService->canAccessReservation($reservation, Auth::id())) {
             return redirect()->route('ruser.laboratory.reservations.index')
                 ->with('error', 'You do not have permission to view this reservation.');
         }
@@ -133,8 +89,7 @@ class LaboratoryReservationController extends Controller
      */
     public function confirmation(LaboratoryReservation $reservation)
     {
-        // Check if the reservation belongs to the user
-        if ($reservation->user_id !== Auth::id()) {
+        if (!$this->userLaboratoryService->canAccessReservation($reservation, Auth::id())) {
             return redirect()->route('ruser.laboratory.reservations.index')
                 ->with('error', 'You do not have permission to view this reservation.');
         }
@@ -149,13 +104,8 @@ class LaboratoryReservationController extends Controller
     {
         $result = $this->reservationService->cancelReservation($reservation);
         
-        if ($result['success']) {
-            return redirect()->route('ruser.laboratory.reservations.index')
-                ->with('success', $result['message']);
-        } else {
-            return redirect()->route('ruser.laboratory.reservations.index')
-                ->with('error', $result['message']);
-        }
+        return redirect()->route('ruser.laboratory.reservations.index')
+            ->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
     /**
@@ -178,15 +128,7 @@ class LaboratoryReservationController extends Controller
      */
     public function quickReserve()
     {
-        $recentReservations = LaboratoryReservation::where('user_id', Auth::id())
-            ->where(function($query) {
-                $query->where('status', LaboratoryReservation::STATUS_APPROVED)
-                      ->orWhere('status', LaboratoryReservation::STATUS_PENDING);
-            })
-            ->orderBy('created_at', 'desc')
-            ->with('laboratory')
-            ->take(5)
-            ->get();
+        $recentReservations = $this->userLaboratoryService->getRecentReservations(Auth::id(), 5);
 
         return view('ruser.laboratory.reservation.quick-reserve', compact('recentReservations'));
     }
@@ -196,7 +138,7 @@ class LaboratoryReservationController extends Controller
      */
     public function quickReserveStore(Request $request)
     {
-        $validatedData = $request->validate([
+        $validatedData = $this->validateRequest($request, [
             'template' => 'required|exists:laboratory_reservations,id',
             'reservation_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
@@ -204,76 +146,13 @@ class LaboratoryReservationController extends Controller
             'purpose' => 'required|string|max:1000',
         ]);
         
-        // Retrieve the template reservation
-        $templateReservation = LaboratoryReservation::findOrFail($validatedData['template']);
+        $result = $this->userLaboratoryService->createQuickReservation($validatedData, Auth::id());
         
-        // Check that the template belongs to this user
-        if ($templateReservation->user_id !== Auth::id()) {
-            return back()->with('error', 'You can only use your own reservations as templates.');
+        if ($result['success']) {
+            return redirect()->route('ruser.laboratory.reservations.confirmation', $result['reservation'])
+                ->with('success', $result['message']);
         }
         
-        // Get the laboratory from the template
-        $laboratory = ComputerLaboratory::findOrFail($templateReservation->laboratory_id);
-        
-        // Convert time formats
-        $reservationDate = Carbon::parse($validatedData['reservation_date'])->toDateString();
-        $startTime = $validatedData['start_time'];
-        $endTime = $validatedData['end_time'];
-        
-        // Use the ReservationConflictService to check for conflicts
-        $conflicts = $this->conflictService->checkConflicts(
-            $laboratory->id,
-            $reservationDate,
-            $startTime,
-            $endTime
-        );
-        
-        if ($conflicts['has_conflict']) {
-            return back()->withInput()->with('error', $this->getConflictMessage($conflicts));
-        }
-        
-        // Create the reservation using the template and new data
-        $reservation = new LaboratoryReservation([
-            'user_id' => Auth::id(),
-            'laboratory_id' => $laboratory->id,
-            'reservation_date' => $reservationDate,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'purpose' => $validatedData['purpose'],
-            'num_students' => $templateReservation->num_students,
-            'course_code' => $templateReservation->course_code,
-            'subject' => $templateReservation->subject,
-            'section' => $templateReservation->section,
-            'status' => LaboratoryReservation::STATUS_PENDING,
-        ]);
-        
-        $reservation->save();
-        
-        return redirect()->route('ruser.laboratory.reservations.confirmation', $reservation)
-            ->with('success', 'Quick reservation request submitted successfully. It will be reviewed by the administrator.');
-    }
-    
-    /**
-     * Get a user-friendly conflict message
-     */
-    private function getConflictMessage($conflicts)
-    {
-        if (!$conflicts['has_conflict']) {
-            return 'The selected time is available.';
-        }
-        
-        switch ($conflicts['conflict_type']) {
-            case 'single_reservation':
-                return 'The selected time conflicts with an existing reservation.';
-                
-            case 'recurring_reservation':
-                return 'The selected time conflicts with a recurring reservation.';
-                
-            case 'class_schedule':
-                return 'The selected time conflicts with a regular class schedule.';
-                
-            default:
-                return 'The selected time is not available.';
-        }
+        return back()->withInput()->with('error', $result['message']);
     }
 }

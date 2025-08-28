@@ -185,6 +185,25 @@ class EquipmentController extends Controller
         return back()->with('success', $result['message']);
     }
 
+    public function rejectRequest(Request $request, EquipmentRequest $equipmentRequest)
+    {
+        $validated = $this->validateRequest($request, [
+            'rejection_reason' => 'required|string|max:500'
+        ]);
+
+        if (!$equipmentRequest->isPending()) {
+            return back()->with('error', 'This request cannot be rejected.');
+        }
+
+        $equipmentRequest->update([
+            'status' => EquipmentRequest::STATUS_REJECTED,
+            'rejected_at' => now(),
+            'rejected_by' => auth('admin')->id()
+        ]);
+
+        return back()->with('success', 'Equipment request rejected successfully.');
+    }
+
     public function checkOutEquipment(EquipmentRequest $request)
     {
         $result = $this->equipmentService->checkOutEquipment($request);

@@ -206,6 +206,14 @@
                                 User Management
                             </a>
                         </li>
+                        @if(Auth::guard('admin')->user() && Auth::guard('admin')->user()->isSuperAdmin())
+                        <li class="nav-item">
+                            <a href="{{ route('admin.super-admin.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.super-admin.*') ? 'active' : '' }}">
+                                <i class="fas fa-crown me-2"></i>
+                                Super Admin
+                            </a>
+                        </li>
+                        @endif
                     </ul>
                 </li>
             </ul>

@@ -3,76 +3,87 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\ControllerHelpers;
+use App\Http\Controllers\Traits\CrudOperations;
 use App\Models\ComputerLaboratory;
 use App\Models\LaboratoryReservation;
 use Illuminate\Http\Request;
 
 class LaboratoryController extends Controller
 {
-    public function index()
-    {
-        $laboratories = ComputerLaboratory::orderBy('building')
-            ->orderBy('room_number')
-            ->get();
+    use ControllerHelpers, CrudOperations;
 
-        return view('admin.laboratory.index', compact('laboratories'));
+    protected function getRoutePrefix(): string
+    {
+        return 'admin.laboratory';
     }
 
-    public function create()
+    protected function getViewPrefix(): string
     {
-        return view('admin.laboratory.create');
+        return 'admin.laboratory';
     }
 
-    public function store(Request $request)
+    protected function getStoreValidationRules(): array
     {
-        $validated = $request->validate([
+        return [
             'name' => 'required|string|unique:computer_laboratories,name',
             'room_number' => 'required|string',
             'building' => 'required|string',
             'capacity' => 'required|integer|min:1',
             'number_of_computers' => 'required|integer|min:1',
             'status' => 'required|in:available,in_use,under_maintenance,reserved',
-        ]);
-
-        ComputerLaboratory::create($validated);
-
-        return redirect()->route('admin.laboratory.index')
-            ->with('success', 'Laboratory created successfully.');
+        ];
     }
 
-    public function edit(ComputerLaboratory $laboratory)
+    protected function getUpdateValidationRules($model): array
     {
-        return view('admin.laboratory.edit', compact('laboratory'));
-    }
-
-    public function update(Request $request, ComputerLaboratory $laboratory)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|unique:computer_laboratories,name,' . $laboratory->id,
+        return [
+            'name' => 'required|string|unique:computer_laboratories,name,' . $model->id,
             'room_number' => 'required|string',
             'building' => 'required|string',
             'capacity' => 'required|integer|min:1',
             'number_of_computers' => 'required|integer|min:1',
             'status' => 'required|in:available,in_use,under_maintenance,reserved',
-        ]);
+        ];
+    }
 
-        $laboratory->update($validated);
+    public function index()
+    {
+        $laboratories = ComputerLaboratory::orderBy('building')
+            ->orderBy('room_number')
+            ->get();
 
-        return redirect()->route('admin.laboratory.index')
-            ->with('success', 'Laboratory updated successfully.');
+        return view($this->getViewPrefix() . '.index', compact('laboratories'));
+    }
+
+    public function create()
+    {
+        return view($this->getViewPrefix() . '.create');
+    }
+
+    public function store(Request $request)
+    {
+        return $this->handleStore($request, ComputerLaboratory::class);
+    }
+
+    public function edit(ComputerLaboratory $laboratory)
+    {
+        return view($this->getViewPrefix() . '.edit', compact('laboratory'));
+    }
+
+    public function update(Request $request, ComputerLaboratory $laboratory)
+    {
+        return $this->handleUpdate($request, $laboratory);
     }
 
     public function destroy(ComputerLaboratory $laboratory)
     {
-        $laboratory->delete();
-
-        return redirect()->route('admin.laboratory.index')
-            ->with('success', 'Laboratory deleted successfully.');
+        return $this->handleDestroy($laboratory);
     }
 
     public function updateStatus(Request $request, ComputerLaboratory $laboratory)
     {
-        $validated = $request->validate([
+        $validated = $this->validateRequest($request, [
             'status' => 'required|in:available,in_use,under_maintenance,reserved',
         ]);
 
@@ -118,14 +129,16 @@ class LaboratoryController extends Controller
     /**
      * Approve a laboratory reservation request
      */
-    public function approveRequest(Request $request, \App\Models\LaboratoryReservation $reservation)
+    public function approveRequest(Request $request, LaboratoryReservation $reservation)
     {
-        if ($reservation->status !== \App\Models\LaboratoryReservation::STATUS_PENDING) {
+        if ($reservation->status !== LaboratoryReservation::STATUS_PENDING) {
             return redirect()->back()->with('error', 'This request has already been processed.');
         }
 
         $reservation->update([
-            'status' => \App\Models\LaboratoryReservation::STATUS_APPROVED
+            'status' => LaboratoryReservation::STATUS_APPROVED,
+            'approved_at' => now(),
+            'approved_by' => auth('admin')->id()
         ]);
 
         return redirect()->back()->with('success', 'Reservation request approved successfully.');
@@ -134,21 +147,23 @@ class LaboratoryController extends Controller
     /**
      * Reject a laboratory reservation request
      */
-    public function rejectRequest(Request $request, \App\Models\LaboratoryReservation $reservation)
+    public function rejectRequest(Request $request, LaboratoryReservation $reservation)
     {
-        $validated = $request->validate([
+        $validated = $this->validateRequest($request, [
             'rejection_reason' => 'required|string|max:500'
         ]);
 
-        if ($reservation->status !== \App\Models\LaboratoryReservation::STATUS_PENDING) {
+        if ($reservation->status !== LaboratoryReservation::STATUS_PENDING) {
             return redirect()->back()->with('error', 'This request has already been processed.');
         }
 
         $reservation->update([
-            'status' => \App\Models\LaboratoryReservation::STATUS_REJECTED,
-            'rejection_reason' => $validated['rejection_reason']
+            'status' => LaboratoryReservation::STATUS_REJECTED,
+            'rejection_reason' => $validated['rejection_reason'],
+            'rejected_at' => now(),
+            'rejected_by' => auth('admin')->id()
         ]);
 
         return redirect()->back()->with('success', 'Reservation request rejected.');
     }
-} 
+}

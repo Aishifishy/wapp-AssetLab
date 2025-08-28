@@ -23,6 +23,7 @@ class Radmin extends Authenticatable
         'email',
         'password',
         'role',
+        'is_super_admin',
     ];
 
     /**
@@ -43,6 +44,7 @@ class Radmin extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_super_admin' => 'boolean',
     ];
 
     public function isSuperAdmin()
@@ -50,13 +52,8 @@ class Radmin extends Authenticatable
         return $this->role === 'super_admin';
     }
 
-    public function isEquipmentAdmin()
+    public function isAdmin()
     {
-        return $this->role === 'equipment_admin';
-    }
-
-    public function isMaintenanceAdmin()
-    {
-        return $this->role === 'maintenance_admin';
+        return $this->role === 'admin';
     }
 }

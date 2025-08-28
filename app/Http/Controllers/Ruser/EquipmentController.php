@@ -3,14 +3,25 @@
 namespace App\Http\Controllers\Ruser;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\ControllerHelpers;
 use App\Models\Equipment;
 use App\Models\EquipmentRequest;
 use App\Models\EquipmentCategory;
+use App\Services\UserEquipmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class EquipmentController extends Controller
 {
+    use ControllerHelpers;
+
+    protected $equipmentService;
+
+    public function __construct(UserEquipmentService $equipmentService)
+    {
+        $this->equipmentService = $equipmentService;
+    }
+
     /**
      * Display equipment available for borrowing.
      */
@@ -19,7 +30,6 @@ class EquipmentController extends Controller
         $categoryId = $request->get('category');
         
         if ($categoryId) {
-            // Show equipment for specific category
             return $this->showCategory($categoryId);
         }
         
@@ -40,12 +50,7 @@ class EquipmentController extends Controller
     public function showCategory($categoryId)
     {
         $selectedCategory = EquipmentCategory::findOrFail($categoryId);
-        
-        $equipment = Equipment::where('status', Equipment::STATUS_AVAILABLE)
-            ->where('category_id', $categoryId)
-            ->with('category')
-            ->latest()
-            ->paginate(12);
+        $equipment = $this->equipmentService->getAvailableEquipmentByCategory($categoryId);
         
         return view('ruser.equipment.borrow', compact('equipment', 'selectedCategory'));
     }
@@ -55,69 +60,43 @@ class EquipmentController extends Controller
      */
     public function request(Request $request)
     {
-        $validated = $request->validate([
+        $validated = $this->validateRequest($request, [
             'equipment_id' => 'required|exists:equipment,id',
             'purpose' => 'required|string|max:1000',
             'requested_from' => 'required|date|after:now',
             'requested_until' => 'required|date|after:requested_from',
         ]);
 
-        $equipment = Equipment::findOrFail($validated['equipment_id']);
+        $result = $this->equipmentService->createRequest($validated, Auth::id());
 
-        if (!$equipment->isAvailable()) {
-            return back()->with('error', 'This equipment is no longer available.');
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
         }
 
-        $request = EquipmentRequest::create([
-            'equipment_id' => $equipment->id,
-            'user_id' => Auth::id(),
-            'status' => EquipmentRequest::STATUS_PENDING,
-            'purpose' => $validated['purpose'],
-            'requested_from' => $validated['requested_from'],
-            'requested_until' => $validated['requested_until'],
-        ]);        return redirect()->route('dashboard')
-            ->with('success', 'Your borrow request has been submitted successfully.');    }
+        return redirect()->route('dashboard')
+            ->with('success', $result['message']);
+    }
 
     /**
      * Cancel a pending equipment request.
-     */public function cancelRequest(EquipmentRequest $equipmentRequest)
+     */
+    public function cancelRequest(EquipmentRequest $equipmentRequest)
     {
-        if ($equipmentRequest->user_id !== Auth::id()) {
-            return redirect()->route('dashboard')
-                ->with('error', 'You are not authorized to cancel this request.');
-        }
+        $result = $this->equipmentService->cancelRequest($equipmentRequest, Auth::id());
 
-        if ($equipmentRequest->status !== EquipmentRequest::STATUS_PENDING) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Only pending requests can be canceled.');
-        }
-
-        $equipmentRequest->delete();
-        
         return redirect()->route('dashboard')
-            ->with('success', 'Equipment request has been canceled.');
+            ->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
     /**
      * Mark equipment as returned by the user.
-     */    public function return(EquipmentRequest $equipmentRequest)
+     */
+    public function return(EquipmentRequest $equipmentRequest)
     {
-        if ($equipmentRequest->user_id !== Auth::id()) {
-            return redirect()->route('dashboard')
-                ->with('error', 'You are not authorized to mark this equipment as returned.');
-        }
+        $result = $this->equipmentService->requestReturn($equipmentRequest, Auth::id());
 
-        if ($equipmentRequest->status !== EquipmentRequest::STATUS_APPROVED || $equipmentRequest->returned_at !== null) {
-            return redirect()->route('dashboard')
-                ->with('error', 'This equipment cannot be marked as returned.');
-        }
-
-        $equipmentRequest->update([
-            'return_requested_at' => now(),
-        ]);
-        
         return redirect()->route('dashboard')
-            ->with('success', 'Return request has been submitted. Please return the equipment to the laboratory.');
+            ->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
     /**
@@ -125,12 +104,7 @@ class EquipmentController extends Controller
      */
     public function borrowed()
     {
-        $borrowedRequests = EquipmentRequest::with(['equipment'])
-            ->where('user_id', Auth::id())
-            ->where('status', EquipmentRequest::STATUS_APPROVED)
-            ->whereNull('returned_at')
-            ->latest()
-            ->paginate(10);
+        $borrowedRequests = $this->equipmentService->getCurrentlyBorrowed(Auth::id());
 
         return view('ruser.equipment.borrowed', compact('borrowedRequests'));
     }
@@ -140,16 +114,7 @@ class EquipmentController extends Controller
      */
     public function history()
     {
-        $historyRequests = EquipmentRequest::with(['equipment'])
-            ->where('user_id', Auth::id())
-            ->whereIn('status', [EquipmentRequest::STATUS_RETURNED, EquipmentRequest::STATUS_REJECTED])
-            ->orWhere(function($query) {
-                $query->where('user_id', Auth::id())
-                      ->where('status', EquipmentRequest::STATUS_APPROVED)
-                      ->whereNotNull('returned_at');
-            })
-            ->latest()
-            ->paginate(15);
+        $historyRequests = $this->equipmentService->getHistory(Auth::id());
 
         return view('ruser.equipment.history', compact('historyRequests'));
     }

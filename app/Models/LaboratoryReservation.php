@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Filterable;
 use App\Services\ReservationConflictService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class LaboratoryReservation extends Model
 {
-    use HasFactory;
+    use HasFactory, Filterable;
 
     protected $fillable = [
         'user_id',
@@ -26,12 +27,18 @@ class LaboratoryReservation extends Model
         'is_recurring',
         'recurrence_pattern',
         'recurrence_end_date',
+        'approved_at',
+        'rejected_at',
+        'approved_by',
+        'rejected_by',
     ];
 
     protected $casts = [
         'reservation_date' => 'date',
         'is_recurring' => 'boolean',
         'recurrence_end_date' => 'date',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     // Status constants
@@ -49,6 +56,16 @@ class LaboratoryReservation extends Model
     public function laboratory()
     {
         return $this->belongsTo(ComputerLaboratory::class, 'laboratory_id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(Radmin::class, 'approved_by');
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(Radmin::class, 'rejected_by');
     }
 
     // Scopes

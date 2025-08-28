@@ -170,7 +170,11 @@ class EquipmentService extends BaseService
             ];
         }
 
-                $request->update(['status' => EquipmentRequest::STATUS_APPROVED]);
+        $request->update([
+            'status' => EquipmentRequest::STATUS_APPROVED,
+            'approved_at' => now(),
+            'approved_by' => auth('admin')->id()
+        ]);
 
         $this->logAction('approve_request', $request);
 

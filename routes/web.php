@@ -193,5 +193,32 @@ Route::prefix('admin')->name('admin.')->group(function () {
             // AJAX route for RFID lookup
             Route::post('/find-by-rfid', [UserController::class, 'findByRfid'])->name('find-by-rfid');
         });
+
+        // Super Admin Routes (restricted to super admins only)
+        Route::prefix('super-admin')->name('super-admin.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\SuperAdminController::class, 'index'])->name('index');
+            
+            // System Reports
+            Route::get('/reports', [\App\Http\Controllers\Admin\SuperAdminController::class, 'systemReports'])->name('reports');
+            Route::get('/export/users', [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportUsers'])->name('export.users');
+            Route::post('/bulk-delete-users', [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDeleteUsers'])->name('bulk-delete-users');
+            
+            // Admin Management
+            Route::get('/admins/create', [\App\Http\Controllers\Admin\SuperAdminController::class, 'createAdmin'])->name('admins.create');
+            Route::post('/admins', [\App\Http\Controllers\Admin\SuperAdminController::class, 'storeAdmin'])->name('admins.store');
+            Route::get('/admins/{admin}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'showAdmin'])->name('admins.show');
+            Route::get('/admins/{admin}/edit', [\App\Http\Controllers\Admin\SuperAdminController::class, 'editAdmin'])->name('admins.edit');
+            Route::put('/admins/{admin}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'updateAdmin'])->name('admins.update');
+            Route::delete('/admins/{admin}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyAdmin'])->name('admins.destroy');
+            Route::patch('/admins/{admin}/toggle-status', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleAdminStatus'])->name('admins.toggle-status');
+            
+            // User Management
+            Route::get('/users/create', [\App\Http\Controllers\Admin\SuperAdminController::class, 'createUser'])->name('users.create');
+            Route::post('/users', [\App\Http\Controllers\Admin\SuperAdminController::class, 'storeUser'])->name('users.store');
+            Route::get('/users/{user}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'showUser'])->name('users.show');
+            Route::get('/users/{user}/edit', [\App\Http\Controllers\Admin\SuperAdminController::class, 'editUser'])->name('users.edit');
+            Route::put('/users/{user}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'updateUser'])->name('users.update');
+            Route::delete('/users/{user}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyUser'])->name('users.destroy');
+        });
     });
 });

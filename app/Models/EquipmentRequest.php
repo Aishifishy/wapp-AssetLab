@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
 class EquipmentRequest extends Model
 {
-    use HasFactory;
+    use HasFactory, Filterable;
 
     protected $fillable = [
         'user_id',
@@ -22,6 +23,10 @@ class EquipmentRequest extends Model
         'return_notes',
         'checked_out_at',
         'checked_out_by',
+        'approved_at',
+        'rejected_at',
+        'approved_by',
+        'rejected_by',
     ];
 
     protected $casts = [
@@ -29,6 +34,8 @@ class EquipmentRequest extends Model
         'requested_until' => 'datetime',
         'returned_at' => 'datetime',
         'checked_out_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     // Status constants
@@ -52,6 +59,16 @@ class EquipmentRequest extends Model
     public function checkedOutBy()
     {
         return $this->belongsTo(Radmin::class, 'checked_out_by');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(Radmin::class, 'approved_by');
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(Radmin::class, 'rejected_by');
     }
 
     // Status check methods

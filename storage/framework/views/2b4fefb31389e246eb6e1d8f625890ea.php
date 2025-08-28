@@ -206,6 +206,14 @@
                                 User Management
                             </a>
                         </li>
+                        <?php if(Auth::guard('admin')->user() && Auth::guard('admin')->user()->isSuperAdmin()): ?>
+                        <li class="nav-item">
+                            <a href="<?php echo e(route('admin.super-admin.index')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.super-admin.*') ? 'active' : ''); ?>">
+                                <i class="fas fa-crown me-2"></i>
+                                Super Admin
+                            </a>
+                        </li>
+                        <?php endif; ?>
                     </ul>
                 </li>
             </ul>

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\ControllerHelpers;
+use App\Http\Controllers\Traits\CrudOperations;
 use App\Models\Ruser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -10,6 +12,73 @@ use Illuminate\Validation\Rules;
 
 class UserController extends Controller
 {
+    use ControllerHelpers, CrudOperations;
+
+    protected function getRoutePrefix(): string
+    {
+        return 'admin.users';
+    }
+
+    protected function getViewPrefix(): string
+    {
+        return 'admin.users';
+    }
+
+    protected function getStoreValidationRules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:rusers'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'string', 'in:student,faculty,staff'],
+            'department' => ['required', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:20'],
+            'rfid_tag' => ['nullable', 'string', 'max:255', 'unique:rusers'],
+        ];
+    }
+
+    protected function getUpdateValidationRules($model): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:rusers,email,' . $model->id],
+            'role' => ['required', 'string', 'in:student,faculty,staff'],
+            'department' => ['required', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:20'],
+            'rfid_tag' => ['nullable', 'string', 'max:255', 'unique:rusers,rfid_tag,' . $model->id],
+        ];
+    }
+
+    protected function canDelete($model): array
+    {
+        // Check if user has active equipment requests
+        $activeRequests = $model->equipmentRequests()
+            ->where('status', 'approved')
+            ->whereNull('returned_at')
+            ->count();
+
+        if ($activeRequests > 0) {
+            return [
+                'can_delete' => false,
+                'message' => 'Cannot delete user with active equipment requests. Please ensure all equipment is returned first.'
+            ];
+        }
+
+        // Check if user has pending requests
+        $pendingRequests = $model->equipmentRequests()
+            ->whereIn('status', ['pending'])
+            ->count();
+
+        if ($pendingRequests > 0) {
+            return [
+                'can_delete' => false,
+                'message' => 'Cannot delete user with pending requests. Please handle these first.'
+            ];
+        }
+
+        return ['can_delete' => true, 'message' => ''];
+    }
+
     /**
      * Display a listing of all users.
      */
@@ -46,36 +115,17 @@ class UserController extends Controller
         $departments = Ruser::distinct()->pluck('department')->filter()->sort();
         $roles = ['student', 'faculty', 'staff'];
 
-        return view('admin.users.index', compact('users', 'departments', 'roles'));
+        return view($this->getViewPrefix() . '.index', compact('users', 'departments', 'roles'));
     }
 
-    /**
-     * Show the form for creating a new user.
-     */
     public function create()
     {
-        return view('admin.users.create');
+        return view($this->getViewPrefix() . '.create');
     }
 
-    /**
-     * Store a newly created user in storage.
-     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:rusers'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:student,faculty,staff'],
-            'department' => ['required', 'string', 'max:255'],
-            'contact_number' => ['nullable', 'string', 'max:20'],
-            'rfid_tag' => ['nullable', 'string', 'max:255', 'unique:rusers'],
-        ]);
-
-        Ruser::create($validated);
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully.');
+        return $this->handleStore($request, Ruser::class);
     }
 
     /**
@@ -99,67 +149,22 @@ class UserController extends Controller
                 ->count(),
         ];
 
-        return view('admin.users.show', compact('user', 'stats'));
+        return view($this->getViewPrefix() . '.show', compact('user', 'stats'));
     }
 
-    /**
-     * Show the form for editing the specified user.
-     */
     public function edit(Ruser $user)
     {
-        return view('admin.users.edit', compact('user'));
+        return view($this->getViewPrefix() . '.edit', compact('user'));
     }
 
-    /**
-     * Update the specified user in storage.
-     */
     public function update(Request $request, Ruser $user)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:rusers,email,' . $user->id],
-            'role' => ['required', 'string', 'in:student,faculty,staff'],
-            'department' => ['required', 'string', 'max:255'],
-            'contact_number' => ['nullable', 'string', 'max:20'],
-            'rfid_tag' => ['nullable', 'string', 'max:255', 'unique:rusers,rfid_tag,' . $user->id],
-        ]);
-
-        $user->update($validated);
-
-        return redirect()->route('admin.users.show', $user)
-            ->with('success', 'User updated successfully.');
+        return $this->handleUpdate($request, $user);
     }
 
-    /**
-     * Remove the specified user from storage.
-     */
     public function destroy(Ruser $user)
     {
-        // Check if user has active equipment requests
-        $activeRequests = $user->equipmentRequests()
-            ->where('status', 'approved')
-            ->whereNull('returned_at')
-            ->count();
-
-        if ($activeRequests > 0) {
-            return redirect()->route('admin.users.index')
-                ->with('error', 'Cannot delete user with active equipment requests. Please ensure all equipment is returned first.');
-        }
-
-        // Check if user has pending requests
-        $pendingRequests = $user->equipmentRequests()
-            ->whereIn('status', ['pending'])
-            ->count();
-
-        if ($pendingRequests > 0) {
-            return redirect()->route('admin.users.index')
-                ->with('error', 'Cannot delete user with pending requests. Please handle these first.');
-        }
-
-        $user->delete();
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User deleted successfully.');
+        return $this->handleDestroy($user);
     }
 
     /**
@@ -175,7 +180,7 @@ class UserController extends Controller
      */
     public function resetPassword(Request $request, Ruser $user)
     {
-        $validated = $request->validate([
+        $validated = $this->validateRequest($request, [
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 

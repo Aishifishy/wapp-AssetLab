@@ -120,8 +120,11 @@
                             </td>
                             <td class="px-4 py-4 text-sm text-gray-900">
                                 {{ $activity->description ?? 'N/A' }}
-                                @if(isset($activity->notes))
+                                @if(isset($activity->notes) && $activity->notes)
                                 <p class="text-xs text-gray-500 mt-1">{{ Str::limit($activity->notes, 50) }}</p>
+                                @endif
+                                @if(isset($activity->admin_info) && $activity->admin_info)
+                                <p class="text-xs text-blue-600 mt-1 font-medium">{{ $activity->admin_info }}</p>
                                 @endif
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -131,10 +134,18 @@
                                 {{ $activity->item_name ?? 'N/A' }}
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <x-status-badge :status="$activity->status ?? 'unknown'" :type="$activity->activity_type ?? 'equipment'" />
+                                <x-status-badge :status="$activity->status ?? 'unknown'" :type="$activity->activity_type === 'equipment' ? 'request' : 'reservation'" />
                             </td>
                             <td class="px-4 py-4 text-sm whitespace-nowrap">
-                                <a href="#" class="text-blue-600 hover:text-blue-900">View Details</a>
+                                @if($activity->activity_type === 'equipment')
+                                    <a href="{{ route('admin.equipment.borrow-requests') }}" class="text-blue-600 hover:text-blue-900 font-medium">
+                                        View Details
+                                    </a>
+                                @else
+                                    <a href="{{ route('admin.laboratory.reservations') }}" class="text-blue-600 hover:text-blue-900 font-medium">
+                                        View Details
+                                    </a>
+                                @endif
                             </td>
                         </tr>
                         @empty

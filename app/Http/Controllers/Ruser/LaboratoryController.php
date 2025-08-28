@@ -6,23 +6,26 @@ use App\Http\Controllers\Controller;
 use App\Models\ComputerLaboratory;
 use App\Models\LaboratorySchedule;
 use App\Models\AcademicTerm;
+use App\Services\UserLaboratoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class LaboratoryController extends Controller
 {
+    protected $userLaboratoryService;
+
+    public function __construct(UserLaboratoryService $userLaboratoryService)
+    {
+        $this->userLaboratoryService = $userLaboratoryService;
+    }
+
     /**
      * Display the list of laboratories available for reservation
      */
     public function index()
     {
-        // Get all available laboratories
-        $laboratories = ComputerLaboratory::where('status', 'available')
-            ->orderBy('building')
-            ->orderBy('room_number')
-            ->get();
-
+        $laboratories = $this->userLaboratoryService->getAvailableLaboratories();
         $currentTerm = AcademicTerm::where('is_current', true)->first();
         
         // Get existing schedules for these laboratories
@@ -52,7 +55,9 @@ class LaboratoryController extends Controller
         }
 
         return view('ruser.laboratory.show', compact('laboratory', 'schedules', 'currentTerm'));
-    }    /**
+    }
+
+    /**
      * Make a reservation request for a laboratory
      */
     public function reserve(Request $request, ComputerLaboratory $laboratory)

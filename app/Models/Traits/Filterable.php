@@ -76,6 +76,57 @@ trait Filterable
     }
     
     /**
+     * Scope for pending status records
+     */
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('status', 'pending');
+    }
+    
+    /**
+     * Scope for approved status records
+     */
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('status', 'approved');
+    }
+    
+    /**
+     * Scope for rejected status records
+     */
+    public function scopeRejected(Builder $query): Builder
+    {
+        return $query->where('status', 'rejected');
+    }
+    
+    /**
+     * Scope for currently borrowed/not returned equipment
+     */
+    public function scopeCurrentlyBorrowed(Builder $query): Builder
+    {
+        return $query->where('status', 'approved')->whereNull('returned_at');
+    }
+    
+    /**
+     * Scope for returned equipment
+     */
+    public function scopeReturned(Builder $query): Builder
+    {
+        return $query->whereNotNull('returned_at');
+    }
+    
+    /**
+     * Scope for upcoming returns (within specified days)
+     */
+    public function scopeUpcomingReturns(Builder $query, int $days = 7): Builder
+    {
+        return $query->where('status', 'approved')
+                    ->whereNull('returned_at')
+                    ->where('requested_until', '>=', now())
+                    ->where('requested_until', '<=', now()->addDays($days));
+    }
+    
+    /**
      * Get searchable columns for the model
      */
     protected function getSearchableColumns(): array
