@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\EquipmentRequest;
 use App\Models\Equipment;
+use App\Services\EquipmentConflictService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -14,6 +15,13 @@ use Carbon\Carbon;
  */
 class UserEquipmentService extends BaseService
 {
+    protected $conflictService;
+    
+    public function __construct(EquipmentConflictService $conflictService)
+    {
+        $this->conflictService = $conflictService;
+    }
+    
     protected function getModel()
     {
         return EquipmentRequest::class;
@@ -25,11 +33,11 @@ class UserEquipmentService extends BaseService
     public function getUserStats($userId)
     {
         return [
-            'pending_requests' => EquipmentRequest::forUser($userId)->pending()->count(),
-            'currently_borrowed' => EquipmentRequest::forUser($userId)->currentlyBorrowed()->count(),
-            'upcoming_returns' => EquipmentRequest::forUser($userId)->upcomingReturns(7)->count(),
-            'total_requests' => EquipmentRequest::forUser($userId)->count(),
-            'approved_requests' => EquipmentRequest::forUser($userId)->approved()->count(),
+            'pending_requests' => EquipmentRequest::where('user_id', $userId)->pending()->count(),
+            'currently_borrowed' => EquipmentRequest::where('user_id', $userId)->where('status', EquipmentRequest::STATUS_APPROVED)->whereNull('returned_at')->count(),
+            'upcoming_returns' => EquipmentRequest::where('user_id', $userId)->where('status', EquipmentRequest::STATUS_APPROVED)->whereNull('returned_at')->where('requested_until', '<=', Carbon::now()->addDays(7))->count(),
+            'total_requests' => EquipmentRequest::where('user_id', $userId)->count(),
+            'approved_requests' => EquipmentRequest::where('user_id', $userId)->approved()->count(),
         ];
     }
 
@@ -39,24 +47,28 @@ class UserEquipmentService extends BaseService
     public function getCurrentlyBorrowed($userId, $perPage = 10)
     {
         return EquipmentRequest::with(['equipment'])
-            ->forUser($userId)
-            ->currentlyBorrowed()
+            ->where('user_id', $userId)
+            ->where('status', EquipmentRequest::STATUS_APPROVED)
+            ->whereNull('returned_at')
             ->latest()
             ->paginate($perPage);
     }
 
+    /**
+     * Get user's pending equipment requests
+     */
     /**
      * Get user's equipment history
      */
     public function getHistory($userId, $perPage = 15)
     {
         return EquipmentRequest::with(['equipment'])
-            ->forUser($userId)
+            ->where('user_id', $userId)
             ->whereIn('status', [EquipmentRequest::STATUS_RETURNED, EquipmentRequest::STATUS_REJECTED])
             ->orWhere(function($query) use ($userId) {
-                $query->forUser($userId)
+                $query->where('user_id', $userId)
                       ->approved()
-                      ->returned();
+                      ->whereNotNull('returned_at');
             })
             ->latest()
             ->paginate($perPage);
@@ -68,7 +80,7 @@ class UserEquipmentService extends BaseService
     public function getRecentActivities($userId, $limit = 15)
     {
         return EquipmentRequest::with(['equipment.category', 'approvedBy', 'rejectedBy', 'checkedOutBy'])
-            ->forUser($userId)
+            ->where('user_id', $userId)
             ->latest()
             ->take($limit)
             ->get()
@@ -93,19 +105,32 @@ class UserEquipmentService extends BaseService
     }
 
     /**
-     * Create a new equipment request
+     * Create a new equipment request with conflict checking and advance booking support
      */
     public function createRequest(array $data, $userId)
     {
         $equipment = Equipment::findOrFail($data['equipment_id']);
+        $from = Carbon::parse($data['requested_from']);
+        $until = Carbon::parse($data['requested_until']);
 
-        if (!$equipment->isAvailable()) {
-            return [
-                'success' => false,
-                'message' => 'This equipment is no longer available.'
-            ];
+        // Check availability for the requested time period
+        $availability = $this->conflictService->checkAvailability($equipment->id, $data['requested_from'], $data['requested_until']);
+        $advanceBookingCheck = null; // Initialize to avoid undefined variable error
+        
+        // If not available for immediate booking, allow advance booking (queue system)
+        if (!$availability['available']) {
+            // For advance booking, check if the time slot is valid for future booking
+            $advanceBookingCheck = $this->conflictService->checkAdvanceBooking($equipment->id, $data['requested_from'], $data['requested_until']);
+            if (!$advanceBookingCheck['can_book']) {
+                return [
+                    'success' => false,
+                    'message' => 'Equipment cannot be scheduled for this time period.',
+                    'details' => $advanceBookingCheck
+                ];
+            }
         }
 
+        // Create the request
         $request = EquipmentRequest::create([
             'equipment_id' => $equipment->id,
             'user_id' => $userId,
@@ -115,10 +140,24 @@ class UserEquipmentService extends BaseService
             'requested_until' => $data['requested_until'],
         ]);
 
+        // Prepare response message
+        $message = 'Your equipment request has been submitted successfully.';
+        
+        if (!$availability['available']) {
+            // This is an advance booking (queue system)
+            $queuePosition = $this->conflictService->getQueuePosition($equipment->id, $data['requested_from']);
+            if ($queuePosition > 1) {
+                $message .= " You are position #{$queuePosition} in the queue for this time slot.";
+            } else {
+                $message .= " Your request will be processed when the equipment becomes available.";
+            }
+        }
+
         return [
             'success' => true,
-            'message' => 'Your borrow request has been submitted successfully.',
-            'request' => $request
+            'message' => $message,
+            'request' => $request,
+            'booking_info' => $advanceBookingCheck
         ];
     }
 
@@ -141,12 +180,195 @@ class UserEquipmentService extends BaseService
             ];
         }
 
-        $request->delete();
+        // Update status to cancelled instead of deleting
+        $request->update([
+            'status' => EquipmentRequest::STATUS_CANCELLED,
+            'cancelled_at' => now()
+        ]);
         
         return [
             'success' => true,
-            'message' => 'Equipment request has been canceled.'
+            'message' => 'Equipment request has been cancelled successfully.'
         ];
+    }
+
+    /**
+     * Check equipment availability for a specific time period (simplified)
+     */
+    public function checkAvailabilityForTimeSlot($equipmentId, $requestedFrom, $requestedUntil, $userId = null)
+    {
+        $equipment = Equipment::findOrFail($equipmentId);
+        $from = Carbon::parse($requestedFrom);
+        $until = Carbon::parse($requestedUntil);
+
+        // Check if equipment is available for the requested time
+        $availability = $this->conflictService->checkAvailability($equipmentId, $requestedFrom, $requestedUntil);
+        
+        if ($availability['available']) {
+            return [
+                'available' => true,
+                'message' => 'Equipment is available for the requested time period.',
+                'can_book' => true
+            ];
+        }
+
+        // Get detailed conflict information
+        $conflicts = $this->conflictService->getConflictingRequests($equipmentId, $from, $until);
+        $suggestions = $this->conflictService->getAlternativeSuggestions($equipment, $from, $until);
+        
+        // Check if user can join queue (advance booking)
+        $canQueue = $this->conflictService->canJoinQueue($equipment, $from, $until);
+        $queuePosition = null;
+        
+        if ($canQueue) {
+            $queuePosition = $this->conflictService->getQueuePosition($equipmentId, $from);
+        }
+
+        return [
+            'available' => false,
+            'message' => 'Equipment is not available for the requested time period.',
+            'conflicts' => $conflicts->map(function($conflict) {
+                return [
+                    'requested_from' => $conflict->requested_from,
+                    'requested_until' => $conflict->requested_until,
+                    'user_name' => $conflict->user->name ?? 'Unknown',
+                    'status' => $conflict->status
+                ];
+            })->toArray(),
+            'suggestions' => $suggestions,
+            'can_queue' => $canQueue,
+            'queue_position' => $queuePosition,
+            'can_book' => $canQueue // Allow booking even if there's a conflict (queue system)
+        ];
+    }
+
+    /**
+     * Check equipment availability for booking
+     *
+     * @param int $equipmentId
+     * @param string $bookingType
+     * @param string|null $requestedFrom
+     * @param string|null $requestedUntil
+     * @param int $userId
+     * @return array
+     */
+    public function checkAvailability($equipmentId, $bookingType, $requestedFrom = null, $requestedUntil = null, $userId = null)
+    {
+        $equipment = Equipment::findOrFail($equipmentId);
+        
+        if ($bookingType === 'immediate') {
+            if (!$requestedFrom || !$requestedUntil) {
+                return [
+                    'available' => false,
+                    'message' => 'Please provide both from and until dates for immediate booking.'
+                ];
+            }
+            
+            $from = Carbon::parse($requestedFrom);
+            $until = Carbon::parse($requestedUntil);
+            
+            $isAvailable = $this->conflictService->checkAvailability($equipment, $from, $until);
+            
+            if ($isAvailable) {
+                return [
+                    'available' => true,
+                    'message' => 'Equipment is available for the requested time period.'
+                ];
+            } else {
+                $conflicts = $this->conflictService->getConflictingRequests($equipment, $from, $until);
+                $nextAvailable = $this->conflictService->getNextAvailableTime($equipment, $from);
+                
+                return [
+                    'available' => false,
+                    'message' => 'Equipment is not available for the requested time period.',
+                    'conflicts' => $conflicts->count(),
+                    'next_available' => $nextAvailable?->format('Y-m-d\TH:i:s')
+                ];
+            }
+        } else {
+            // Advance booking - get available slots
+            $startDate = Carbon::now()->addDay();
+            $endDate = Carbon::now()->addDays(30);
+            
+            $availableSlots = $this->conflictService->getAvailableSlots($equipment, $startDate, $endDate);
+            
+            $result = [
+                'available_slots' => collect($availableSlots)->map(function ($slot) {
+                    return [
+                        'from' => $slot['from']->format('Y-m-d\TH:i:s'),
+                        'until' => $slot['until']->format('Y-m-d\TH:i:s'),
+                        'duration_hours' => $slot['from']->diffInHours($slot['until'])
+                    ];
+                })->toArray()
+            ];
+            
+            // Check if user is in queue
+            if ($userId) {
+                $queueInfo = $this->conflictService->checkAdvanceBooking($equipment, $startDate, $endDate);
+                if ($queueInfo) {
+                    $result['queue_position'] = $queueInfo['queue_position'];
+                    $result['estimated_available'] = $queueInfo['estimated_available']?->format('Y-m-d\TH:i:s');
+                }
+            }
+            
+            return $result;
+        }
+    }
+
+    /**
+     * Check equipment availability for a specific time period
+     */
+    public function checkEquipmentAvailability($equipmentId, $requestedFrom, $requestedUntil)
+    {
+        return $this->conflictService->checkAvailability($equipmentId, $requestedFrom, $requestedUntil);
+    }
+    
+    /**
+     * Get available time slots for equipment on a specific date
+     */
+    public function getAvailableSlots($equipmentId, $date, $duration = 2)
+    {
+        return $this->conflictService->getAvailableSlots($equipmentId, $date, $duration);
+    }
+    
+    /**
+     * Get equipment booking calendar for a date range
+     */
+    public function getEquipmentCalendar($equipmentId, $startDate, $endDate)
+    {
+        $calendar = [];
+        $currentDate = Carbon::parse($startDate);
+        $endDate = Carbon::parse($endDate);
+        
+        while ($currentDate->lessThanOrEqualTo($endDate)) {
+            $dateStr = $currentDate->format('Y-m-d');
+            
+            // Get bookings for this date
+            $bookings = EquipmentRequest::where('equipment_id', $equipmentId)
+                ->whereIn('status', [
+                    EquipmentRequest::STATUS_APPROVED,
+                    EquipmentRequest::STATUS_PENDING
+                ])
+                ->whereDate('requested_from', $dateStr)
+                ->with(['user'])
+                ->orderBy('requested_from')
+                ->get();
+            
+            // Get available slots
+            $availableSlots = $this->getAvailableSlots($equipmentId, $dateStr);
+            
+            $calendar[$dateStr] = [
+                'date' => $dateStr,
+                'bookings' => $bookings,
+                'available_slots' => $availableSlots,
+                'is_fully_booked' => empty($availableSlots),
+                'total_bookings' => $bookings->count()
+            ];
+            
+            $currentDate->addDay();
+        }
+        
+        return $calendar;
     }
 
     /**

@@ -223,14 +223,14 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <?php if($request->status === 'pending'): ?>
+                                        <button onclick="previewConflicts(<?php echo e($request->id); ?>)" class="text-yellow-600 hover:text-yellow-900 mr-3 text-xs">
+                                            <i class="fas fa-eye mr-1"></i>Preview
+                                        </button>
                                         <form action="<?php echo e(route('admin.equipment.approve-request', $request)); ?>" method="POST" class="inline">
                                             <?php echo csrf_field(); ?>
                                             <button type="submit" class="text-green-600 hover:text-green-900 mr-3">Approve</button>
                                         </form>
-                                        <form action="<?php echo e(route('admin.equipment.reject-request', $request)); ?>" method="POST" class="inline">
-                                            <?php echo csrf_field(); ?>
-                                            <button type="submit" class="text-red-600 hover:text-red-900">Reject</button>
-                                        </form>
+                                        <button onclick="openRejectModal(<?php echo e($request->id); ?>)" class="text-red-600 hover:text-red-900">Reject</button>
                                     <?php elseif($request->status === 'approved' && !$request->isCheckedOut() && !$request->returned_at): ?>
                                         <form action="<?php echo e(route('admin.equipment.checkout-request', $request)); ?>" method="POST" class="inline">
                                             <?php echo csrf_field(); ?>
@@ -816,8 +816,222 @@ document.addEventListener('DOMContentLoaded', function() {
             hideActionPreview();
         }
     });
+
+    // Conflict Preview Functionality
+    async function previewConflicts(requestId) {
+        try {
+            const response = await fetch(`/admin/equipment/requests/${requestId}/preview-conflicts`);
+            const data = await response.json();
+            
+            if (data.has_conflicts) {
+                showConflictModal(data);
+            } else {
+                // No conflicts, show success message and offer direct approval
+                if (confirm('No conflicts found. Would you like to approve this request now?')) {
+                    document.querySelector(`form[action*="/requests/${requestId}/approve"] button`).click();
+                }
+            }
+        } catch (error) {
+            console.error('Error previewing conflicts:', error);
+            alert('Error checking for conflicts. Please try again.');
+        }
+    }
+
+    function showConflictModal(conflictData) {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+        modal.id = 'conflictModal';
+        
+        const conflictList = conflictData.conflicting_requests.map(conflict => `
+            <div class="border-l-4 border-red-400 bg-red-50 p-4 mb-3">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">
+                            <strong>Request #${conflict.id}</strong> by ${conflict.user_name}
+                        </p>
+                        <p class="text-sm text-red-600">
+                            Time: ${new Date(conflict.requested_from).toLocaleString()} - ${new Date(conflict.requested_until).toLocaleString()}
+                        </p>
+                        <p class="text-sm text-red-600">Purpose: ${conflict.purpose}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        modal.innerHTML = `
+            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <div class="flex items-center mb-4">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Time Slot Conflicts Detected</h3>
+                            <p class="text-sm text-gray-500">
+                                Found ${conflictData.conflict_count} conflicting ${conflictData.conflict_count === 1 ? 'request' : 'requests'} for the same equipment.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-900 mb-2">Conflicting Requests:</h4>
+                        ${conflictList}
+                    </div>
+                    
+                    ${conflictData.auto_rejection_enabled ? `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-yellow-800">Auto-rejection Enabled</h3>
+                                    <div class="mt-1 text-sm text-yellow-700">
+                                        If you approve this request, the ${conflictData.conflict_count} conflicting ${conflictData.conflict_count === 1 ? 'request' : 'requests'} will be automatically rejected.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button onclick="closeConflictModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            Cancel
+                        </button>
+                        <button onclick="proceedWithApproval()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            ${conflictData.auto_rejection_enabled ? 'Approve & Auto-reject Conflicts' : 'Approve Anyway'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        window.currentRequestId = requestId; // Store for approval action
+    }
+
+    function closeConflictModal() {
+        const modal = document.getElementById('conflictModal');
+        if (modal) {
+            modal.remove();
+        }
+        window.currentRequestId = null;
+    }
+
+    function proceedWithApproval() {
+        if (window.currentRequestId) {
+            // Find and submit the approval form
+            const form = document.querySelector(`form[action*="/requests/${window.currentRequestId}/approve"]`);
+            if (form) {
+                closeConflictModal();
+                form.submit();
+            }
+        }
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('conflictModal');
+        if (modal && event.target === modal) {
+            closeConflictModal();
+        }
+    });
+
+    // Reject Modal Functions
+    window.openRejectModal = function(requestId) {
+        document.getElementById('rejectForm').action = `/admin/equipment/requests/${requestId}/reject`;
+        document.getElementById('rejectModal').classList.remove('hidden');
+    };
+
+    window.closeRejectModal = function() {
+        document.getElementById('rejectModal').classList.add('hidden');
+        document.getElementById('rejection_reason').value = '';
+    };
+
+    // Return Modal Functions  
+    window.openReturnModal = function(requestId) {
+        document.getElementById('returnForm').action = `/admin/equipment/requests/${requestId}/return`;
+        document.getElementById('returnModal').classList.remove('hidden');
+    };
+
+    window.openOnsiteBorrowModal = function() {
+        document.getElementById('onsiteBorrowModal').classList.remove('hidden');
+    };
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function(event) {
+        const conflictModal = document.getElementById('conflictModal');
+        const rejectModal = document.getElementById('rejectModal');
+        const returnModal = document.getElementById('returnModal');
+        const onsiteBorrowModal = document.getElementById('onsiteBorrowModal');
+        
+        if (conflictModal && event.target === conflictModal) {
+            closeConflictModal();
+        }
+        if (rejectModal && event.target === rejectModal) {
+            closeRejectModal();
+        }
+        if (returnModal && event.target === returnModal) {
+            document.querySelector('[data-action="close-modal"][data-target="returnModal"]').click();
+        }
+        if (onsiteBorrowModal && event.target === onsiteBorrowModal) {
+            document.querySelector('[data-action="close-modal"][data-target="onsiteBorrowModal"]').click();
+        }
+    });
+
+    // Modal close button handlers
+    document.addEventListener('click', function(event) {
+        if (event.target.dataset.action === 'close-modal') {
+            const targetModal = event.target.dataset.target;
+            if (targetModal) {
+                document.getElementById(targetModal).classList.add('hidden');
+            }
+        }
+    });
 });
 </script>
+
+<!-- Reject Request Modal -->
+<div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Reject Equipment Request</h3>
+            <form id="rejectForm" method="POST" class="mt-4">
+                <?php echo csrf_field(); ?>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="rejection_reason" class="block text-sm font-medium text-gray-700">Rejection Reason</label>
+                        <textarea name="rejection_reason" id="rejection_reason" rows="4" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                  placeholder="Please provide a reason for rejecting this request..."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="closeRejectModal()"
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Reject Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/equipment/borrow-requests.blade.php ENDPATH**/ ?>

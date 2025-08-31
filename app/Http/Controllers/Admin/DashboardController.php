@@ -5,12 +5,20 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Equipment;
 use App\Models\Ruser;
+use App\Services\EquipmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
+    protected $equipmentService;
+
+    public function __construct(EquipmentService $equipmentService)
+    {
+        $this->equipmentService = $equipmentService;
+    }
+
     public function index(Request $request)
     {
         // Log dashboard access
@@ -27,6 +35,9 @@ class DashboardController extends Controller
         $totalEquipment = Equipment::count();
         $borrowedEquipment = Equipment::where('status', 'borrowed')->count();
         $pendingRequests = \App\Models\EquipmentRequest::where('status', \App\Models\EquipmentRequest::STATUS_PENDING)->count();
+
+        // Get auto-rejection statistics
+        $autoRejectionStats = $this->equipmentService->getAutoRejectionStats();
 
         // Get laboratory statistics
         $todayBookings = \App\Models\LaboratoryReservation::whereDate('reservation_date', today())
@@ -197,6 +208,7 @@ class DashboardController extends Controller
             'totalEquipment',
             'borrowedEquipment',
             'pendingRequests',
+            'autoRejectionStats',
             'todayBookings',
             'pendingReservations',
             'activeClasses',

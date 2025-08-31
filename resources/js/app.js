@@ -6,6 +6,7 @@ import './modal-manager';
 import './form-utilities';
 import './navigation-manager';
 import './laboratory-manager';
+import './conflict-checker';
 import './reservation-manager';
 import './calendar-manager';
 import './view-manager';

@@ -10,6 +10,7 @@ use App\Models\EquipmentCategory;
 use App\Services\UserEquipmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class EquipmentController extends Controller
 {
@@ -65,6 +66,7 @@ class EquipmentController extends Controller
             'purpose' => 'required|string|max:1000',
             'requested_from' => 'required|date|after:now',
             'requested_until' => 'required|date|after:requested_from',
+            'booking_type' => 'sometimes|in:immediate,advance',
         ]);
 
         $result = $this->equipmentService->createRequest($validated, Auth::id());
@@ -78,14 +80,71 @@ class EquipmentController extends Controller
     }
 
     /**
+     * Check equipment availability for booking.
+     */
+    public function checkAvailability(Request $request)
+    {
+        $validated = $this->validateRequest($request, [
+            'equipment_id' => 'required|exists:equipment,id',
+            'requested_from' => 'required|date|after:now',
+            'requested_until' => 'required|date|after:requested_from',
+        ]);
+
+        $result = $this->equipmentService->checkAvailabilityForTimeSlot(
+            $validated['equipment_id'],
+            $validated['requested_from'],
+            $validated['requested_until'],
+            Auth::id()
+        );
+
+        return response()->json($result);
+    }
+
+    /**
      * Cancel a pending equipment request.
      */
     public function cancelRequest(EquipmentRequest $equipmentRequest)
     {
-        $result = $this->equipmentService->cancelRequest($equipmentRequest, Auth::id());
+        Log::info('Cancel request called', [
+            'request_id' => $equipmentRequest->id,
+            'user_id' => Auth::id(),
+            'is_ajax' => request()->ajax(),
+            'expects_json' => request()->expectsJson(),
+            'x_requested_with' => request()->header('X-Requested-With'),
+            'content_type' => request()->header('Content-Type'),
+            'accept' => request()->header('Accept')
+        ]);
 
-        return redirect()->route('dashboard')
-            ->with($result['success'] ? 'success' : 'error', $result['message']);
+        try {
+            $result = $this->equipmentService->cancelRequest($equipmentRequest, Auth::id());
+
+            Log::info('Cancel request result', $result);
+
+            // Always return JSON for AJAX requests
+            if (request()->expectsJson() || request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                Log::info('Returning JSON response');
+                return response()->json([
+                    'success' => $result['success'],
+                    'message' => $result['message']
+                ], $result['success'] ? 200 : 400);
+            }
+
+            Log::info('Returning redirect response');
+            return redirect()->route('dashboard')
+                ->with($result['success'] ? 'success' : 'error', $result['message']);
+        } catch (\Exception $e) {
+            Log::error('Cancel request error: ' . $e->getMessage());
+            
+            if (request()->expectsJson() || request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while cancelling the request.'
+                ], 500);
+            }
+            
+            return redirect()->route('dashboard')
+                ->with('error', 'An error occurred while cancelling the request.');
+        }
     }
 
     /**
@@ -109,6 +168,9 @@ class EquipmentController extends Controller
         return view('ruser.equipment.borrowed', compact('borrowedRequests'));
     }
 
+    /**
+     * Show pending equipment requests by the user.
+     */
     /**
      * Show equipment borrowing history for the user.
      */

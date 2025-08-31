@@ -5,6 +5,18 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
+    
+    // Exit early if calendar element doesn't exist (not on calendar page)
+    if (!calendarEl) {
+        return;
+    }
+    
+    // Check if FullCalendar is available
+    if (typeof FullCalendar === 'undefined') {
+        console.warn('FullCalendar library not loaded');
+        return;
+    }
+    
     const filterForm = document.getElementById('filterForm');
     const modal = document.getElementById('eventModal');
     const modalTitle = document.getElementById('modalTitle');

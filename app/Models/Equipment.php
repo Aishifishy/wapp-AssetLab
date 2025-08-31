@@ -62,6 +62,43 @@ class Equipment extends Model
     {
         return $this->status === self::STATUS_AVAILABLE;
     }
+    
+    /**
+     * Check if equipment is available for a specific time period
+     * This method considers time-based availability for advance booking
+     */
+    public function isAvailableForPeriod($startTime, $endTime)
+    {
+        // Equipment must not be permanently unavailable
+        if ($this->status === self::STATUS_UNAVAILABLE) {
+            return false;
+        }
+        
+        // Check for conflicting approved requests during this time period
+        $conflicts = $this->borrowRequests()
+            ->whereIn('status', [
+                EquipmentRequest::STATUS_APPROVED,
+                EquipmentRequest::STATUS_PENDING
+            ])
+            ->whereNull('returned_at')
+            ->where(function($query) use ($startTime, $endTime) {
+                $query->where(function($q) use ($startTime) {
+                    $q->where('requested_from', '<=', $startTime)
+                      ->where('requested_until', '>', $startTime);
+                })
+                ->orWhere(function($q) use ($endTime) {
+                    $q->where('requested_from', '<', $endTime)
+                      ->where('requested_until', '>=', $endTime);
+                })
+                ->orWhere(function($q) use ($startTime, $endTime) {
+                    $q->where('requested_from', '>=', $startTime)
+                      ->where('requested_until', '<=', $endTime);
+                });
+            })
+            ->exists();
+            
+        return !$conflicts;
+    }
 
     public function isBorrowed()
     {

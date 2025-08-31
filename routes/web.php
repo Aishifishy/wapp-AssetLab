@@ -41,9 +41,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('equipment')->name('ruser.equipment.')->group(function () {
         Route::get('/', [RuserEquipmentController::class, 'index'])->name('borrow');
         Route::post('/request', [RuserEquipmentController::class, 'request'])->name('request');
+        Route::post('/check-availability', [RuserEquipmentController::class, 'checkAvailability'])->name('check-availability');
         Route::get('/borrowed', [RuserEquipmentController::class, 'borrowed'])->name('borrowed');
         Route::get('/history', [RuserEquipmentController::class, 'history'])->name('history');
-        Route::delete('/request/{equipmentRequest}', [RuserEquipmentController::class, 'cancelRequest'])->name('cancel-request');
+        Route::patch('/request/{equipmentRequest}/cancel', [RuserEquipmentController::class, 'cancelRequest'])->name('cancel-request');
         Route::post('/return/{equipmentRequest}', [RuserEquipmentController::class, 'return'])->name('return');
     });
 
@@ -163,6 +164,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/requests', [AdminEquipmentController::class, 'storeRequest'])->name('store-request');
             Route::delete('/requests/{request}', [AdminEquipmentController::class, 'destroyRequest'])->name('destroy-request');
             Route::post('/requests/{request}/approve', [AdminEquipmentController::class, 'approveRequest'])->name('approve-request');
+            Route::get('/requests/{request}/preview-conflicts', [AdminEquipmentController::class, 'previewConflicts'])->name('preview-conflicts');
             Route::post('/requests/{request}/checkout', [AdminEquipmentController::class, 'checkOutEquipment'])->name('checkout-request');
             Route::post('/requests/{request}/reject', [AdminEquipmentController::class, 'rejectRequest'])->name('reject-request');
             Route::post('/requests/{request}/return', [AdminEquipmentController::class, 'markAsReturned'])->name('return-request');

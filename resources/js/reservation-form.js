@@ -5,6 +5,12 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('reservation-form');
+    
+    // Exit early if form doesn't exist (not on reservation form page)
+    if (!form) {
+        return;
+    }
+    
     const laboratorySelect = document.getElementById('laboratory_id');
     const dateInput = document.getElementById('reservation_date');
     const startTimeInput = document.getElementById('start_time');

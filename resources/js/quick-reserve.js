@@ -5,6 +5,12 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     const templateSelect = document.getElementById('template');
+    
+    // Exit early if template select doesn't exist (not on quick reserve page)
+    if (!templateSelect) {
+        return;
+    }
+    
     const customForm = document.getElementById('custom-form');
     const templateForm = document.getElementById('template-form');
     const laboratorySelect = document.getElementById('laboratory_id');

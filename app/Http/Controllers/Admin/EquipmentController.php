@@ -182,23 +182,40 @@ class EquipmentController extends Controller
             return back()->with('error', $result['message']);
         }
 
-        return back()->with('success', $result['message']);
+        // Include information about auto-rejected requests if any
+        $message = $result['message'];
+        if (isset($result['rejected_count']) && $result['rejected_count'] > 0) {
+            $message .= " ({$result['rejected_count']} conflicting requests were automatically rejected)";
+        }
+
+        return back()->with('success', $message);
     }
 
-    public function rejectRequest(Request $request, EquipmentRequest $equipmentRequest)
+    /**
+     * Preview potential conflicts before approving a request
+     */
+    public function previewConflicts(EquipmentRequest $request)
     {
-        $validated = $this->validateRequest($request, [
+        $preview = $this->equipmentService->previewConflicts($request);
+
+        return response()->json($preview);
+    }
+
+    public function rejectRequest(Request $validationRequest, EquipmentRequest $request)
+    {
+        $validated = $this->validateRequest($validationRequest, [
             'rejection_reason' => 'required|string|max:500'
         ]);
 
-        if (!$equipmentRequest->isPending()) {
+        if (!$request->isPending()) {
             return back()->with('error', 'This request cannot be rejected.');
         }
 
-        $equipmentRequest->update([
+        $request->update([
             'status' => EquipmentRequest::STATUS_REJECTED,
             'rejected_at' => now(),
-            'rejected_by' => auth('admin')->id()
+            'rejected_by' => auth('admin')->id(),
+            'rejection_reason' => $validated['rejection_reason']
         ]);
 
         return back()->with('success', 'Equipment request rejected successfully.');

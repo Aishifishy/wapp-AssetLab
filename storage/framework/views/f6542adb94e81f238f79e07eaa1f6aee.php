@@ -1,16 +1,16 @@
-@extends('layouts.ruser')
 
-@section('title', 'Borrow Equipment')
-@section('header', 'Borrow Equipment')
 
-@section('content')
+<?php $__env->startSection('title', 'Borrow Equipment'); ?>
+<?php $__env->startSection('header', 'Borrow Equipment'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="space-y-4">
     <!-- Breadcrumb Navigation -->
-    @if(isset($selectedCategory))
+    <?php if(isset($selectedCategory)): ?>
     <nav class="flex" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3">
             <li class="inline-flex items-center">
-                <a href="{{ route('ruser.equipment.borrow') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                <a href="<?php echo e(route('ruser.equipment.borrow')); ?>" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z" />
                     </svg>
@@ -22,29 +22,29 @@
                     <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
-                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{ $selectedCategory->name }}</span>
+                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2"><?php echo e($selectedCategory->name); ?></span>
                 </div>
             </li>
         </ol>
     </nav>
-    @endif
+    <?php endif; ?>
 
     <div class="bg-white shadow-sm rounded-lg">
         <div class="p-6">
-            @if(isset($selectedCategory))
+            <?php if(isset($selectedCategory)): ?>
                 <!-- Category Header -->
                 <div class="mb-6 pb-6 border-b">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h2 class="text-2xl font-semibold text-gray-800">{{ $selectedCategory->name }}</h2>
-                            @if($selectedCategory->description)
-                                <p class="text-gray-600 mt-1">{{ $selectedCategory->description }}</p>
-                            @endif
+                            <h2 class="text-2xl font-semibold text-gray-800"><?php echo e($selectedCategory->name); ?></h2>
+                            <?php if($selectedCategory->description): ?>
+                                <p class="text-gray-600 mt-1"><?php echo e($selectedCategory->description); ?></p>
+                            <?php endif; ?>
                             <p class="text-sm text-gray-500 mt-2">
-                                {{ $equipment->total() }} {{ Str::plural('item', $equipment->total()) }} available for borrowing
+                                <?php echo e($equipment->total()); ?> <?php echo e(Str::plural('item', $equipment->total())); ?> available for borrowing
                             </p>
                         </div>
-                        <a href="{{ route('ruser.equipment.borrow') }}" 
+                        <a href="<?php echo e(route('ruser.equipment.borrow')); ?>" 
                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -58,7 +58,7 @@
                 <div class="mb-6">
                     <div class="flex flex-col sm:flex-row gap-4">
                         <div class="flex-1">
-                            <input type="text" id="search" placeholder="Search equipment in {{ $selectedCategory->name }}..." 
+                            <input type="text" id="search" placeholder="Search equipment in <?php echo e($selectedCategory->name); ?>..." 
                                 class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <select id="status-filter" class="w-full sm:w-auto px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -68,7 +68,7 @@
                         </select>
                     </div>
                 </div>
-            @else
+            <?php else: ?>
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Equipment Categories</h2>
                 <p class="text-gray-600 mb-6">Select a category to browse available equipment for borrowing.</p>
                 
@@ -79,93 +79,95 @@
                     </svg>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">Browse Equipment by Category</h3>
                     <p class="text-sm text-gray-500 mb-4">Choose from our organized equipment categories to find what you need quickly.</p>
-                    <a href="{{ route('ruser.equipment.borrow') }}" 
+                    <a href="<?php echo e(route('ruser.equipment.borrow')); ?>" 
                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
                         View Categories
                     </a>
                 </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Equipment Grid -->
-            @if(isset($selectedCategory) && $equipment->count() > 0)
+            <?php if(isset($selectedCategory) && $equipment->count() > 0): ?>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach($equipment as $item)
-                <div class="bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow" data-equipment-name="{{ strtolower($item->name) }}" data-status="{{ $item->status ?? 'available' }}">
+                <?php $__currentLoopData = $equipment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow" data-equipment-name="<?php echo e(strtolower($item->name)); ?>" data-status="<?php echo e($item->status ?? 'available'); ?>">
                     <div class="p-4">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-gray-900">{{ $item->name }}</h3>
-                                <p class="text-sm text-gray-600">{{ $selectedCategory->name }}</p>
-                                @if($item->model)
-                                    <p class="text-xs text-gray-500">Model: {{ $item->model }}</p>
-                                @endif
+                                <h3 class="text-lg font-semibold text-gray-900"><?php echo e($item->name); ?></h3>
+                                <p class="text-sm text-gray-600"><?php echo e($selectedCategory->name); ?></p>
+                                <?php if($item->model): ?>
+                                    <p class="text-xs text-gray-500">Model: <?php echo e($item->model); ?></p>
+                                <?php endif; ?>
                             </div>
                             <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                {{ ($item->status ?? 'available') === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                {{ ucfirst($item->status ?? 'Available') }}
+                                <?php echo e(($item->status ?? 'available') === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'); ?>">
+                                <?php echo e(ucfirst($item->status ?? 'Available')); ?>
+
                             </span>
                         </div>
                         
-                        @if($item->description)
-                            <p class="mt-2 text-sm text-gray-600">{{ Str::limit($item->description, 100) }}</p>
-                        @endif
+                        <?php if($item->description): ?>
+                            <p class="mt-2 text-sm text-gray-600"><?php echo e(Str::limit($item->description, 100)); ?></p>
+                        <?php endif; ?>
                         
                         <div class="mt-4 flex items-center justify-between">
                             <div class="text-xs text-gray-500">
-                                @if($item->brand)
-                                    <span>{{ $item->brand }}</span>
-                                @endif
-                                @if($item->serial_number)
-                                    <span class="ml-2">SN: {{ Str::limit($item->serial_number, 10) }}</span>
-                                @endif
+                                <?php if($item->brand): ?>
+                                    <span><?php echo e($item->brand); ?></span>
+                                <?php endif; ?>
+                                <?php if($item->serial_number): ?>
+                                    <span class="ml-2">SN: <?php echo e(Str::limit($item->serial_number, 10)); ?></span>
+                                <?php endif; ?>
                             </div>
                         </div>
                         
                         <div class="mt-4 space-y-2">
                             <!-- Always show the borrow button, but with different states -->
-                            <button data-equipment-id="{{ $item->id }}" 
-                                    data-equipment-name="{{ $item->name }}"
-                                    data-equipment-status="{{ $item->status ?? 'available' }}"
+                            <button data-equipment-id="<?php echo e($item->id); ?>" 
+                                    data-equipment-name="<?php echo e($item->name); ?>"
+                                    data-equipment-status="<?php echo e($item->status ?? 'available'); ?>"
                                     class="borrow-btn btn-primary w-full py-2 rounded-lg">
-                                @if(($item->status ?? 'available') === 'available')
+                                <?php if(($item->status ?? 'available') === 'available'): ?>
                                     Borrow Equipment
-                                @else
+                                <?php else: ?>
                                     Schedule / Advance Book
-                                @endif
+                                <?php endif; ?>
                             </button>
                             
                             <!-- Quick availability info -->
                             <div class="text-xs text-center text-gray-500">
-                                <span class="availability-status" data-equipment-id="{{ $item->id }}">
+                                <span class="availability-status" data-equipment-id="<?php echo e($item->id); ?>">
                                     Click to check availability
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
 
             <!-- Pagination -->
             <div class="mt-6">
-                {{ $equipment->appends(request()->query())->links() }}
+                <?php echo e($equipment->appends(request()->query())->links()); ?>
+
             </div>
-            @elseif(isset($selectedCategory))
+            <?php elseif(isset($selectedCategory)): ?>
                 <!-- No Equipment in Category -->
                 <div class="text-center py-12">
                     <svg class="mx-auto h-16 w-16 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z" />
                     </svg>
                     <h3 class="mt-4 text-lg font-medium text-gray-900">No Equipment Found</h3>
-                    <p class="mt-2 text-sm text-gray-500">There are currently no equipment items available in the {{ $selectedCategory->name }} category.</p>
+                    <p class="mt-2 text-sm text-gray-500">There are currently no equipment items available in the <?php echo e($selectedCategory->name); ?> category.</p>
                     <div class="mt-4">
-                        <a href="{{ route('ruser.equipment.borrow') }}" 
+                        <a href="<?php echo e(route('ruser.equipment.borrow')); ?>" 
                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
                             Browse Other Categories
                         </a>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -189,8 +191,8 @@
                 <p class="text-sm text-gray-600" id="equipmentStatus"></p>
             </div>
             
-            <form id="borrowForm" action="{{ route('ruser.equipment.request') }}" method="POST">
-                @csrf
+            <form id="borrowForm" action="<?php echo e(route('ruser.equipment.request')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="equipment_id" id="equipment_id">
                 
                 <!-- Purpose Field -->
@@ -208,13 +210,13 @@
                         <div>
                             <label class="block text-gray-600 text-xs font-medium mb-1" for="requested_from">From</label>
                             <input type="datetime-local" name="requested_from" id="requested_from" required
-                                   min="{{ now()->format('Y-m-d\TH:i') }}"
+                                   min="<?php echo e(now()->format('Y-m-d\TH:i')); ?>"
                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <div>
                             <label class="block text-gray-600 text-xs font-medium mb-1" for="requested_until">Until</label>
                             <input type="datetime-local" name="requested_until" id="requested_until" required
-                                   min="{{ now()->format('Y-m-d\TH:i') }}"
+                                   min="<?php echo e(now()->format('Y-m-d\TH:i')); ?>"
                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                     </div>
@@ -254,9 +256,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // State variables
@@ -390,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
         checkBtn.disabled = true;
         
         try {
-            const response = await fetch('{{ route("ruser.equipment.check-availability") }}', {
+            const response = await fetch('<?php echo e(route("ruser.equipment.check-availability")); ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -636,4 +638,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.ruser', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/ruser/equipment/borrow.blade.php ENDPATH**/ ?>

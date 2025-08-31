@@ -27,6 +27,8 @@ class EquipmentRequest extends Model
         'rejected_at',
         'approved_by',
         'rejected_by',
+        'cancelled_at',
+        'rejection_reason',
     ];
 
     protected $casts = [
@@ -36,6 +38,7 @@ class EquipmentRequest extends Model
         'checked_out_at' => 'datetime',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     // Status constants
@@ -44,6 +47,7 @@ class EquipmentRequest extends Model
     const STATUS_REJECTED = 'rejected';
     const STATUS_RETURNED = 'returned';
     const STATUS_CHECKED_OUT = 'checked_out';
+    const STATUS_CANCELLED = 'cancelled';
 
     // Relationships
     public function user()
@@ -85,6 +89,11 @@ class EquipmentRequest extends Model
     public function isRejected()
     {
         return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function isCancelled()
+    {
+        return $this->status === self::STATUS_CANCELLED;
     }
 
     public function isReturned()
@@ -133,5 +142,10 @@ class EquipmentRequest extends Model
     public function scopeReturned($query)
     {
         return $query->whereNotNull('returned_at');
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', self::STATUS_CANCELLED);
     }
 } 

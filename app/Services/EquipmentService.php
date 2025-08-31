@@ -146,7 +146,16 @@ class EquipmentService extends BaseService
     }
 
     /**
-     * Approve equipment request
+     * Check if auto-rejection of conflicting requests is enabled
+     */
+    private function isAutoRejectionEnabled()
+    {
+        // You can make this configurable via settings table or config file
+        return config('equipment.auto_reject_conflicts', true);
+    }
+
+    /**
+     * Approve equipment request and auto-reject conflicting requests
      */
     public function approveRequest(EquipmentRequest $request)
     {
@@ -170,17 +179,215 @@ class EquipmentService extends BaseService
             ];
         }
 
-        $request->update([
-            'status' => EquipmentRequest::STATUS_APPROVED,
-            'approved_at' => now(),
-            'approved_by' => auth('admin')->id()
-        ]);
+        DB::beginTransaction();
+        
+        try {
+            // Approve the current request
+            $request->update([
+                'status' => EquipmentRequest::STATUS_APPROVED,
+                'approved_at' => now(),
+                'approved_by' => auth('admin')->id()
+            ]);
 
-        $this->logAction('approve_request', $request);
+            // Auto-reject conflicting requests if enabled
+            if ($this->isAutoRejectionEnabled()) {
+                $conflictingRequests = $this->getConflictingRequests($request);
+                
+                if ($conflictingRequests->count() > 0) {
+                    $rejectedCount = $this->autoRejectConflictingRequests($conflictingRequests, $request);
+                    
+                    $this->logAction('approve_request_with_auto_reject', $request, [
+                        'rejected_conflicting_requests' => $rejectedCount
+                    ]);
+                    
+                    $message = 'Equipment request approved successfully. Equipment can now be checked out.';
+                    if ($rejectedCount > 0) {
+                        $message .= " Additionally, {$rejectedCount} conflicting " . 
+                                  ($rejectedCount === 1 ? 'request was' : 'requests were') . 
+                                  " automatically rejected due to time slot conflicts.";
+                    }
+                    
+                    DB::commit();
+                    
+                    return [
+                        'success' => true,
+                        'message' => $message,
+                        'rejected_count' => $rejectedCount
+                    ];
+                }
+            }
+            
+            $this->logAction('approve_request', $request);
+            
+            DB::commit();
+            
+            return [
+                'success' => true,
+                'message' => 'Equipment request approved successfully. Equipment can now be checked out.'
+            ];
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error approving request with auto-rejection: ' . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'message' => 'An error occurred while processing the approval. Please try again.'
+            ];
+        }
+    }
+
+    /**
+     * Get conflicting equipment requests for the same equipment and overlapping time periods
+     */
+    private function getConflictingRequests(EquipmentRequest $approvedRequest)
+    {
+        return EquipmentRequest::where('equipment_id', $approvedRequest->equipment_id)
+            ->where('id', '!=', $approvedRequest->id)
+            ->where('status', EquipmentRequest::STATUS_PENDING)
+            ->where(function($query) use ($approvedRequest) {
+                $query->where(function($subQuery) use ($approvedRequest) {
+                    // Overlapping time periods logic
+                    $subQuery->where('requested_from', '<', $approvedRequest->requested_until)
+                             ->where('requested_until', '>', $approvedRequest->requested_from);
+                });
+            })
+            ->with(['user', 'equipment'])
+            ->get();
+    }
+
+    /**
+     * Auto-reject conflicting equipment requests
+     */
+    private function autoRejectConflictingRequests($conflictingRequests, EquipmentRequest $approvedRequest)
+    {
+        $rejectedCount = 0;
+        $adminId = auth('admin')->id();
+        $rejectionReason = str_replace(
+            '{approved_request_id}', 
+            $approvedRequest->id, 
+            config('equipment.auto_rejection_reasons.time_conflict')
+        );
+        
+        foreach ($conflictingRequests as $conflictRequest) {
+            try {
+                $conflictRequest->update([
+                    'status' => EquipmentRequest::STATUS_REJECTED,
+                    'rejected_at' => now(),
+                    'rejected_by' => $adminId,
+                    'rejection_reason' => $rejectionReason
+                ]);
+                
+                $this->logAction('auto_reject_conflict', $conflictRequest, [
+                    'approved_request_id' => $approvedRequest->id,
+                    'conflict_reason' => 'overlapping_time_slot',
+                    'conflict_from' => $conflictRequest->requested_from,
+                    'conflict_until' => $conflictRequest->requested_until,
+                    'approved_from' => $approvedRequest->requested_from,
+                    'approved_until' => $approvedRequest->requested_until
+                ]);
+                
+                $rejectedCount++;
+                
+                // Notify user about auto-rejection if enabled
+                if (config('equipment.conflict_detection.notify_auto_rejection', true)) {
+                    $this->notifyUserOfAutoRejection($conflictRequest, $approvedRequest);
+                }
+                
+            } catch (\Exception $e) {
+                Log::error("Failed to auto-reject conflicting request {$conflictRequest->id}: " . $e->getMessage());
+            }
+        }
+        
+        return $rejectedCount;
+    }
+
+    /**
+     * Notify user about auto-rejection due to conflict
+     */
+    private function notifyUserOfAutoRejection(EquipmentRequest $rejectedRequest, EquipmentRequest $approvedRequest)
+    {
+        // Log the auto-rejection for transparency
+        Log::info("Auto-rejected equipment request", [
+            'rejected_request_id' => $rejectedRequest->id,
+            'user_id' => $rejectedRequest->user_id,
+            'user_name' => $rejectedRequest->user->name ?? 'Unknown',
+            'equipment_id' => $rejectedRequest->equipment_id,
+            'equipment_name' => $rejectedRequest->equipment->name ?? 'Unknown',
+            'approved_request_id' => $approvedRequest->id,
+            'reason' => 'Time slot conflict',
+            'rejected_time_slot' => $rejectedRequest->requested_from . ' to ' . $rejectedRequest->requested_until,
+            'approved_time_slot' => $approvedRequest->requested_from . ' to ' . $approvedRequest->requested_until
+        ]);
+        
+        // TODO: Implement email notification to user if needed
+        // This could include information about alternative time slots
+    }
+
+    /**
+     * Get auto-rejection statistics for reporting
+     */
+    public function getAutoRejectionStats($dateFrom = null, $dateTo = null)
+    {
+        $query = EquipmentRequest::where('status', EquipmentRequest::STATUS_REJECTED)
+            ->where('rejection_reason', 'LIKE', '%Automatically rejected due to time conflict%');
+
+        if ($dateFrom) {
+            $query->where('rejected_at', '>=', Carbon::parse($dateFrom));
+        }
+
+        if ($dateTo) {
+            $query->where('rejected_at', '<=', Carbon::parse($dateTo)->endOfDay());
+        }
+
+        $autoRejectedRequests = $query->with(['user', 'equipment', 'rejectedBy'])
+            ->orderBy('rejected_at', 'desc')
+            ->get();
 
         return [
-            'success' => true,
-            'message' => 'Equipment request approved successfully. Equipment can now be checked out.'
+            'total_auto_rejected' => $autoRejectedRequests->count(),
+            'auto_rejected_today' => $autoRejectedRequests->filter(function($request) {
+                return $request->rejected_at->isToday();
+            })->count(),
+            'auto_rejected_this_week' => $autoRejectedRequests->filter(function($request) {
+                return $request->rejected_at->isCurrentWeek();
+            })->count(),
+            'auto_rejected_this_month' => $autoRejectedRequests->filter(function($request) {
+                return $request->rejected_at->isCurrentMonth();
+            })->count(),
+            'requests' => $autoRejectedRequests
+        ];
+    }
+
+    /**
+     * Preview conflicts before approving a request (for admin review)
+     */
+    public function previewConflicts(EquipmentRequest $request)
+    {
+        if (!$request->isPending()) {
+            return [
+                'has_conflicts' => false,
+                'message' => 'Request is not pending.'
+            ];
+        }
+
+        $conflictingRequests = $this->getConflictingRequests($request);
+
+        return [
+            'has_conflicts' => $conflictingRequests->count() > 0,
+            'conflict_count' => $conflictingRequests->count(),
+            'conflicting_requests' => $conflictingRequests->map(function($conflict) {
+                return [
+                    'id' => $conflict->id,
+                    'user_name' => $conflict->user->name,
+                    'user_email' => $conflict->user->email,
+                    'requested_from' => $conflict->requested_from,
+                    'requested_until' => $conflict->requested_until,
+                    'purpose' => $conflict->purpose,
+                    'created_at' => $conflict->created_at
+                ];
+            }),
+            'auto_rejection_enabled' => $this->isAutoRejectionEnabled()
         ];
     }
 

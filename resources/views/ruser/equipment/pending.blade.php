@@ -1,11 +1,11 @@
 @extends('layouts.ruser')
 
-@section('title', 'Equipment Borrowing History')
-@section('header', 'Equipment Borrowing History')
+@section('title', 'Pending Equipment Requests')
+@section('header', 'Pending Equipment Requests')
 
 @section('content')
 <div class="space-y-4">
-    <!-- Header with action button -->
+    <!-- Header with action buttons -->
     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
         <div class="px-4 py-3 border-b border-gray-200">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
@@ -13,16 +13,9 @@
                     <svg class="h-5 w-5 mr-2 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    My Borrowing History
+                    My Pending Requests
                 </h2>
                 <div class="flex space-x-3">
-                    <a href="{{ route('ruser.equipment.pending') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-md font-semibold text-xs text-yellow-700 uppercase tracking-widest hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition">
-                        <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Pending Requests
-                    </a>
                     <a href="{{ route('ruser.equipment.borrowed') }}" 
                        class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
                         <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -42,8 +35,25 @@
         </div>
     </div>
 
-    @if($historyRequests->count() > 0)
-        <!-- History Table -->
+    @if($pendingRequests->count() > 0)
+        <!-- Info banner about cancellation -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        <strong>Need to remove a duplicate request?</strong> You can cancel any pending request that hasn't been approved yet. 
+                        Once a request is approved by an admin, it can no longer be cancelled from here.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Requests Table -->
         <div class="bg-white overflow-hidden shadow-sm rounded-lg">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -56,24 +66,27 @@
                                 Purpose
                             </th>
                             <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Borrowed Period
+                                Requested Period
                             </th>
                             <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Submitted
+                            </th>
+                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Returned
+                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
                             </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($historyRequests as $request)
+                        @foreach($pendingRequests as $request)
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-4 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-10 w-10">
-                                            <div class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                <svg class="h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <div class="h-10 w-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2" />
                                                 </svg>
                                             </div>
@@ -82,6 +95,9 @@
                                             <div class="text-sm font-medium text-gray-900">{{ $request->equipment->name }}</div>
                                             @if($request->equipment->description)
                                                 <div class="text-sm text-gray-500">{{ Str::limit($request->equipment->description, 50) }}</div>
+                                            @endif
+                                            @if($request->equipment->category)
+                                                <div class="text-xs text-gray-400 mt-1">{{ $request->equipment->category->name }}</div>
                                             @endif
                                         </div>
                                     </div>
@@ -105,50 +121,31 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-4 whitespace-nowrap">
-                                    @if($request->status === 'returned')
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            <svg class="w-3 h-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Returned
-                                        </span>
-                                    @elseif($request->status === 'rejected')
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            <svg class="w-3 h-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div>{{ $request->created_at->format('M d, Y') }}</div>
+                                    <div class="text-xs">{{ $request->created_at->format('g:i A') }}</div>
+                                    <div class="text-xs text-gray-400">{{ $request->created_at->diffForHumans() }}</div>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center">
+                                    <x-status-badge 
+                                        type="equipment_request" 
+                                        :status="$request->status" />
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center">
+                                    <form action="{{ route('ruser.equipment.cancel-request', $request) }}" 
+                                          method="POST" 
+                                          class="inline"
+                                          onsubmit="return confirm('Are you sure you want to cancel this equipment request? This action cannot be undone.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">
+                                            <svg class="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
-                                            Rejected
-                                        </span>
-                                    @elseif($request->status === 'approved' && $request->returned_at)
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            <svg class="w-3 h-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Completed
-                                        </span>
-                                    @elseif($request->status === 'pending')
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            <svg class="w-3 h-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Pending
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                            {{ ucfirst($request->status) }}
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    @if($request->returned_at)
-                                        <div class="text-gray-900">{{ $request->returned_at->format('M d, Y') }}</div>
-                                        <div class="text-xs text-gray-500">{{ $request->returned_at->format('g:i A') }}</div>
-                                    @elseif($request->status === 'rejected')
-                                        <span class="text-gray-400">N/A</span>
-                                    @else
-                                        <span class="text-gray-400">-</span>
-                                    @endif
+                                            Cancel
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach
@@ -158,10 +155,10 @@
         </div>
 
         <!-- Pagination -->
-        @if($historyRequests->hasPages())
+        @if($pendingRequests->hasPages())
             <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                 <div class="p-4">
-                    {{ $historyRequests->links() }}
+                    {{ $pendingRequests->links() }}
                 </div>
             </div>
         @endif
@@ -171,11 +168,11 @@
             <div class="p-8 text-center">
                 <div class="mx-auto h-24 w-24 text-gray-300 mb-4">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No History Found</h3>
-                <p class="text-gray-600 mb-6">You haven't borrowed any equipment yet.</p>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No Pending Requests</h3>
+                <p class="text-gray-600 mb-6">You don't have any pending equipment requests at the moment.</p>
                 <div class="flex flex-col sm:flex-row gap-3 justify-center">
                     <a href="{{ route('ruser.equipment.borrow') }}" 
                        class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
@@ -184,16 +181,37 @@
                         </svg>
                         Browse Equipment
                     </a>
-                    <a href="{{ route('dashboard') }}" 
+                    <a href="{{ route('ruser.equipment.history') }}" 
                        class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
                         <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Go to Dashboard
+                        View History
                     </a>
                 </div>
             </div>
         </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+// Add any additional JavaScript if needed for enhanced UX
+document.addEventListener('DOMContentLoaded', function() {
+    // Optional: Add confirmation with more details
+    const cancelForms = document.querySelectorAll('form[action*="cancel-request"]');
+    
+    cancelForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const equipmentName = this.closest('tr').querySelector('td .text-sm.font-medium').textContent;
+            const confirmed = confirm(`Are you sure you want to cancel your request for "${equipmentName}"?\n\nThis action cannot be undone and you'll need to submit a new request if you change your mind.`);
+            
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+@endpush
 @endsection
