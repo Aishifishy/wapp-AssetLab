@@ -70,6 +70,22 @@
                     </div>
                 </div>
 
+                <!-- Current Term Warning -->
+                @if($academicYear->terms->where('is_current', true)->count() > 0)
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Warning:</strong> This academic year contains the current active term. Deletion is not allowed while this academic year has active terms.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Current Terms Display -->
                 @if($academicYear->terms->count() > 0)
                 <div class="mb-6">
@@ -98,20 +114,36 @@
                 </div>
                 @endif
 
-                <div class="flex justify-end space-x-3">
-                    <a href="{{ route('admin.academic.index') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:outline-none focus:border-gray-400 focus:ring ring-gray-200 disabled:opacity-25 transition">
-                        Cancel
-                    </a>
-                    <button type="submit" 
-                            class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring ring-blue-300 disabled:opacity-25 transition">
-                        <i class="fas fa-save mr-2"></i> Update Academic Year
+                <div class="flex justify-between items-center">
+                    <!-- Delete Button (Left Side) -->
+                    <button type="button" 
+                            onclick="confirmDeleteAcademicYear()"
+                            class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-800 focus:outline-none focus:border-red-700 focus:ring ring-red-300 disabled:opacity-25 transition">
+                        <i class="fas fa-trash mr-2"></i> Delete Academic Year
                     </button>
+
+                    <!-- Action Buttons (Right Side) -->
+                    <div class="flex space-x-3">
+                        <a href="{{ route('admin.academic.index') }}" 
+                           class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:outline-none focus:border-gray-400 focus:ring ring-gray-200 disabled:opacity-25 transition">
+                            Cancel
+                        </a>
+                        <button type="submit" 
+                                class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring ring-blue-300 disabled:opacity-25 transition">
+                            <i class="fas fa-save mr-2"></i> Update Academic Year
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Delete Form (Outside main form to avoid conflicts) -->
+<form id="deleteAcademicYearForm" action="{{ route('admin.academic.destroy', $academicYear) }}" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
 
 @push('scripts')
 <script>
@@ -138,6 +170,35 @@
             }
         }
     });
+
+    // Delete confirmation function
+    function confirmDeleteAcademicYear() {
+        const academicYearName = "{{ $academicYear->name }}";
+        const termsCount = {{ $academicYear->terms->count() }};
+        const hasCurrentTerm = {{ $academicYear->terms->where('is_current', true)->count() > 0 ? 'true' : 'false' }};
+        
+        let message = `Are you sure you want to delete the academic year "${academicYearName}"?\n\n`;
+        message += `This will also delete:\n`;
+        message += `• ${termsCount} academic term(s)\n`;
+        message += `• All associated schedules and reservations\n\n`;
+        
+        if (hasCurrentTerm) {
+            message += `⚠️ WARNING: This academic year contains the CURRENT TERM!\n`;
+            message += `Deleting it may disrupt the system.\n\n`;
+        }
+        
+        message += `This action cannot be undone.\n\n`;
+        message += `Type "${academicYearName}" to confirm deletion:`;
+        
+        const userInput = prompt(message);
+        
+        if (userInput === academicYearName) {
+            // Submit the delete form that's outside the main form
+            document.getElementById('deleteAcademicYearForm').submit();
+        } else if (userInput !== null) {
+            alert('Deletion cancelled. The academic year name did not match.');
+        }
+    }
 </script>
 @endpush
 @endsection
