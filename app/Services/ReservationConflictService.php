@@ -196,7 +196,7 @@ class ReservationConflictService
     }
 
     /**
-     * Check for class schedule conflicts
+     * Check for class schedule conflicts (Enhanced with Override Support)
      */
     private function checkClassScheduleConflict($laboratoryId, $date, $startTime, $endTime)
     {
@@ -216,16 +216,83 @@ class ReservationConflictService
         if ($checkDate->lt($termStart) || $checkDate->gt($termEnd)) {
             return null; // Date is outside current academic term
         }
-          // Check for conflicts with laboratory schedules
+
+        // First, check for schedule overrides that might create conflicts
+        $overrideConflict = $this->checkScheduleOverrideConflict($laboratoryId, $date, $startTime, $endTime);
+        if ($overrideConflict) {
+            return $overrideConflict;
+        }
+
+        // Then check for regular schedules (excluding those with overrides)
         $conflictingSchedule = LaboratorySchedule::where('laboratory_id', $laboratoryId)
             ->where('academic_term_id', $currentTerm->id)
-            ->where('day_of_week', $dayOfWeek);
+            ->where('day_of_week', $dayOfWeek)
+            ->whereDoesntHave('overrides', function($query) use ($date) {
+                $query->forDate($date)
+                      ->active()
+                      ->where('override_type', \App\Models\LaboratoryScheduleOverride::TYPE_CANCEL);
+            });
             
         // Apply centralized time overlap logic
         $conflictingSchedule = self::applyTimeOverlapConstraints($conflictingSchedule, $startTime, $endTime)
             ->first();
             
         return $conflictingSchedule;
+    }
+
+    /**
+     * Check for conflicts with schedule overrides.
+     */
+    private function checkScheduleOverrideConflict($laboratoryId, $date, $startTime, $endTime)
+    {
+        // Check for active overrides that are not cancellations
+        $overrides = \App\Models\LaboratoryScheduleOverride::forLaboratory($laboratoryId)
+            ->forDate($date)
+            ->active()
+            ->where('override_type', '!=', \App\Models\LaboratoryScheduleOverride::TYPE_CANCEL)
+            ->get();
+
+        foreach ($overrides as $override) {
+            $effectiveSchedule = $override->getEffectiveSchedule();
+            
+            if ($effectiveSchedule && $this->timesOverlap(
+                $startTime, 
+                $endTime, 
+                $effectiveSchedule['start_time'], 
+                $effectiveSchedule['end_time']
+            )) {
+                // Create a conflict object similar to regular schedules
+                return (object) [
+                    'id' => $override->id,
+                    'laboratory_id' => $override->laboratory_id,
+                    'academic_term_id' => $override->academic_term_id,
+                    'subject_name' => $effectiveSchedule['subject_name'],
+                    'instructor_name' => $effectiveSchedule['instructor_name'],
+                    'section' => $effectiveSchedule['section'],
+                    'start_time' => $effectiveSchedule['start_time'],
+                    'end_time' => $effectiveSchedule['end_time'],
+                    'type' => 'override',
+                    'override_type' => $override->override_type,
+                    'override_reason' => $override->reason,
+                    'is_override_conflict' => true,
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if two time ranges overlap.
+     */
+    private function timesOverlap($start1, $end1, $start2, $end2)
+    {
+        $start1Time = strtotime($start1);
+        $end1Time = strtotime($end1);
+        $start2Time = strtotime($start2);
+        $end2Time = strtotime($end2);
+
+        return ($start1Time < $end2Time && $end1Time > $start2Time);
     }
     /**
      * For recurring reservations, check all dates from start to end date (Optimized)

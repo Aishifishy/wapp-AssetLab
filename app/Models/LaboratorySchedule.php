@@ -57,6 +57,14 @@ class LaboratorySchedule extends Model
     }
 
     /**
+     * Get the overrides for this schedule.
+     */
+    public function overrides()
+    {
+        return $this->hasMany(LaboratoryScheduleOverride::class, 'laboratory_schedule_id');
+    }
+
+    /**
      * Get the day name of the schedule.
      */
     public function getDayNameAttribute(): string
@@ -98,5 +106,54 @@ class LaboratorySchedule extends Model
         $otherEnd = strtotime($schedule->end_time);
 
         return ($thisStart < $otherEnd && $thisEnd > $otherStart);
+    }
+
+    /**
+     * Get active override for a specific date.
+     */
+    public function getActiveOverrideForDate($date): ?LaboratoryScheduleOverride
+    {
+        return $this->overrides()
+            ->forDate($date)
+            ->active()
+            ->first();
+    }
+
+    /**
+     * Check if this schedule is active on a specific date (considering overrides).
+     */
+    public function isActiveOnDate($date): bool
+    {
+        $override = $this->getActiveOverrideForDate($date);
+        
+        if ($override) {
+            return $override->override_type !== LaboratoryScheduleOverride::TYPE_CANCEL;
+        }
+        
+        return true; // No override, use regular schedule
+    }
+
+    /**
+     * Get effective schedule for a specific date (considering overrides).
+     */
+    public function getEffectiveScheduleForDate($date): ?array
+    {
+        $override = $this->getActiveOverrideForDate($date);
+        
+        if ($override) {
+            return $override->getEffectiveSchedule();
+        }
+        
+        // Return regular schedule
+        return [
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
+            'subject_code' => $this->subject_code,
+            'subject_name' => $this->subject_name,
+            'instructor_name' => $this->instructor_name,
+            'section' => $this->section,
+            'notes' => $this->notes,
+            'type' => $this->type,
+        ];
     }
 }

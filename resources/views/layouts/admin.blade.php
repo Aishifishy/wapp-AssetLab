@@ -148,7 +148,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('admin.laboratory.reservations') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.laboratory.reservations') ? 'active' : '' }}">
+                            <a href="{{ route('admin.laboratory.reservations') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.laboratory.reservations') || request()->routeIs('admin.laboratory.schedule-overrides') || request()->routeIs('admin.laboratory.create-override') ? 'active' : '' }}">
                             <i class="fas fa-calendar-check me-2"></i>
                             Reservations
                             </a>
@@ -251,7 +251,7 @@
             </div>
 
             <!-- Flash Messages -->
-            @if(session('success'))
+            <!-- @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     {{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -263,7 +263,7 @@
                     {{ session('error') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-            @endif
+            @endif -->
 
             <!-- Main Content -->
             @yield('content')

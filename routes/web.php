@@ -119,6 +119,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/reservations', [LaboratoryController::class, 'reservations'])->name('reservations');
             Route::patch('/reservations/{reservation}/approve', [LaboratoryController::class, 'approveRequest'])->name('approve-request');
             Route::patch('/reservations/{reservation}/reject', [LaboratoryController::class, 'rejectRequest'])->name('reject-request');
+            
+            // Schedule Override Management (integrated under laboratory)
+            Route::get('/schedule-overrides', [LaboratoryController::class, 'scheduleOverrides'])->name('schedule-overrides');
+            Route::get('/schedule-overrides/create', [LaboratoryController::class, 'createScheduleOverride'])->name('create-override');
+            Route::post('/schedule-overrides', [LaboratoryController::class, 'storeScheduleOverride'])->name('store-override');
+            Route::delete('/schedule-overrides/{override}', [LaboratoryController::class, 'deactivateScheduleOverride'])->name('deactivate-override');
+            Route::post('/get-schedules-for-date', [LaboratoryController::class, 'getSchedulesForDate'])->name('get-schedules-for-date');
         });
 
         // Laboratory Calendar Management

@@ -148,7 +148,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="<?php echo e(route('admin.laboratory.reservations')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.laboratory.reservations') ? 'active' : ''); ?>">
+                            <a href="<?php echo e(route('admin.laboratory.reservations')); ?>" class="nav-link admin-nav-link text-white <?php echo e(request()->routeIs('admin.laboratory.reservations') || request()->routeIs('admin.laboratory.schedule-overrides') || request()->routeIs('admin.laboratory.create-override') ? 'active' : ''); ?>">
                             <i class="fas fa-calendar-check me-2"></i>
                             Reservations
                             </a>
@@ -251,7 +251,7 @@
             </div>
 
             <!-- Flash Messages -->
-            <?php if(session('success')): ?>
+            <!-- <?php if(session('success')): ?>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <?php echo e(session('success')); ?>
 
@@ -265,7 +265,7 @@
 
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-            <?php endif; ?>
+            <?php endif; ?> -->
 
             <!-- Main Content -->
             <?php echo $__env->yieldContent('content'); ?>

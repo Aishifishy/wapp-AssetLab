@@ -1,15 +1,34 @@
-@extends('layouts.admin')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-semibold text-gray-800">Laboratory Management</h1>
-        <a href="{{ route('admin.laboratory.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+        <a href="<?php echo e(route('admin.laboratory.index')); ?>" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
             <i class="fas fa-arrow-left mr-2"></i> Back to Laboratories
         </a>
     </div>
 
-    <x-flash-messages />
+    <?php if (isset($component)) { $__componentOriginalcca61bfded94b5a7635453a4dc55dd1d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d = $attributes; } ?>
+<?php $component = App\View\Components\FlashMessages::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('flash-messages'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FlashMessages::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d)): ?>
+<?php $attributes = $__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d; ?>
+<?php unset($__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalcca61bfded94b5a7635453a4dc55dd1d)): ?>
+<?php $component = $__componentOriginalcca61bfded94b5a7635453a4dc55dd1d; ?>
+<?php unset($__componentOriginalcca61bfded94b5a7635453a4dc55dd1d); ?>
+<?php endif; ?>
 
     <!-- Tab Navigation -->
     <div class="border-b border-gray-200 mb-6">
@@ -38,7 +57,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500">Pending Requests</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $pendingCount }}</p>
+                        <p class="text-2xl font-bold text-gray-900"><?php echo e($pendingCount); ?></p>
                     </div>
                 </div>
             </div>
@@ -49,7 +68,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500">Approved Today</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $approvedTodayCount }}</p>
+                        <p class="text-2xl font-bold text-gray-900"><?php echo e($approvedTodayCount); ?></p>
                     </div>
                 </div>
             </div>
@@ -60,7 +79,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500">Rejected Today</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $rejectedTodayCount }}</p>
+                        <p class="text-2xl font-bold text-gray-900"><?php echo e($rejectedTodayCount); ?></p>
                     </div>
                 </div>
             </div>
@@ -128,79 +147,83 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($pendingRequests->concat($recentRequests) as $request)
+                        <?php $__empty_1 = true; $__currentLoopData = $pendingRequests->concat($recentRequests); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $request): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr class="request-row" 
-                            data-user="{{ strtolower($request->user->name) }}" 
-                            data-laboratory="{{ strtolower($request->laboratory->name) }}" 
-                            data-status="{{ $request->status }}"
-                            data-date="{{ $request->reservation_date ? $request->reservation_date->format('Y-m-d') : '' }}"
-                            data-search="{{ strtolower($request->user->name . ' ' . $request->user->email . ' ' . $request->laboratory->name . ' ' . ($request->purpose ?? '')) }}">
+                            data-user="<?php echo e(strtolower($request->user->name)); ?>" 
+                            data-laboratory="<?php echo e(strtolower($request->laboratory->name)); ?>" 
+                            data-status="<?php echo e($request->status); ?>"
+                            data-date="<?php echo e($request->reservation_date ? $request->reservation_date->format('Y-m-d') : ''); ?>"
+                            data-search="<?php echo e(strtolower($request->user->name . ' ' . $request->user->email . ' ' . $request->laboratory->name . ' ' . ($request->purpose ?? ''))); ?>">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $request->user->name }}</div>
-                                <div class="text-sm text-gray-500">{{ $request->user->email }}</div>
+                                <div class="text-sm font-medium text-gray-900"><?php echo e($request->user->name); ?></div>
+                                <div class="text-sm text-gray-500"><?php echo e($request->user->email); ?></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $request->laboratory->name }}</div>
-                                <div class="text-sm text-gray-500">{{ $request->laboratory->building }} - {{ $request->laboratory->room_number }}</div>
+                                <div class="text-sm font-medium text-gray-900"><?php echo e($request->laboratory->name); ?></div>
+                                <div class="text-sm text-gray-500"><?php echo e($request->laboratory->building); ?> - <?php echo e($request->laboratory->room_number); ?></div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-900">
-                                    @if($request->purpose)
-                                        {{ Str::limit($request->purpose, 50) }}
-                                    @else
+                                    <?php if($request->purpose): ?>
+                                        <?php echo e(Str::limit($request->purpose, 50)); ?>
+
+                                    <?php else: ?>
                                         <span class="text-gray-400">No purpose provided</span>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">
-                                    @if($request->reservation_date && $request->formatted_start_time && $request->formatted_end_time)
-                                        {{ $request->reservation_date->format('M d, Y') }}
+                                    <?php if($request->reservation_date && $request->formatted_start_time && $request->formatted_end_time): ?>
+                                        <?php echo e($request->reservation_date->format('M d, Y')); ?>
+
                                         <br>
-                                        {{ $request->formatted_start_time }} - {{ $request->formatted_end_time }}
-                                    @else
+                                        <?php echo e($request->formatted_start_time); ?> - <?php echo e($request->formatted_end_time); ?>
+
+                                    <?php else: ?>
                                         <span class="text-gray-400">Date/Time not available</span>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
-                                <div class="text-xs text-gray-500">{{ $request->duration }}</div>
+                                <div class="text-xs text-gray-500"><?php echo e($request->duration); ?></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex justify-center">
                                     <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium
-                                        @if($request->status === 'approved') bg-green-100 text-green-800
-                                        @elseif($request->status === 'rejected') bg-red-100 text-red-800
-                                        @else bg-yellow-100 text-yellow-800 @endif">
-                                        {{ ucfirst($request->status) }}
+                                        <?php if($request->status === 'approved'): ?> bg-green-100 text-green-800
+                                        <?php elseif($request->status === 'rejected'): ?> bg-red-100 text-red-800
+                                        <?php else: ?> bg-yellow-100 text-yellow-800 <?php endif; ?>">
+                                        <?php echo e(ucfirst($request->status)); ?>
+
                                     </span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($request->status === 'approved' && $request->approvedBy)
+                                <?php if($request->status === 'approved' && $request->approvedBy): ?>
                                     <div class="text-xs text-green-600">
                                         <div class="font-medium">Approved by:</div>
-                                        <div>{{ $request->approvedBy->name }}</div>
-                                        <div class="text-gray-500">{{ $request->approved_at->format('M d, Y g:i A') }}</div>
+                                        <div><?php echo e($request->approvedBy->name); ?></div>
+                                        <div class="text-gray-500"><?php echo e($request->approved_at->format('M d, Y g:i A')); ?></div>
                                     </div>
-                                @elseif($request->status === 'rejected' && $request->rejectedBy)
+                                <?php elseif($request->status === 'rejected' && $request->rejectedBy): ?>
                                     <div class="text-xs text-red-600">
                                         <div class="font-medium">Rejected by:</div>
-                                        <div>{{ $request->rejectedBy->name }}</div>
-                                        <div class="text-gray-500">{{ $request->rejected_at->format('M d, Y g:i A') }}</div>
-                                        @if($request->rejection_reason)
-                                            <div class="text-gray-600 mt-1">{{ Str::limit($request->rejection_reason, 30) }}</div>
-                                        @endif
+                                        <div><?php echo e($request->rejectedBy->name); ?></div>
+                                        <div class="text-gray-500"><?php echo e($request->rejected_at->format('M d, Y g:i A')); ?></div>
+                                        <?php if($request->rejection_reason): ?>
+                                            <div class="text-gray-600 mt-1"><?php echo e(Str::limit($request->rejection_reason, 30)); ?></div>
+                                        <?php endif; ?>
                                     </div>
-                                @elseif($request->status === 'pending')
+                                <?php elseif($request->status === 'pending'): ?>
                                     <div class="text-xs text-gray-400">
                                         <div>Awaiting admin action</div>
                                     </div>
-                                @endif
+                                <?php endif; ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                @if($request->status === 'pending')
-                                    <form action="{{ route('admin.laboratory.approve-request', $request) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('PATCH')
+                                <?php if($request->status === 'pending'): ?>
+                                    <form action="<?php echo e(route('admin.laboratory.approve-request', $request)); ?>" method="POST" class="inline">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('PATCH'); ?>
                                         <button type="submit" 
                                                 class="text-green-600 hover:text-green-900 mr-3"
                                                 onclick="return confirm('Are you sure you want to approve this request?')">
@@ -209,24 +232,24 @@
                                     </form>
                                     <button type="button" 
                                             class="text-red-600 hover:text-red-900"
-                                            data-modal-target="rejectModal{{ $request->id }}">
+                                            data-modal-target="rejectModal<?php echo e($request->id); ?>">
                                         Reject
                                     </button>
-                                @else
-                                    <span class="text-gray-400">Processed {{ $request->updated_at->diffForHumans() }}</span>
-                                @endif
+                                <?php else: ?>
+                                    <span class="text-gray-400">Processed <?php echo e($request->updated_at->diffForHumans()); ?></span>
+                                <?php endif; ?>
                             </td>
                         </tr>
 
-                        @if($request->status === 'pending')
+                        <?php if($request->status === 'pending'): ?>
                         <!-- Reject Modal -->
-                        <div id="rejectModal{{ $request->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div id="rejectModal<?php echo e($request->id); ?>" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                                 <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
                                 <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                                    <form action="{{ route('admin.laboratory.reject-request', $request) }}" method="POST">
-                                        @csrf
-                                        @method('PATCH')
+                                    <form action="<?php echo e(route('admin.laboratory.reject-request', $request)); ?>" method="POST">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('PATCH'); ?>
                                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                                             <div class="sm:flex sm:items-start">
                                                 <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -262,14 +285,14 @@
                                 </div>
                             </div>
                         </div>
-                        @endif
-                        @empty
+                        <?php endif; ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                                 No reservation requests found
                             </td>
                         </tr>
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -435,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">Active Overrides</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $activeOverridesCount ?? 0 }}</p>
+                    <p class="text-2xl font-bold text-gray-900"><?php echo e($activeOverridesCount ?? 0); ?></p>
                 </div>
             </div>
         </div>
@@ -446,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">Recent Overrides</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $recentOverrides->count() }}</p>
+                    <p class="text-2xl font-bold text-gray-900"><?php echo e($recentOverrides->count()); ?></p>
                 </div>
             </div>
         </div>
@@ -461,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p class="text-xs text-gray-400">Create override</p>
                     </div>
                 </div>
-                <a href="{{ route('admin.laboratory.create-override') }}" 
+                <a href="<?php echo e(route('admin.laboratory.create-override')); ?>" 
                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <i class="fas fa-plus mr-1"></i>
                     Create Override
@@ -479,11 +502,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3 class="text-lg font-medium text-gray-900">Schedule Overrides</h3>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('admin.laboratory.schedule-overrides') }}" 
+                    <a href="<?php echo e(route('admin.laboratory.schedule-overrides')); ?>" 
                        class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                         View All Overrides
                     </a>
-                    <a href="{{ route('admin.laboratory.create-override') }}" 
+                    <a href="<?php echo e(route('admin.laboratory.create-override')); ?>" 
                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <i class="fas fa-plus mr-2"></i>
                         Create Override
@@ -492,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
         <div class="p-6">
-            @if($recentOverrides->count() > 0)
+            <?php if($recentOverrides->count() > 0): ?>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -508,82 +531,83 @@ document.addEventListener('DOMContentLoaded', function() {
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($recentOverrides as $override)
+                            <?php $__currentLoopData = $recentOverrides; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $override): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $override->laboratory->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $override->laboratory->building }} - {{ $override->laboratory->room_number }}</div>
+                                    <div class="text-sm font-medium text-gray-900"><?php echo e($override->laboratory->name); ?></div>
+                                    <div class="text-sm text-gray-500"><?php echo e($override->laboratory->building); ?> - <?php echo e($override->laboratory->room_number); ?></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $override->override_date->format('M d, Y') }}</div>
-                                    <div class="text-sm text-gray-500">{{ $override->override_date->format('l') }}</div>
+                                    <div class="text-sm text-gray-900"><?php echo e($override->override_date->format('M d, Y')); ?></div>
+                                    <div class="text-sm text-gray-500"><?php echo e($override->override_date->format('l')); ?></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                        @if($override->override_type === 'cancel') bg-red-100 text-red-800
-                                        @elseif($override->override_type === 'reschedule') bg-yellow-100 text-yellow-800
-                                        @else bg-blue-100 text-blue-800 @endif">
-                                        {{ ucfirst($override->override_type) }}
+                                        <?php if($override->override_type === 'cancel'): ?> bg-red-100 text-red-800
+                                        <?php elseif($override->override_type === 'reschedule'): ?> bg-yellow-100 text-yellow-800
+                                        <?php else: ?> bg-blue-100 text-blue-800 <?php endif; ?>">
+                                        <?php echo e(ucfirst($override->override_type)); ?>
+
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    @if($override->originalSchedule)
-                                        <div class="text-sm text-gray-900">{{ $override->originalSchedule->subject_name }}</div>
-                                        <div class="text-sm text-gray-500">{{ $override->originalSchedule->time_range }}</div>
-                                    @else
+                                    <?php if($override->originalSchedule): ?>
+                                        <div class="text-sm text-gray-900"><?php echo e($override->originalSchedule->subject_name); ?></div>
+                                        <div class="text-sm text-gray-500"><?php echo e($override->originalSchedule->time_range); ?></div>
+                                    <?php else: ?>
                                         <span class="text-sm text-gray-400">No original schedule</span>
-                                    @endif
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">{{ Str::limit($override->reason, 50) }}</div>
+                                    <div class="text-sm text-gray-900"><?php echo e(Str::limit($override->reason, 50)); ?></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $override->createdBy->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $override->created_at->diffForHumans() }}</div>
+                                    <div class="text-sm text-gray-900"><?php echo e($override->createdBy->name); ?></div>
+                                    <div class="text-sm text-gray-500"><?php echo e($override->created_at->diffForHumans()); ?></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($override->isCurrentlyActive())
+                                    <?php if($override->isCurrentlyActive()): ?>
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                                             Active
                                         </span>
-                                    @else
+                                    <?php else: ?>
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
                                             Inactive
                                         </span>
-                                    @endif
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    @if($override->isCurrentlyActive())
-                                        <form action="{{ route('admin.laboratory.deactivate-override', $override) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
+                                    <?php if($override->isCurrentlyActive()): ?>
+                                        <form action="<?php echo e(route('admin.laboratory.deactivate-override', $override)); ?>" method="POST" class="inline">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
                                             <button type="submit" 
                                                     class="text-red-600 hover:text-red-900"
                                                     onclick="return confirm('Are you sure you want to deactivate this override?')">
                                                 Deactivate
                                             </button>
                                         </form>
-                                    @else
+                                    <?php else: ?>
                                         <span class="text-gray-400">No actions</span>
-                                    @endif
+                                    <?php endif; ?>
                                 </td>
                             </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
                 </div>
-            @else
+            <?php else: ?>
                 <div class="text-center py-12">
                     <i class="fas fa-exclamation-triangle text-gray-400 text-6xl mb-4"></i>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">No Schedule Overrides</h3>
                     <p class="text-gray-500 mb-6">You haven't created any schedule overrides yet.</p>
-                    <a href="{{ route('admin.laboratory.create-override') }}" 
+                    <a href="<?php echo e(route('admin.laboratory.create-override')); ?>" 
                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <i class="fas fa-plus mr-2"></i>
                         Create Your First Override
                     </a>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 
@@ -648,4 +672,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/laboratory/reservations.blade.php ENDPATH**/ ?>
