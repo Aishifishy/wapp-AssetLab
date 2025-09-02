@@ -23,6 +23,7 @@ class LaboratoryScheduleOverride extends Model
         'new_notes',
         'reason',
         'created_by',
+        'requested_by',
         'expires_at',
         'is_active',
     ];
@@ -70,6 +71,14 @@ class LaboratoryScheduleOverride extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(Radmin::class, 'created_by');
+    }
+
+    /**
+     * Get the user who requested this override.
+     */
+    public function requestedBy(): BelongsTo
+    {
+        return $this->belongsTo(Ruser::class, 'requested_by');
     }
 
     /**

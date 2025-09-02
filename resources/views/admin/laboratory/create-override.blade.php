@@ -2,19 +2,43 @@
 
 @section('content')
 <div class="p-6">
-    <div class="flex justify-content-between items-center mb-6">
-        <h1 class="text-2xl font-semibold text-gray-800">Create Schedule Override</h1>
-        <a href="{{ route('admin.laboratory.reservations') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Reservations
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">Laboratory Management</h1>
+        <a href="{{ route('admin.laboratory.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Laboratories
         </a>
     </div>
 
     <x-flash-messages />
 
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200 mb-6">
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <a href="{{ route('admin.laboratory.reservations') }}" 
+               class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <i class="fas fa-calendar-check mr-2"></i>
+                Reservations
+            </a>
+            <a href="{{ route('admin.laboratory.schedule-overrides') }}" 
+               class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                Schedule Overrides
+            </a>
+        </nav>
+    </div>
+
+    <!-- Create Override Content -->
+    <div class="flex justify-content-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-800">Create Schedule Override</h2>
+        <a href="{{ route('admin.laboratory.schedule-overrides') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Overrides
+        </a>
+    </div>
+
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Override Details</h3>
-            <p class="mt-1 text-sm text-gray-600">Create a one-time modification to a regular class schedule.</p>
+            <h3 class="text-lg font-medium text-gray-900">Create Schedule Override</h3>
+            <p class="mt-1 text-sm text-gray-600">Create a one-time modification when a user has made arrangements with the professor to use the laboratory during regular class hours.</p>
         </div>
         <div class="p-6">
             <form action="{{ route('admin.laboratory.store-override') }}" method="POST" id="override-form">
@@ -81,6 +105,24 @@
                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                       required>{{ old('reason') }}</textarea>
                             @error('reason')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="requested_by" class="block text-sm font-medium text-gray-700">Requested By (Optional)</label>
+                            <select name="requested_by" 
+                                    id="requested_by" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                <option value="">Select User (if applicable)</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ (old('requested_by') ?? $requestedBy) == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }} ({{ $user->email }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">Select the user who requested this schedule override (e.g., someone who made arrangements with the professor)</p>
+                            @error('requested_by')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

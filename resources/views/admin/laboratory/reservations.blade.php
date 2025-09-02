@@ -14,57 +14,54 @@
     <!-- Tab Navigation -->
     <div class="border-b border-gray-200 mb-6">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <button class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600" 
-                    data-tab="reservations">
+            <span class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600">
                 <i class="fas fa-calendar-check mr-2"></i>
                 Reservations
-            </button>
-            <button class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" 
-                    data-tab="overrides">
+            </span>
+            <a href="{{ route('admin.laboratory.schedule-overrides') }}" 
+               class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
                 Schedule Overrides
-            </button>
+            </a>
         </nav>
     </div>
 
-    <!-- Reservations Tab Content -->
-    <div id="reservations-tab" class="tab-content">
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-yellow-100">
-                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Pending Requests</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $pendingCount }}</p>
-                    </div>
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
                 </div>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Approved Today</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $approvedTodayCount }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-red-100">
-                        <i class="fas fa-times-circle text-red-600 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Rejected Today</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $rejectedTodayCount }}</p>
-                    </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Pending Requests</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $pendingCount }}</p>
                 </div>
             </div>
         </div>
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Approved Today</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $approvedTodayCount }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-red-100">
+                    <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Rejected Today</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $rejectedTodayCount }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Pending Requests -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
@@ -198,20 +195,46 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 @if($request->status === 'pending')
-                                    <form action="{{ route('admin.laboratory.approve-request', $request) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" 
-                                                class="text-green-600 hover:text-green-900 mr-3"
-                                                onclick="return confirm('Are you sure you want to approve this request?')">
-                                            Approve
-                                        </button>
-                                    </form>
-                                    <button type="button" 
-                                            class="text-red-600 hover:text-red-900"
-                                            data-modal-target="rejectModal{{ $request->id }}">
-                                        Reject
-                                    </button>
+                                    <div class="flex flex-col space-y-1">
+                                        <div class="flex space-x-2">
+                                            <form action="{{ route('admin.laboratory.approve-request', $request) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" 
+                                                        class="text-green-600 hover:text-green-900"
+                                                        onclick="return confirm('Are you sure you want to approve this request?')">
+                                                    Approve
+                                                </button>
+                                            </form>
+                                            <button type="button" 
+                                                    class="text-red-600 hover:text-red-900"
+                                                    data-modal-target="rejectModal{{ $request->id }}">
+                                                Reject
+                                            </button>
+                                        </div>
+                                        @if($request->reservation_date && $request->laboratory_id)
+                                            <a href="{{ route('admin.laboratory.create-override', [
+                                                'date' => $request->reservation_date->format('Y-m-d'),
+                                                'laboratory_id' => $request->laboratory_id,
+                                                'requested_by' => $request->user_id
+                                            ]) }}" 
+                                               class="text-blue-600 hover:text-blue-900 text-xs">
+                                                Create Override
+                                            </a>
+                                        @endif
+                                    </div>
+                                @elseif($request->status === 'approved' && $request->reservation_date && $request->laboratory_id)
+                                    <div class="flex flex-col space-y-1">
+                                        <span class="text-gray-400 text-sm">Processed {{ $request->updated_at->diffForHumans() }}</span>
+                                        <a href="{{ route('admin.laboratory.create-override', [
+                                            'date' => $request->reservation_date->format('Y-m-d'),
+                                            'laboratory_id' => $request->laboratory_id,
+                                            'requested_by' => $request->user_id
+                                        ]) }}" 
+                                           class="text-blue-600 hover:text-blue-900 text-xs">
+                                            Create Override
+                                        </a>
+                                    </div>
                                 @else
                                     <span class="text-gray-400">Processed {{ $request->updated_at->diffForHumans() }}</span>
                                 @endif
@@ -417,233 +440,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.classList.add('hidden');
             }
         }
-    });
-});
-            }
-        }
-    </div>
-</div>
-
-<!-- Schedule Overrides Tab Content -->
-<div id="overrides-tab" class="tab-content hidden">
-    <!-- Summary Cards for Overrides -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-orange-100">
-                    <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Active Overrides</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $activeOverridesCount ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-blue-100">
-                    <i class="fas fa-calendar-plus text-blue-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Recent Overrides</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $recentOverrides->count() }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-purple-100">
-                        <i class="fas fa-plus text-purple-600 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Quick Actions</p>
-                        <p class="text-xs text-gray-400">Create override</p>
-                    </div>
-                </div>
-                <a href="{{ route('admin.laboratory.create-override') }}" 
-                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <i class="fas fa-plus mr-1"></i>
-                    Create Override
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Override Management -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-triangle text-orange-500 mr-2"></i>
-                    <h3 class="text-lg font-medium text-gray-900">Schedule Overrides</h3>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('admin.laboratory.schedule-overrides') }}" 
-                       class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                        View All Overrides
-                    </a>
-                    <a href="{{ route('admin.laboratory.create-override') }}" 
-                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <i class="fas fa-plus mr-2"></i>
-                        Create Override
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class="p-6">
-            @if($recentOverrides->count() > 0)
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Laboratory</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Override Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Original Schedule</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($recentOverrides as $override)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $override->laboratory->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $override->laboratory->building }} - {{ $override->laboratory->room_number }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $override->override_date->format('M d, Y') }}</div>
-                                    <div class="text-sm text-gray-500">{{ $override->override_date->format('l') }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                        @if($override->override_type === 'cancel') bg-red-100 text-red-800
-                                        @elseif($override->override_type === 'reschedule') bg-yellow-100 text-yellow-800
-                                        @else bg-blue-100 text-blue-800 @endif">
-                                        {{ ucfirst($override->override_type) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    @if($override->originalSchedule)
-                                        <div class="text-sm text-gray-900">{{ $override->originalSchedule->subject_name }}</div>
-                                        <div class="text-sm text-gray-500">{{ $override->originalSchedule->time_range }}</div>
-                                    @else
-                                        <span class="text-sm text-gray-400">No original schedule</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">{{ Str::limit($override->reason, 50) }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $override->createdBy->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $override->created_at->diffForHumans() }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($override->isCurrentlyActive())
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    @else
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            Inactive
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    @if($override->isCurrentlyActive())
-                                        <form action="{{ route('admin.laboratory.deactivate-override', $override) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="text-red-600 hover:text-red-900"
-                                                    onclick="return confirm('Are you sure you want to deactivate this override?')">
-                                                Deactivate
-                                            </button>
-                                        </form>
-                                    @else
-                                        <span class="text-gray-400">No actions</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <div class="text-center py-12">
-                    <i class="fas fa-exclamation-triangle text-gray-400 text-6xl mb-4"></i>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No Schedule Overrides</h3>
-                    <p class="text-gray-500 mb-6">You haven't created any schedule overrides yet.</p>
-                    <a href="{{ route('admin.laboratory.create-override') }}" 
-                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <i class="fas fa-plus mr-2"></i>
-                        Create Your First Override
-                    </a>
-                </div>
-            @endif
-        </div>
-    </div>
-
-    <!-- Help Section for Overrides -->
-    <div class="bg-blue-50 rounded-lg p-6">
-        <div class="flex items-start">
-            <div class="flex-shrink-0">
-                <i class="fas fa-info-circle text-blue-400 text-xl mt-1"></i>
-            </div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-blue-800">About Schedule Overrides</h3>
-                <div class="mt-2 text-sm text-blue-700">
-                    <p>Schedule overrides allow you to modify regular class schedules for specific dates without affecting the recurring pattern:</p>
-                    <ul class="mt-2 list-disc list-inside space-y-1">
-                        <li><strong>Cancel:</strong> Remove a class for a specific date</li>
-                        <li><strong>Reschedule:</strong> Change the time of a class for a specific date</li>
-                        <li><strong>Replace:</strong> Completely replace a class with different details for a specific date</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-// Tab functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const targetTab = button.getAttribute('data-tab');
-            console.log('Clicked tab:', targetTab); // Debug line
-            
-            // Remove active classes from all tabs
-            tabButtons.forEach(btn => {
-                btn.classList.remove('border-blue-500', 'text-blue-600');
-                btn.classList.add('border-transparent', 'text-gray-500');
-            });
-            
-            // Hide all tab contents
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            // Activate clicked tab
-            button.classList.remove('border-transparent', 'text-gray-500');
-            button.classList.add('border-blue-500', 'text-blue-600');
-            
-            // Show target content
-            const targetContent = document.getElementById(targetTab + '-tab');
-            console.log('Looking for element:', targetTab + '-tab'); // Debug line
-            if (targetContent) {
-                targetContent.classList.remove('hidden');
-                console.log('Successfully showed tab:', targetTab + '-tab'); // Debug line
-            } else {
-                console.log('Tab content not found:', targetTab + '-tab'); // Debug line
-            }
-        });
     });
 });
 </script>

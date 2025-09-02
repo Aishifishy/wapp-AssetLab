@@ -10,6 +10,7 @@ use App\Models\LaboratoryReservation;
 use App\Models\LaboratoryScheduleOverride;
 use App\Models\LaboratorySchedule;
 use App\Models\AcademicTerm;
+use App\Models\Ruser;
 use App\Services\ScheduleOverrideService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -123,7 +124,7 @@ class LaboratoryController extends Controller
             ->get();
 
         // Get recent schedule overrides
-        $recentOverrides = LaboratoryScheduleOverride::with(['laboratory', 'originalSchedule', 'createdBy'])
+        $recentOverrides = LaboratoryScheduleOverride::with(['laboratory', 'originalSchedule', 'createdBy', 'requestedBy'])
             ->where('override_date', '>=', now()->subDays(30))
             ->orderBy('created_at', 'desc')
             ->take(10)
@@ -201,7 +202,7 @@ class LaboratoryController extends Controller
     {
         $laboratories = ComputerLaboratory::orderBy('name')->get();
         
-        $query = LaboratoryScheduleOverride::with(['laboratory', 'originalSchedule', 'createdBy', 'academicTerm'])
+        $query = LaboratoryScheduleOverride::with(['laboratory', 'originalSchedule', 'createdBy', 'requestedBy', 'academicTerm'])
             ->orderBy('created_at', 'desc');
 
         // Filter by laboratory
@@ -248,12 +249,15 @@ class LaboratoryController extends Controller
                                          ->orderBy('room_number')
                                          ->get();
 
+        $users = Ruser::orderBy('name')->get();
+
         $currentTerm = AcademicTerm::where('is_current', true)->first();
 
         // If coming from calendar with specific date and lab
         $selectedDate = $request->get('date');
         $selectedLaboratory = $request->get('laboratory_id');
         $selectedSchedule = $request->get('schedule_id');
+        $requestedBy = $request->get('requested_by');
 
         $schedule = null;
         if ($selectedSchedule) {
@@ -262,10 +266,12 @@ class LaboratoryController extends Controller
 
         return view('admin.laboratory.create-override', compact(
             'laboratories', 
+            'users',
             'currentTerm', 
             'selectedDate', 
             'selectedLaboratory', 
-            'schedule'
+            'schedule',
+            'requestedBy'
         ));
     }
 
@@ -287,6 +293,7 @@ class LaboratoryController extends Controller
             'new_section' => 'required_if:override_type,replace|nullable|string|max:20',
             'new_notes' => 'nullable|string',
             'reason' => 'required|string|max:500',
+            'requested_by' => 'nullable|exists:rusers,id',
             'expires_at' => 'nullable|date|after:override_date',
         ]);
 
