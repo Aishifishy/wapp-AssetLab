@@ -200,6 +200,7 @@
                                         <div class="text-xs text-blue-600 mt-2">
                                             <div class="font-medium">Checked out by:</div>
                                             <div>{{ $request->checkedOutBy->name }}</div>
+                                            <div>{{ $request->checked_out_at->format('M d, Y g:i A') }}</div>
                                         </div>
                                     @endif
                                 </td>
