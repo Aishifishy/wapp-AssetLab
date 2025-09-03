@@ -1,8 +1,6 @@
-@extends('layouts.admin')
+<?php $__env->startSection('title', 'Manage Borrows'); ?>
 
-@section('title', 'Manage Borrows')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="p-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-3 sm:space-y-0">
         <h1 class="text-2xl font-semibold text-gray-800">Manage Equipment Borrows</h1>
@@ -29,7 +27,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-1">Pending Requests</h3>
-                    <div class="text-3xl font-bold text-yellow-600">{{ $pendingCount }}</div>
+                    <div class="text-3xl font-bold text-yellow-600"><?php echo e($pendingCount); ?></div>
                 </div>
             </div>
         </div>
@@ -40,7 +38,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-1">Active Borrows</h3>
-                    <div class="text-3xl font-bold text-blue-600">{{ $activeCount }}</div>
+                    <div class="text-3xl font-bold text-blue-600"><?php echo e($activeCount); ?></div>
                 </div>
             </div>
         </div>
@@ -51,7 +49,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-1">Overdue</h3>
-                    <div class="text-3xl font-bold text-red-600">{{ $overdueCount }}</div>
+                    <div class="text-3xl font-bold text-red-600"><?php echo e($overdueCount); ?></div>
                 </div>
             </div>
         </div>
@@ -116,130 +114,151 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($requests as $request)
+                        <?php $__empty_1 = true; $__currentLoopData = $requests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $request): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                             <tr class="request-row" 
-                                data-user="{{ strtolower($request->user->name) }}" 
-                                data-equipment="{{ strtolower($request->equipment->name) }}" 
-                                data-status="{{ $request->status }}"
-                                data-duration="{{ $request->requested_from->format('Y-m-d') }}"
-                                data-search="{{ strtolower($request->user->name . ' ' . $request->user->email . ' ' . $request->equipment->name . ' ' . ($request->equipment->category->name ?? '') . ' ' . ($request->purpose ?? '')) }}">
+                                data-user="<?php echo e(strtolower($request->user->name)); ?>" 
+                                data-equipment="<?php echo e(strtolower($request->equipment->name)); ?>" 
+                                data-status="<?php echo e($request->status); ?>"
+                                data-duration="<?php echo e($request->requested_from->format('Y-m-d')); ?>"
+                                data-search="<?php echo e(strtolower($request->user->name . ' ' . $request->user->email . ' ' . $request->equipment->name . ' ' . ($request->equipment->category->name ?? '') . ' ' . ($request->purpose ?? ''))); ?>">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $request->user->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $request->user->email }}</div>
+                                    <div class="text-sm font-medium text-gray-900"><?php echo e($request->user->name); ?></div>
+                                    <div class="text-sm text-gray-500"><?php echo e($request->user->email); ?></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $request->equipment->category->name ?? 'Uncategorized' }}</div>
-                                    <div class="text-sm text-gray-500">{{ $request->equipment->name }}</div>
+                                    <div class="text-sm font-medium text-gray-900"><?php echo e($request->equipment->category->name ?? 'Uncategorized'); ?></div>
+                                    <div class="text-sm text-gray-500"><?php echo e($request->equipment->name); ?></div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">{{ Str::limit($request->purpose, 50) }}</div>
+                                    <div class="text-sm text-gray-900"><?php echo e(Str::limit($request->purpose, 50)); ?></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        <div class="mb-.5">{{ $request->requested_from->format('M d, Y') }} -</div>
-                                        <div class="text-xs text-gray-600">{{ $request->requested_from->format('g:i A') }}</div>
+                                        <div class="mb-.5"><?php echo e($request->requested_from->format('M d, Y')); ?> -</div>
+                                        <div class="text-xs text-gray-600"><?php echo e($request->requested_from->format('g:i A')); ?></div>
                                     </div>
                                     <div class="text-sm text-gray-900 mt-2">
-                                        <div class="mb-.5">{{ $request->requested_until->format('M d, Y') }}</div>
-                                        <div class="text-xs text-gray-600">{{ $request->requested_until->format('g:i A') }}</div>
+                                        <div class="mb-.5"><?php echo e($request->requested_until->format('M d, Y')); ?></div>
+                                        <div class="text-xs text-gray-600"><?php echo e($request->requested_until->format('g:i A')); ?></div>
                                     </div>
-                                    @if(($request->status === 'approved' || $request->status === 'checked_out') && !$request->returned_at && $request->requested_until < now())
+                                    <?php if(($request->status === 'approved' || $request->status === 'checked_out') && !$request->returned_at && $request->requested_until < now()): ?>
                                         <div class="text-xs text-red-600 font-medium mt-1">OVERDUE</div>
-                                    @endif
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex flex-col items-center">
-                                        @php
+                                        <?php
                                             $displayStatus = $request->status;
                                             if ($request->returned_at) {
                                                 $displayStatus = 'returned';
                                             } elseif ($request->isCheckedOut() && !$request->returned_at) {
                                                 $displayStatus = 'checked_out';
                                             }
-                                        @endphp
-                                        <x-status-badge :status="$displayStatus" type="request" />
+                                        ?>
+                                        <?php if (isset($component)) { $__componentOriginal8860cf004fec956b6e41d036eb967550 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal8860cf004fec956b6e41d036eb967550 = $attributes; } ?>
+<?php $component = App\View\Components\StatusBadge::resolve(['status' => $displayStatus,'type' => 'request'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('status-badge'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\StatusBadge::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $attributes = $__attributesOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__attributesOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $component = $__componentOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__componentOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
                                         
-                                        @if($request->isCheckedOut())
+                                        <?php if($request->isCheckedOut()): ?>
                                             <div class="text-xs text-gray-500 mt-1">
-                                                <div>Checked out: {{ $request->checked_out_at->format('M d, Y g:i A') }}</div>
+                                                <div>Checked out: <?php echo e($request->checked_out_at->format('M d, Y g:i A')); ?></div>
                                             </div>
-                                        @endif
+                                        <?php endif; ?>
                                         
-                                        @if($request->returned_at)
+                                        <?php if($request->returned_at): ?>
                                             <div class="text-xs text-green-600 mt-1">
-                                                <div>Returned: {{ $request->returned_at->format('M d, Y g:i A') }}</div>
-                                                @if($request->return_condition)
-                                                    <div class="text-xs {{ $request->return_condition === 'good' ? 'text-green-600' : ($request->return_condition === 'damaged' ? 'text-red-600' : 'text-yellow-600') }}">
-                                                        Condition: {{ ucfirst($request->return_condition) }}
+                                                <div>Returned: <?php echo e($request->returned_at->format('M d, Y g:i A')); ?></div>
+                                                <?php if($request->return_condition): ?>
+                                                    <div class="text-xs <?php echo e($request->return_condition === 'good' ? 'text-green-600' : ($request->return_condition === 'damaged' ? 'text-red-600' : 'text-yellow-600')); ?>">
+                                                        Condition: <?php echo e(ucfirst($request->return_condition)); ?>
+
                                                     </div>
-                                                @endif
+                                                <?php endif; ?>
                                             </div>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($request->status === 'approved' && $request->approvedBy)
+                                    <?php if($request->status === 'approved' && $request->approvedBy): ?>
                                         <div class="text-xs text-green-600">
                                             <div class="font-medium">Approved by:</div>
-                                            <div>{{ $request->approvedBy->name }}</div>
-                                            <div class="text-gray-500">{{ $request->approved_at->format('M d, Y g:i A') }}</div>
+                                            <div><?php echo e($request->approvedBy->name); ?></div>
+                                            <div class="text-gray-500"><?php echo e($request->approved_at->format('M d, Y g:i A')); ?></div>
                                         </div>
-                                    @elseif($request->status === 'rejected' && $request->rejectedBy)
+                                    <?php elseif($request->status === 'rejected' && $request->rejectedBy): ?>
                                         <div class="text-xs text-red-600">
                                             <div class="font-medium">Rejected by:</div>
-                                            <div>{{ $request->rejectedBy->name }}</div>
-                                            <div class="text-gray-500">{{ $request->rejected_at->format('M d, Y g:i A') }}</div>
+                                            <div><?php echo e($request->rejectedBy->name); ?></div>
+                                            <div class="text-gray-500"><?php echo e($request->rejected_at->format('M d, Y g:i A')); ?></div>
                                         </div>
-                                    @elseif($request->status === 'pending')
+                                    <?php elseif($request->status === 'pending'): ?>
                                         <div class="text-xs text-gray-400">
                                             <div>Awaiting admin action</div>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                     
-                                    @if($request->isCheckedOut() && $request->checkedOutBy)
+                                    <?php if($request->isCheckedOut() && $request->checkedOutBy): ?>
                                         <div class="text-xs text-blue-600 mt-2">
                                             <div class="font-medium">Checked out by:</div>
-                                            <div>{{ $request->checkedOutBy->name }}</div>
-                                            <div>{{ $request->checked_out_at->format('M d, Y g:i A') }}</div>
+                                            <div><?php echo e($request->checkedOutBy->name); ?></div>
+                                            <div><?php echo e($request->checked_out_at->format('M d, Y g:i A')); ?></div>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    @if($request->status === 'pending')
-                                        <button onclick="previewConflicts({{ $request->id }})" class="text-yellow-600 hover:text-yellow-900 mr-3 text-xs">
+                                    <?php if($request->status === 'pending'): ?>
+                                        <button onclick="previewConflicts(<?php echo e($request->id); ?>)" class="text-yellow-600 hover:text-yellow-900 mr-3 text-xs">
                                             <i class="fas fa-eye mr-1"></i>Preview
                                         </button>
-                                        <form action="{{ route('admin.equipment.approve-request', $request) }}" method="POST" class="inline">
-                                            @csrf
+                                        <form action="<?php echo e(route('admin.equipment.approve-request', $request)); ?>" method="POST" class="inline">
+                                            <?php echo csrf_field(); ?>
                                             <button type="submit" class="text-green-600 hover:text-green-900 mr-3">Approve</button>
                                         </form>
-                                        <button onclick="openRejectModal({{ $request->id }})" class="text-red-600 hover:text-red-900">Reject</button>
-                                    @elseif($request->status === 'approved' && !$request->isCheckedOut() && !$request->returned_at)
-                                        <form action="{{ route('admin.equipment.checkout-request', $request) }}" method="POST" class="inline">
-                                            @csrf
+                                        <button onclick="openRejectModal(<?php echo e($request->id); ?>)" class="text-red-600 hover:text-red-900">Reject</button>
+                                    <?php elseif($request->status === 'approved' && !$request->isCheckedOut() && !$request->returned_at): ?>
+                                        <form action="<?php echo e(route('admin.equipment.checkout-request', $request)); ?>" method="POST" class="inline">
+                                            <?php echo csrf_field(); ?>
                                             <button type="submit" class="text-blue-600 hover:text-blue-900 mr-3">Check Out</button>
                                         </form>
-                                    @elseif($request->isCheckedOut() && !$request->returned_at)
-                                        <button onclick="openReturnModal({{ $request->id }})" class="text-purple-600 hover:text-purple-900">
+                                    <?php elseif($request->isCheckedOut() && !$request->returned_at): ?>
+                                        <button onclick="openReturnModal(<?php echo e($request->id); ?>)" class="text-purple-600 hover:text-purple-900">
                                             Return
                                         </button>
-                                    @else
-                                        <span class="text-gray-400">{{ ucfirst($request->status) }}</span>
-                                    @endif
+                                    <?php else: ?>
+                                        <span class="text-gray-400"><?php echo e(ucfirst($request->status)); ?></span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                                     No borrow requests found
                                 </td>
                             </tr>
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
             <div class="mt-4">
-                {{ $requests->links() }}
+                <?php echo e($requests->links()); ?>
+
             </div>
         </div>
     </div>
@@ -251,8 +270,8 @@
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Onsite Borrow & Checkout</h3>
             <p class="text-sm text-gray-600 mt-1">Scan user and equipment details. This will either check out an approved request or create a new onsite borrow.</p>
-            <form action="{{ route('admin.equipment.borrow-requests.onsite') }}" method="POST" class="mt-4" id="onsiteBorrowForm">
-                @csrf
+            <form action="<?php echo e(route('admin.equipment.borrow-requests.onsite')); ?>" method="POST" class="mt-4" id="onsiteBorrowForm">
+                <?php echo csrf_field(); ?>
                 
                 <div class="space-y-4">
                     <!-- User Selection with RFID -->
@@ -279,9 +298,9 @@
                         <select name="user_id" id="user_id" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="">Select User Manually</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->department }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($user->id); ?>"><?php echo e($user->name); ?> - <?php echo e($user->department); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                         
                         <!-- User Info Display -->
@@ -331,11 +350,11 @@
                         <select name="equipment_id" id="equipment_id" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="">Select Equipment Manually</option>
-                            @foreach($availableEquipment as $equipment)
-                                <option value="{{ $equipment->id }}">
-                                    {{ $equipment->name }} ({{ $equipment->category->name ?? 'Uncategorized' }})
+                            <?php $__currentLoopData = $availableEquipment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $equipment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($equipment->id); ?>">
+                                    <?php echo e($equipment->name); ?> (<?php echo e($equipment->category->name ?? 'Uncategorized'); ?>)
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                         
                         <!-- Equipment Info Display -->
@@ -363,7 +382,7 @@
                                name="requested_until" 
                                id="requested_until"
                                required
-                               min="{{ now()->format('Y-m-d\TH:i') }}"
+                               min="<?php echo e(now()->format('Y-m-d\TH:i')); ?>"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
                 </div>
@@ -391,7 +410,7 @@
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Return Equipment</h3>
             <form id="returnForm" method="POST" class="mt-4">
-                @csrf
+                <?php echo csrf_field(); ?>
                 
                 <div class="space-y-4">
                     <div>
@@ -429,7 +448,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <!-- Equipment borrowing functionality is now handled by equipment-manager.js module -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -614,11 +633,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Search user by RFID
     function searchUserByRfid(rfidTag) {
-        fetch('{{ route("admin.users.find-by-rfid") }}', {
+        fetch('<?php echo e(route("admin.users.find-by-rfid")); ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
             },
             body: JSON.stringify({ rfid_tag: rfidTag })
         })
@@ -658,11 +677,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Search equipment by barcode
     function searchEquipmentByBarcode(barcode) {
-        fetch('{{ route("admin.equipment.find-by-code") }}', {
+        fetch('<?php echo e(route("admin.equipment.find-by-code")); ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
             },
             body: JSON.stringify({ code: barcode, type: 'barcode' })
         })
@@ -712,11 +731,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Check if there's an existing approved request
-        fetch('{{ route("admin.equipment.check-approved-request") }}', {
+        fetch('<?php echo e(route("admin.equipment.check-approved-request")); ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
             },
             body: JSON.stringify({ 
                 user_id: userId, 
@@ -988,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Reject Equipment Request</h3>
             <form id="rejectForm" method="POST" class="mt-4">
-                @csrf
+                <?php echo csrf_field(); ?>
                 
                 <div class="space-y-4">
                     <div>
@@ -1014,5 +1033,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/admin/equipment/borrow-requests.blade.php ENDPATH**/ ?>
