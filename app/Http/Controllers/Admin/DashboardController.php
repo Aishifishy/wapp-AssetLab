@@ -112,6 +112,10 @@ class DashboardController extends Controller
                                 $adminInfo = "Checked out by: " . $request->checkedOutBy->name;
                             }
                             break;
+                        case \App\Models\EquipmentRequest::STATUS_CANCELLED:
+                            $statusClass = 'red';
+                            $description = "Equipment request cancelled";
+                            break;
                         default:
                             $statusClass = 'gray';
                             $description = "Equipment request status updated";
@@ -124,7 +128,8 @@ class DashboardController extends Controller
                         'description' => $description,
                         'notes' => $request->purpose,
                         'user_name' => $request->user ? $request->user->name : 'Unknown User',
-                        'item_name' => $request->equipment ? $request->equipment->name : 'Unknown Equipment',
+                        'item_name' => $request->equipment ? $request->equipment->category->name : 'Unknown Equipment',
+                        'item_num' => $request->equipment ? $request->equipment->name : 'Unknown Item Number',
                         'status' => $request->status,
                         'status_class' => $statusClass,
                         'activity_type' => 'equipment',

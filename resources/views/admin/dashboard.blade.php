@@ -131,7 +131,8 @@
                                 {{ $activity->user_name ?? 'N/A' }}
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                                {{ $activity->item_name ?? 'N/A' }}
+                                {{ $activity->item_name ?? 'N/A' }} <br>
+                                <small>{{ $activity->item_num ?? '' }}</small>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="flex justify-center">
@@ -165,15 +166,6 @@
                         @endforelse
                     </tbody>
                 </table>
-            </div>
-            
-            <div class="mt-4 flex justify-end">
-                <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
-                    View All Activities 
-                    <svg class="ml-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </a>
             </div>
         </div>
     </div>
