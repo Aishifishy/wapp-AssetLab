@@ -1,5 +1,5 @@
 /**
- * ResourEase Common Utilities
+ * AssetLab Common Utilities
  * Reusable JavaScript functions for the entire application
  */
 
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Export utilities for use in other scripts
-window.ResourEaseUtils = {
+window.AssetLabUtils = {
     getElement,
     getElements,
     addListener,

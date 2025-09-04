@@ -31,7 +31,7 @@ class LaboratoryReservationStatusChanged extends Mailable
     {
         $status = ucfirst($this->reservation->status);
         return new Envelope(
-            subject: "Laboratory Reservation {$status} - WappResourEase",
+            subject: "Laboratory Reservation {$status} - AssetLab",
         );
     }
 
