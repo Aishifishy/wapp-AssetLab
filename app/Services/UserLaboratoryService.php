@@ -93,6 +93,37 @@ class UserLaboratoryService extends BaseService
     }
 
     /**
+     * Get schedules for a specific day of the week
+     */
+    public function getSchedulesForDay(ComputerLaboratory $laboratory, $dayOfWeek)
+    {
+        $currentTerm = AcademicTerm::where('is_current', true)->first();
+        
+        if (!$currentTerm) {
+            return collect([]);
+        }
+        
+        // Map day names to match the database format
+        $dayMapping = [
+            'sunday' => 'Sunday',
+            'monday' => 'Monday', 
+            'tuesday' => 'Tuesday',
+            'wednesday' => 'Wednesday',
+            'thursday' => 'Thursday',
+            'friday' => 'Friday',
+            'saturday' => 'Saturday'
+        ];
+        
+        $dayName = $dayMapping[strtolower($dayOfWeek)] ?? $dayOfWeek;
+        
+        return LaboratorySchedule::where('laboratory_id', $laboratory->id)
+            ->where('academic_term_id', $currentTerm->id)
+            ->where('day', $dayName)
+            ->orderBy('start_time')
+            ->get();
+    }
+
+    /**
      * Get user reservations data for index view
      */
     public function getUserReservationsData($userId, $request)

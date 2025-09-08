@@ -17,12 +17,14 @@ class ComputerLaboratory extends Model
         'number_of_computers',
         'equipment_inventory',
         'status',
+        'requires_image',
     ];
 
     protected $casts = [
         'capacity' => 'integer',
         'number_of_computers' => 'integer',
         'equipment_inventory' => 'array',
+        'requires_image' => 'boolean',
     ];
 
     // Status constants

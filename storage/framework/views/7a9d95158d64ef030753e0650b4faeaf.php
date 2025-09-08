@@ -1,11 +1,30 @@
-@extends('layouts.ruser')
 
-@section('title', 'Create Laboratory Reservation')
-@section('header', 'Create Laboratory Reservation')
 
-@section('content')
+<?php $__env->startSection('title', 'Create Laboratory Reservation'); ?>
+<?php $__env->startSection('header', 'Create Laboratory Reservation'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="space-y-6">
-    <x-flash-messages />
+    <?php if (isset($component)) { $__componentOriginalcca61bfded94b5a7635453a4dc55dd1d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d = $attributes; } ?>
+<?php $component = App\View\Components\FlashMessages::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('flash-messages'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FlashMessages::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d)): ?>
+<?php $attributes = $__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d; ?>
+<?php unset($__attributesOriginalcca61bfded94b5a7635453a4dc55dd1d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalcca61bfded94b5a7635453a4dc55dd1d)): ?>
+<?php $component = $__componentOriginalcca61bfded94b5a7635453a4dc55dd1d; ?>
+<?php unset($__componentOriginalcca61bfded94b5a7635453a4dc55dd1d); ?>
+<?php endif; ?>
 
     <!-- Laboratory Information -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -21,21 +40,40 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h3 class="text-sm font-medium text-gray-500">Laboratory</h3>
-                    <p class="mt-1 text-base text-gray-900">{{ $laboratory->name }}</p>
-                    <p class="text-sm text-gray-600">{{ $laboratory->building }}, Room {{ $laboratory->room_number }}</p>
+                    <p class="mt-1 text-base text-gray-900"><?php echo e($laboratory->name); ?></p>
+                    <p class="text-sm text-gray-600"><?php echo e($laboratory->building); ?>, Room <?php echo e($laboratory->room_number); ?></p>
                 </div>
                 <div>
                     <h3 class="text-sm font-medium text-gray-500">Capacity</h3>
-                    <p class="mt-1 text-base text-gray-900">{{ $laboratory->capacity }} seats</p>
+                    <p class="mt-1 text-base text-gray-900"><?php echo e($laboratory->capacity); ?> seats</p>
                 </div>
                 <div>
                     <h3 class="text-sm font-medium text-gray-500">Computers</h3>
-                    <p class="mt-1 text-base text-gray-900">{{ $laboratory->number_of_computers }} units</p>
+                    <p class="mt-1 text-base text-gray-900"><?php echo e($laboratory->number_of_computers); ?> units</p>
                 </div>
                 <div>
                     <h3 class="text-sm font-medium text-gray-500">Status</h3>
                     <p class="mt-1">
-                        <x-status-badge :status="$laboratory->status" type="laboratory" />
+                        <?php if (isset($component)) { $__componentOriginal8860cf004fec956b6e41d036eb967550 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal8860cf004fec956b6e41d036eb967550 = $attributes; } ?>
+<?php $component = App\View\Components\StatusBadge::resolve(['status' => $laboratory->status,'type' => 'laboratory'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('status-badge'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\StatusBadge::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $attributes = $__attributesOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__attributesOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal8860cf004fec956b6e41d036eb967550)): ?>
+<?php $component = $__componentOriginal8860cf004fec956b6e41d036eb967550; ?>
+<?php unset($__componentOriginal8860cf004fec956b6e41d036eb967550); ?>
+<?php endif; ?>
                     </p>
                 </div>
             </div>
@@ -53,7 +91,7 @@
             </h2>
         </div>
         <div class="p-6">
-            @if(!$currentTerm)
+            <?php if(!$currentTerm): ?>
                 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
                     <div class="flex">
                         <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,10 +100,10 @@
                         <p>Reservations are not available without an active academic term.</p>
                     </div>
                 </div>
-            @else
-                <form id="reservation-form" action="{{ route('ruser.laboratory.reservations.store', $laboratory) }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="laboratory_id" value="{{ $laboratory->id }}">
+            <?php else: ?>
+                <form id="reservation-form" action="<?php echo e(route('ruser.laboratory.reservations.store', $laboratory)); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="laboratory_id" value="<?php echo e($laboratory->id); ?>">
                     
                     <!-- Conflict Alert -->
                     <div id="conflict-alert" class="hidden mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
@@ -88,8 +126,27 @@
                             </label>
                             <textarea name="purpose" id="purpose" rows="3" required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                placeholder="Describe the purpose of this reservation">{{ old('purpose') }}</textarea>
-                            <x-form-error field="purpose" />
+                                placeholder="Describe the purpose of this reservation"><?php echo e(old('purpose')); ?></textarea>
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'purpose'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
                         
                         <div>
@@ -97,10 +154,29 @@
                                 Date <span class="text-red-500">*</span>
                             </label>
                             <input type="date" name="reservation_date" id="reservation_date" required
-                                min="{{ date('Y-m-d') }}"
-                                value="{{ old('reservation_date') }}"
+                                min="<?php echo e(date('Y-m-d')); ?>"
+                                value="<?php echo e(old('reservation_date')); ?>"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <x-form-error field="reservation_date" />
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'reservation_date'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
                         
                         <div>
@@ -108,9 +184,28 @@
                                 Start Time <span class="text-red-500">*</span>
                             </label>
                             <input type="time" name="start_time" id="start_time" required
-                                value="{{ old('start_time') }}"
+                                value="<?php echo e(old('start_time')); ?>"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <x-form-error field="start_time" />
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'start_time'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
                         
                         <div>
@@ -118,9 +213,28 @@
                                 End Time <span class="text-red-500">*</span>
                             </label>
                             <input type="time" name="end_time" id="end_time" required
-                                value="{{ old('end_time') }}"
+                                value="<?php echo e(old('end_time')); ?>"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <x-form-error field="end_time" />
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'end_time'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
                         
                         <div>
@@ -128,41 +242,118 @@
                                 Number of Students <span class="text-red-500">*</span>
                             </label>
                             <input type="number" name="num_students" id="num_students" required
-                                min="1" max="{{ $laboratory->capacity }}"
-                                value="{{ old('num_students') }}"
-                                placeholder="Max: {{ $laboratory->capacity }}"
+                                min="1" max="<?php echo e($laboratory->capacity); ?>"
+                                value="<?php echo e(old('num_students')); ?>"
+                                placeholder="Max: <?php echo e($laboratory->capacity); ?>"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <x-form-error field="num_students" />
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'num_students'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
                         
                         <div>
                             <label for="course_code" class="block text-sm font-medium text-gray-700">Course Code</label>
                             <input type="text" name="course_code" id="course_code"
-                                value="{{ old('course_code') }}"
+                                value="<?php echo e(old('course_code')); ?>"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <x-form-error field="course_code" />
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'course_code'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
                         
                         <div>
                             <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
                             <input type="text" name="subject" id="subject"
-                                value="{{ old('subject') }}"
+                                value="<?php echo e(old('subject')); ?>"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <x-form-error field="subject" />
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'subject'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
                         
                         <div>
                             <label for="section" class="block text-sm font-medium text-gray-700">Section</label>
                             <input type="text" name="section" id="section"
-                                value="{{ old('section') }}"
+                                value="<?php echo e(old('section')); ?>"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <x-form-error field="section" />
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'section'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
                         
                         <div class="col-span-1 md:col-span-2">
                             <div class="flex items-center">
                                 <input type="checkbox" name="is_recurring" id="is_recurring" value="1"
-                                    {{ old('is_recurring') ? 'checked' : '' }}
+                                    <?php echo e(old('is_recurring') ? 'checked' : ''); ?>
+
                                     class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                                 <label for="is_recurring" class="ml-2 block text-sm text-gray-700">
                                     Make this a recurring reservation
@@ -170,7 +361,7 @@
                             </div>
                         </div>
 
-                        @if($laboratory->requires_image)
+                        <?php if($laboratory->requires_image): ?>
                         <div class="col-span-1 md:col-span-2">
                             <label for="form_image" class="block text-sm font-medium text-gray-700 mb-2">
                                 Facilities Request Form <span class="text-red-500">*</span>
@@ -200,9 +391,28 @@
                                 </svg>
                                 Please upload a clear image of the signed written form required for this laboratory reservation.
                             </p>
-                            <x-form-error field="form_image" />
+                            <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'form_image'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                         </div>
-                        @endif
+                        <?php endif; ?>
                         
                         <div id="recurring-details" class="hidden md:col-span-2">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -212,10 +422,29 @@
                                 </label>
                                 <select name="recurring_pattern" id="recurring_pattern"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                    <option value="weekly" {{ old('recurring_pattern') == 'weekly' ? 'selected' : '' }}>Weekly</option>
-                                    <option value="monthly" {{ old('recurring_pattern') == 'monthly' ? 'selected' : '' }}>Monthly</option>
+                                    <option value="weekly" <?php echo e(old('recurring_pattern') == 'weekly' ? 'selected' : ''); ?>>Weekly</option>
+                                    <option value="monthly" <?php echo e(old('recurring_pattern') == 'monthly' ? 'selected' : ''); ?>>Monthly</option>
                                 </select>
-                                <x-form-error field="recurring_pattern" />
+                                <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'recurring_pattern'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                             </div>
                             
                             <div>
@@ -223,17 +452,36 @@
                                     End Date
                                 </label>
                                 <input type="date" name="end_date" id="end_date"
-                                    min="{{ date('Y-m-d', strtotime('+1 week')) }}"
-                                    value="{{ old('end_date') }}"
+                                    min="<?php echo e(date('Y-m-d', strtotime('+1 week'))); ?>"
+                                    value="<?php echo e(old('end_date')); ?>"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                <x-form-error field="end_date" />
+                                <?php if (isset($component)) { $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d = $attributes; } ?>
+<?php $component = App\View\Components\FormError::resolve(['field' => 'end_date'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('form-error'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\FormError::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $attributes = $__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__attributesOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d)): ?>
+<?php $component = $__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d; ?>
+<?php unset($__componentOriginalc93285135aa759ebaf0b3dc38aeeeb0d); ?>
+<?php endif; ?>
                             </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Always show schedule section if current term exists -->
-                    @if($currentTerm)
+                    <?php if($currentTerm): ?>
                         <div class="mt-8" id="schedule-section">
                             <h3 class="text-base font-medium text-gray-800 mb-2 flex items-center">
                                 <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -245,7 +493,7 @@
                                 Select a date to view the regular class schedule for that day.
                             </p>
                             
-                            <div class="overflow-x-auto {{ $schedules->count() > 0 ? '' : 'hidden' }}" id="schedule-table-container">
+                            <div class="overflow-x-auto <?php echo e($schedules->count() > 0 ? '' : 'hidden'); ?>" id="schedule-table-container">
                                 <table class="min-w-full border border-gray-200 rounded-lg">
                                     <thead class="bg-gray-50">
                                         <tr>
@@ -256,25 +504,26 @@
                                         </tr>
                                     </thead>
                                     <tbody id="schedule-table-body" class="bg-white divide-y divide-gray-200">
-                                        @if($schedules->count() > 0)
-                                            @foreach($schedules as $schedule)
+                                        <?php if($schedules->count() > 0): ?>
+                                            <?php $__currentLoopData = $schedules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $schedule): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <tr class="hover:bg-gray-50">
-                                                    <td class="px-4 py-2 text-sm text-gray-900 border-b">{{ $schedule->day }}</td>
+                                                    <td class="px-4 py-2 text-sm text-gray-900 border-b"><?php echo e($schedule->day); ?></td>
                                                     <td class="px-4 py-2 text-sm text-gray-900 border-b">
-                                                        {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - 
-                                                        {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
+                                                        <?php echo e(\Carbon\Carbon::parse($schedule->start_time)->format('H:i')); ?> - 
+                                                        <?php echo e(\Carbon\Carbon::parse($schedule->end_time)->format('H:i')); ?>
+
                                                     </td>
-                                                    <td class="px-4 py-2 text-sm text-gray-900 border-b">{{ $schedule->subject }}</td>
-                                                    <td class="px-4 py-2 text-sm text-gray-900 border-b">{{ $schedule->instructor }}</td>
+                                                    <td class="px-4 py-2 text-sm text-gray-900 border-b"><?php echo e($schedule->subject); ?></td>
+                                                    <td class="px-4 py-2 text-sm text-gray-900 border-b"><?php echo e($schedule->instructor); ?></td>
                                                 </tr>
-                                            @endforeach
-                                        @endif
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
                             
                             <!-- No schedules message -->
-                            <div id="no-schedules-message" class="{{ $schedules->count() > 0 ? 'hidden' : '' }} text-center py-8">
+                            <div id="no-schedules-message" class="<?php echo e($schedules->count() > 0 ? 'hidden' : ''); ?> text-center py-8">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
@@ -282,10 +531,10 @@
                                 <p class="mt-1 text-sm text-gray-500">Choose a reservation date to see if there are any regular classes scheduled for that day.</p>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
                     <div class="mt-8 flex justify-end space-x-4">
-                        <a href="{{ route('ruser.laboratory.reservations.index') }}" 
+                        <a href="<?php echo e(route('ruser.laboratory.reservations.index')); ?>" 
                            class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
                             <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -301,14 +550,14 @@
                         </button>
                     </div>
                 </form>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
-<script src="{{ asset('js/image-upload.js') }}"></script>
+<?php $__env->startPush('scripts'); ?>
+<script src="<?php echo e(asset('js/image-upload.js')); ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize image upload handler
@@ -349,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const endTime = endTimeInput.value;
         
         if (date && startTime && endTime) {
-            fetch(`{{ route('ruser.laboratory.conflicts.check', $laboratory) }}`, {
+            fetch(`<?php echo e(route('ruser.laboratory.conflicts.check', $laboratory)); ?>`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -380,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const date = dateInput.value;
         
         if (date) {
-            fetch(`{{ route('ruser.laboratory.schedules.date', $laboratory) }}`, {
+            fetch(`<?php echo e(route('ruser.laboratory.schedules.date', $laboratory)); ?>`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -485,4 +734,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.ruser', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\wappResourEase\resources\views/ruser/laboratory/reservation/create.blade.php ENDPATH**/ ?>

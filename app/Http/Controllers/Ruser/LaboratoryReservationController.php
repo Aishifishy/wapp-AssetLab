@@ -62,6 +62,95 @@ class LaboratoryReservationController extends Controller
     }
 
     /**
+     * Check for conflicts when creating a reservation
+     */
+    public function checkConflicts(Request $request, ComputerLaboratory $laboratory)
+    {
+        $validatedData = $request->validate([
+            'reservation_date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+        ]);
+
+        $conflictCheck = $this->conflictService->checkConflicts(
+            $laboratory->id,
+            $validatedData['reservation_date'],
+            $validatedData['start_time'],
+            $validatedData['end_time']
+        );
+
+        $conflicts = [];
+        
+        if ($conflictCheck['has_conflict']) {
+            $conflictDetails = $conflictCheck['conflict_details'];
+            
+            switch ($conflictCheck['conflict_type']) {
+                case 'single_reservation':
+                    $conflicts[] = [
+                        'type' => 'Existing Reservation',
+                        'description' => 'Reserved by ' . $conflictDetails->user->name,
+                        'time' => Carbon::parse($conflictDetails->start_time)->format('g:i A') . ' - ' . 
+                                 Carbon::parse($conflictDetails->end_time)->format('g:i A')
+                    ];
+                    break;
+                    
+                case 'recurring_reservation':
+                    $conflicts[] = [
+                        'type' => 'Recurring Reservation',
+                        'description' => 'Recurring reservation by ' . $conflictDetails->user->name,
+                        'time' => Carbon::parse($conflictDetails->start_time)->format('g:i A') . ' - ' . 
+                                 Carbon::parse($conflictDetails->end_time)->format('g:i A')
+                    ];
+                    break;
+                    
+                case 'class_schedule':
+                    $conflicts[] = [
+                        'type' => 'Class Schedule',
+                        'description' => $conflictDetails->subject_name . ' (' . $conflictDetails->instructor_name . ')',
+                        'time' => Carbon::parse($conflictDetails->start_time)->format('g:i A') . ' - ' . 
+                                 Carbon::parse($conflictDetails->end_time)->format('g:i A')
+                    ];
+                    break;
+            }
+        }
+
+        return response()->json([
+            'has_conflict' => $conflictCheck['has_conflict'],
+            'conflicts' => $conflicts
+        ]);
+    }
+
+    /**
+     * Get schedules for a specific date (day of week)
+     */
+    public function getSchedulesForDate(Request $request, ComputerLaboratory $laboratory)
+    {
+        $request->validate([
+            'date' => 'required|date'
+        ]);
+        
+        $date = Carbon::parse($request->date);
+        $dayOfWeek = $date->format('l'); // Full day name (e.g., 'Monday')
+        
+        $schedules = $this->userLaboratoryService->getSchedulesForDay($laboratory, $dayOfWeek);
+        
+        return response()->json([
+            'schedules' => $schedules->map(function ($schedule) {
+                return [
+                    'id' => $schedule->id,
+                    'day' => $schedule->day,
+                    'start_time' => Carbon::parse($schedule->start_time)->format('H:i'),
+                    'end_time' => Carbon::parse($schedule->end_time)->format('H:i'),
+                    'subject' => $schedule->subject,
+                    'instructor' => $schedule->instructor
+                ];
+            }),
+            'day_name' => $dayOfWeek,
+            'has_schedules' => $schedules->isNotEmpty()
+        ]);
+    }
+
+    /**
      * Display the user's reservations
      */
     public function index(Request $request)

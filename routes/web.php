@@ -54,6 +54,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/{laboratory}', [RuserLaboratoryController::class, 'show'])->name('show');
         Route::post('/{laboratory}/reserve', [RuserLaboratoryController::class, 'reserve'])->name('reserve');
         
+        // Conflict checking route
+        Route::post('/{laboratory}/conflicts/check', [RuserLaboratoryReservationController::class, 'checkConflicts'])->name('conflicts.check');
+        
+        // Get schedules for specific date
+        Route::post('/{laboratory}/schedules/date', [RuserLaboratoryReservationController::class, 'getSchedulesForDate'])->name('schedules.date');
+        
         // Laboratory Reservations
         Route::prefix('reservations')->name('reservations.')->group(function () {
             Route::get('/', [RuserLaboratoryReservationController::class, 'index'])->name('index');

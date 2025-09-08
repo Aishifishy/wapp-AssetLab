@@ -31,6 +31,7 @@ class LaboratoryReservation extends Model
         'rejected_at',
         'approved_by',
         'rejected_by',
+        'form_image',
     ];
 
     protected $casts = [
