@@ -55,6 +55,11 @@ class StatusBadge extends Component
                 'rejected' => ['bg-red-100 text-red-800 text-center', 'Rejected'],
                 'cancelled' => ['bg-gray-100 text-gray-800 text-center', 'Cancelled'],
             ],
+            'override' => [
+                'cancel' => ['bg-red-100 text-red-800 text-center', 'Cancelled'],
+                'reschedule' => ['bg-yellow-100 text-yellow-800 text-center', 'Rescheduled'],
+                'replace' => ['bg-blue-100 text-blue-800 text-center', 'Replaced'],
+            ],
         ];
 
         return $configs[$this->type] ?? $configs['equipment'];

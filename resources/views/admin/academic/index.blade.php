@@ -176,6 +176,40 @@
 
                         <!-- Computer Labs Tab -->
                         <div id="labs-tab" class="modal-tab-content hidden">
+                            <!-- Schedule Legend -->
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                                <h4 class="text-sm font-medium text-gray-900 mb-3">Schedule Legend</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <h5 class="text-xs font-medium text-gray-700 mb-2">Schedule Types:</h5>
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                            <div class="flex items-center">
+                                                <div class="w-3 h-3 bg-blue-100 border border-blue-200 rounded mr-2"></div>
+                                                <span class="text-gray-700">Regular Class</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <div class="w-3 h-3 bg-red-100 border border-red-200 rounded mr-2"></div>
+                                                <span class="text-gray-700">Cancelled</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <div class="w-3 h-3 bg-orange-100 border border-orange-200 rounded mr-2"></div>
+                                                <span class="text-gray-700">Override/Special</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <div class="w-3 h-3 bg-green-100 border border-green-200 rounded mr-2"></div>
+                                                <span class="text-gray-700">Available</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-xs font-medium text-gray-700 mb-2">Time Slot Status:</h5>
+                                        <div class="text-xs text-gray-600">
+                                            <p>Time slots use the same colors as schedule types above. Hover over occupied slots for details.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="space-y-6" id="labsList">
                                 <!-- Lab schedules will be populated here -->
                             </div>
@@ -517,15 +551,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 schedulesHtml = '<p class="text-gray-500 text-sm">No scheduled classes</p>';
             } else {
                 lab.schedules.forEach(schedule => {
+                    // Determine the style based on schedule type and override status
+                    let scheduleClass = 'border rounded-md p-3 mb-2';
+                    let badgeClass = '';
+                    let badgeText = '';
+                    
+                    if (schedule.is_override) {
+                        if (schedule.type === 'cancel') {
+                            scheduleClass += ' bg-red-50 border-red-200';
+                            badgeClass = 'bg-red-100 text-red-800';
+                            badgeText = 'Cancelled';
+                        } else {
+                            // All other override types use the same orange color
+                            scheduleClass += ' bg-orange-50 border-orange-200';
+                            badgeClass = 'bg-orange-100 text-orange-800';
+                            if (schedule.type === 'replace') {
+                                badgeText = 'Replacement';
+                            } else if (schedule.type === 'reschedule') {
+                                badgeText = 'Rescheduled';
+                            } else {
+                                badgeText = 'Override';
+                            }
+                        }
+                    } else {
+                        scheduleClass += ' bg-blue-50 border-blue-200';
+                        badgeClass = 'bg-blue-100 text-blue-800';
+                        badgeText = 'Regular';
+                    }
+                    
                     schedulesHtml += `
-                        <div class="bg-blue-50 border border-blue-200 rounded-md p-3 mb-2">
+                        <div class="${scheduleClass}">
                             <div class="flex justify-between items-start">
-                                <div>
-                                    <h6 class="font-medium text-gray-900">${schedule.subject_code} - ${schedule.subject_name}</h6>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h6 class="font-medium text-gray-900">${schedule.subject_code} - ${schedule.subject_name}</h6>
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badgeClass}">
+                                            ${badgeText}
+                                        </span>
+                                    </div>
                                     <p class="text-sm text-gray-600">Instructor: ${schedule.instructor}</p>
                                     <p class="text-sm text-gray-600">Section: ${schedule.section}</p>
+                                    ${schedule.is_override && schedule.override_reason ? 
+                                        `<p class="text-sm text-gray-600 italic mt-1">Reason: ${schedule.override_reason}</p>` : 
+                                        ''
+                                    }
                                 </div>
-                                <span class="text-sm font-medium text-blue-600">${schedule.time_range}</span>
+                                <span class="text-sm font-medium text-gray-700">${schedule.time_range}</span>
                             </div>
                         </div>
                     `;
@@ -533,10 +604,41 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             let availableSlotsHtml = '<div class="mt-4"><h6 class="font-medium text-gray-700 mb-2">Available Time Slots:</h6><div class="grid grid-cols-4 gap-2">';
+            
             lab.available_slots.forEach(slot => {
-                const slotClass = slot.available ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200';
+                let slotClass = 'px-2 py-1 text-xs border rounded';
+                let tooltip = '';
+                
+                if (slot.available) {
+                    // Available slot - green
+                    slotClass += ' bg-green-100 text-green-800 border-green-200';
+                    tooltip = 'Available';
+                } else {
+                    // Occupied slot - color based on schedule type
+                    if (slot.is_override) {
+                        if (slot.schedule_type === 'cancel') {
+                            slotClass += ' bg-red-100 text-red-800 border-red-200';
+                            tooltip = `Cancelled - ${slot.subject_code}`;
+                        } else {
+                            // All other override types use orange
+                            slotClass += ' bg-orange-100 text-orange-800 border-orange-200';
+                            if (slot.schedule_type === 'replace') {
+                                tooltip = `Replacement - ${slot.subject_code} (${slot.instructor})`;
+                            } else if (slot.schedule_type === 'reschedule') {
+                                tooltip = `Rescheduled - ${slot.subject_code} (${slot.instructor})`;
+                            } else {
+                                tooltip = `Override - ${slot.subject_code} (${slot.instructor})`;
+                            }
+                        }
+                    } else {
+                        // Regular class
+                        slotClass += ' bg-blue-100 text-blue-800 border-blue-200';
+                        tooltip = `Regular - ${slot.subject_code} (${slot.instructor})`;
+                    }
+                }
+                
                 availableSlotsHtml += `
-                    <div class="px-2 py-1 text-xs border rounded ${slotClass}">
+                    <div class="${slotClass}" title="${tooltip}">
                         ${slot.time}
                     </div>
                 `;
