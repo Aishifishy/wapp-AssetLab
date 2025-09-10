@@ -175,43 +175,41 @@
                         </div>
 
                         <!-- Computer Labs Tab -->
+                                                <!-- Computer Labs Tab -->
                         <div id="labs-tab" class="modal-tab-content hidden">
                             <!-- Schedule Legend -->
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                                <h4 class="text-sm font-medium text-gray-900 mb-3">Schedule Legend</h4>
-                                <div class="space-y-3">
-                                    <div>
-                                        <h5 class="text-xs font-medium text-gray-700 mb-2">Schedule Types:</h5>
-                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                                            <div class="flex items-center">
-                                                <div class="w-3 h-3 bg-blue-100 border border-blue-200 rounded mr-2"></div>
-                                                <span class="text-gray-700">Regular Class</span>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <div class="w-3 h-3 bg-red-100 border border-red-200 rounded mr-2"></div>
-                                                <span class="text-gray-700">Cancelled</span>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <div class="w-3 h-3 bg-orange-100 border border-orange-200 rounded mr-2"></div>
-                                                <span class="text-gray-700">Override/Special</span>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <div class="w-3 h-3 bg-green-100 border border-green-200 rounded mr-2"></div>
-                                                <span class="text-gray-700">Available</span>
-                                            </div>
-                                        </div>
+                                <h4 class="text-sm font-medium text-gray-900 mb-3">Color Legend</h4>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
+                                        <span>Available</span>
                                     </div>
-                                    <div>
-                                        <h5 class="text-xs font-medium text-gray-700 mb-2">Time Slot Status:</h5>
-                                        <div class="text-xs text-gray-600">
-                                            <p>Time slots use the same colors as schedule types above. Hover over occupied slots for details.</p>
-                                        </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 bg-blue-100 border border-blue-300 rounded mr-2"></div>
+                                        <span>Regular Class</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded mr-2"></div>
+                                        <span>Special Class</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 bg-orange-100 border border-orange-300 rounded mr-2"></div>
+                                        <span>Override</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 bg-red-100 border border-red-300 rounded mr-2"></div>
+                                        <span>Cancelled</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 bg-purple-100 border border-purple-300 rounded mr-2"></div>
+                                        <span>Reservation</span>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="space-y-6" id="labsList">
-                                <!-- Lab schedules will be populated here -->
+                                <!-- Lab data will be populated here -->
                             </div>
                         </div>
 
@@ -537,8 +535,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('labsList');
         container.innerHTML = '';
         
+        // Store lab data globally for dropdown functionality
+        window.currentLabData = labs;
+        
         if (labs.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-center py-8">No computer lab schedules found for this day.</p>';
+            container.innerHTML = '<p class="text-gray-500 text-center py-8">No computer lab data found for this day.</p>';
             return;
         }
         
@@ -546,122 +547,230 @@ document.addEventListener('DOMContentLoaded', function() {
             const labCard = document.createElement('div');
             labCard.className = 'bg-white border border-gray-200 rounded-lg p-6';
             
-            let schedulesHtml = '';
+            // Lab header with status
+            const statusColors = {
+                'available': 'bg-green-100 text-green-800',
+                'in_use': 'bg-blue-100 text-blue-800',
+                'under_maintenance': 'bg-yellow-100 text-yellow-800',
+                'reserved': 'bg-purple-100 text-purple-800'
+            };
+            const statusClass = statusColors[lab.status] || 'bg-gray-100 text-gray-800';
+            
+            // Generate dropdown for schedules
+            let schedulesDropdownOptions = '';
             if (lab.schedules.length === 0) {
-                schedulesHtml = '<p class="text-gray-500 text-sm">No scheduled classes</p>';
+                schedulesDropdownOptions = '<option value="">No scheduled activities</option>';
             } else {
-                lab.schedules.forEach(schedule => {
-                    // Determine the style based on schedule type and override status
-                    let scheduleClass = 'border rounded-md p-3 mb-2';
-                    let badgeClass = '';
-                    let badgeText = '';
-                    
-                    if (schedule.is_override) {
-                        if (schedule.type === 'cancel') {
-                            scheduleClass += ' bg-red-50 border-red-200';
-                            badgeClass = 'bg-red-100 text-red-800';
-                            badgeText = 'Cancelled';
-                        } else {
-                            // All other override types use the same orange color
-                            scheduleClass += ' bg-orange-50 border-orange-200';
-                            badgeClass = 'bg-orange-100 text-orange-800';
-                            if (schedule.type === 'replace') {
-                                badgeText = 'Replacement';
-                            } else if (schedule.type === 'reschedule') {
-                                badgeText = 'Rescheduled';
-                            } else {
-                                badgeText = 'Override';
-                            }
-                        }
-                    } else {
-                        scheduleClass += ' bg-blue-50 border-blue-200';
-                        badgeClass = 'bg-blue-100 text-blue-800';
-                        badgeText = 'Regular';
-                    }
-                    
-                    schedulesHtml += `
-                        <div class="${scheduleClass}">
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <h6 class="font-medium text-gray-900">${schedule.subject_code} - ${schedule.subject_name}</h6>
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badgeClass}">
-                                            ${badgeText}
-                                        </span>
-                                    </div>
-                                    <p class="text-sm text-gray-600">Instructor: ${schedule.instructor}</p>
-                                    <p class="text-sm text-gray-600">Section: ${schedule.section}</p>
-                                    ${schedule.is_override && schedule.override_reason ? 
-                                        `<p class="text-sm text-gray-600 italic mt-1">Reason: ${schedule.override_reason}</p>` : 
-                                        ''
-                                    }
-                                </div>
-                                <span class="text-sm font-medium text-gray-700">${schedule.time_range}</span>
-                            </div>
-                        </div>
-                    `;
+                schedulesDropdownOptions = '<option value="">Select a schedule to view details...</option>';
+                lab.schedules.forEach((schedule, index) => {
+                    const scheduleLabel = `${schedule.time_range} - ${schedule.subject_name}`;
+                    schedulesDropdownOptions += `<option value="${index}">${scheduleLabel}</option>`;
                 });
             }
             
-            let availableSlotsHtml = '<div class="mt-4"><h6 class="font-medium text-gray-700 mb-2">Available Time Slots:</h6><div class="grid grid-cols-4 gap-2">';
-            
-            lab.available_slots.forEach(slot => {
-                let slotClass = 'px-2 py-1 text-xs border rounded';
+            // Generate time slots grid
+            let timeSlotsHtml = '<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">';
+            lab.time_slots.forEach(slot => {
+                let slotClass = 'px-2 py-1 text-xs border rounded text-center cursor-pointer transition-colors';
+                let slotContent = slot.time.split(' - ')[0]; // Show only start hour
                 let tooltip = '';
                 
                 if (slot.available) {
-                    // Available slot - green
-                    slotClass += ' bg-green-100 text-green-800 border-green-200';
+                    slotClass += ' bg-green-100 text-green-800 border-green-300 hover:bg-green-200';
                     tooltip = 'Available';
                 } else {
-                    // Occupied slot - color based on schedule type
-                    if (slot.is_override) {
-                        if (slot.schedule_type === 'cancel') {
-                            slotClass += ' bg-red-100 text-red-800 border-red-200';
-                            tooltip = `Cancelled - ${slot.subject_code}`;
-                        } else {
-                            // All other override types use orange
-                            slotClass += ' bg-orange-100 text-orange-800 border-orange-200';
-                            if (slot.schedule_type === 'replace') {
-                                tooltip = `Replacement - ${slot.subject_code} (${slot.instructor})`;
-                            } else if (slot.schedule_type === 'reschedule') {
-                                tooltip = `Rescheduled - ${slot.subject_code} (${slot.instructor})`;
+                    const item = slot.item;
+                    // Debug: Log the slot data to console
+                    if (item.type === 'override' || item.type === 'cancelled') {
+                        console.log('Override/Cancelled slot found:', slot);
+                    }
+                    
+                    switch (item.type) {
+                        case 'regular':
+                            if (item.schedule_type === 'special') {
+                                slotClass += ' bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200';
+                                tooltip = `Special Class: ${item.subject_code} - ${item.instructor}`;
                             } else {
-                                tooltip = `Override - ${slot.subject_code} (${slot.instructor})`;
+                                slotClass += ' bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
+                                tooltip = `Regular Class: ${item.subject_code} - ${item.instructor}`;
                             }
-                        }
-                    } else {
-                        // Regular class
-                        slotClass += ' bg-blue-100 text-blue-800 border-blue-200';
-                        tooltip = `Regular - ${slot.subject_code} (${slot.instructor})`;
+                            break;
+                        case 'override':
+                            slotClass += ' bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200';
+                            tooltip = `Override (${item.schedule_type}): ${item.subject_code} - ${item.instructor}`;
+                            break;
+                        case 'cancelled':
+                            slotClass += ' bg-red-100 text-red-800 border-red-300 hover:bg-red-200';
+                            tooltip = `Cancelled: ${item.override_reason || 'Class cancelled'}`;
+                            break;
+                        case 'reservation':
+                            slotClass += ' bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200';
+                            tooltip = `Reservation: ${item.subject_name} - ${item.instructor}`;
+                            break;
+                        default:
+                            slotClass += ' bg-gray-100 text-gray-800 border-gray-300';
+                            tooltip = `Unknown type (${item.type}): ${item.subject_code || 'N/A'}`;
+                            console.log('Unknown slot type:', slot);
                     }
                 }
                 
-                availableSlotsHtml += `
+                timeSlotsHtml += `
                     <div class="${slotClass}" title="${tooltip}">
-                        ${slot.time}
+                        ${slotContent}
                     </div>
                 `;
             });
-            availableSlotsHtml += '</div></div>';
+            timeSlotsHtml += '</div>';
             
             labCard.innerHTML = `
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <h5 class="text-lg font-medium text-gray-900">${lab.lab_name}</h5>
+                        <p class="text-sm text-gray-600">${lab.lab_building} - Room ${lab.lab_room}</p>
                         <p class="text-sm text-gray-600">Capacity: ${lab.capacity} students | Computers: ${lab.computers}</p>
                     </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                        ${lab.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </span>
                 </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Schedules for Today:</label>
+                    <select class="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            onchange="showScheduleDetails(this, ${lab.lab_id})" id="schedule-select-${lab.lab_id}">
+                        ${schedulesDropdownOptions}
+                    </select>
+                    <div id="schedule-details-${lab.lab_id}" class="mt-3 hidden">
+                        <!-- Schedule details will be shown here -->
+                    </div>
+                </div>
+                
                 <div>
-                    <h6 class="font-medium text-gray-700 mb-3">Today's Schedule:</h6>
-                    ${schedulesHtml}
+                    <h6 class="text-sm font-medium text-gray-700 mb-3">Time Slots (7 AM - 9 PM):</h6>
+                    ${timeSlotsHtml}
+                    <p class="text-xs text-gray-500 mt-2">Hover over time slots for details</p>
                 </div>
-                ${availableSlotsHtml}
             `;
             
             container.appendChild(labCard);
         });
     }
+
+    // Function to show schedule details when dropdown selection changes
+    window.showScheduleDetails = function(selectElement, labId) {
+        const selectedIndex = selectElement.value;
+        const detailsContainer = document.getElementById(`schedule-details-${labId}`);
+        
+        if (selectedIndex === '') {
+            detailsContainer.classList.add('hidden');
+            return;
+        }
+        
+        // Find the lab data
+        const labData = window.currentLabData?.find(lab => lab.lab_id === labId);
+        if (!labData || !labData.schedules[selectedIndex]) {
+            detailsContainer.classList.add('hidden');
+            return;
+        }
+        
+        const schedule = labData.schedules[selectedIndex];
+        
+        // Determine schedule type styling
+        let badgeClass = '';
+        let badgeText = '';
+        let cardClass = 'border-l-4 p-4 bg-gray-50';
+        
+        switch (schedule.type) {
+            case 'regular':
+                cardClass += ' border-l-blue-400';
+                badgeClass = 'bg-blue-100 text-blue-800';
+                badgeText = schedule.schedule_type === 'special' ? 'Special Class' : 'Regular Class';
+                break;
+            case 'override':
+                cardClass += ' border-l-orange-400';
+                badgeClass = 'bg-orange-100 text-orange-800';
+                badgeText = 'Override - ' + (schedule.schedule_type === 'reschedule' ? 'Rescheduled' : 'Replacement');
+                break;
+            case 'cancelled':
+                cardClass += ' border-l-red-400';
+                badgeClass = 'bg-red-100 text-red-800';
+                badgeText = 'Cancelled';
+                break;
+            case 'reservation':
+                cardClass += ' border-l-purple-400';
+                badgeClass = 'bg-purple-100 text-purple-800';
+                badgeText = 'Laboratory Reservation';
+                break;
+        }
+        
+        let detailsHtml = `
+            <div class="${cardClass}">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="font-medium text-gray-900">${schedule.subject_name}</h4>
+                        <p class="text-sm text-gray-600">Code: ${schedule.subject_code}</p>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}">
+                        ${badgeText}
+                    </span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="font-medium text-gray-700">Instructor:</span>
+                        <p class="text-gray-900">${schedule.instructor}</p>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Section:</span>
+                        <p class="text-gray-900">${schedule.section}</p>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Time:</span>
+                        <p class="text-gray-900">${schedule.time_range}</p>
+                    </div>
+                </div>
+        `;
+        
+        // Add type-specific information
+        if (schedule.type === 'override' && schedule.override_reason) {
+            detailsHtml += `
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <span class="font-medium text-gray-700">Override Reason:</span>
+                    <p class="text-gray-900 text-sm">${schedule.override_reason}</p>
+                </div>
+            `;
+        }
+        
+        if (schedule.type === 'reservation' && schedule.purpose) {
+            detailsHtml += `
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="font-medium text-gray-700">Purpose:</span>
+                            <p class="text-gray-900">${schedule.purpose}</p>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Expected Students:</span>
+                            <p class="text-gray-900">${schedule.num_students || 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (schedule.notes && schedule.notes !== schedule.purpose && schedule.notes !== schedule.override_reason) {
+            detailsHtml += `
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <span class="font-medium text-gray-700">Notes:</span>
+                    <p class="text-gray-900 text-sm">${schedule.notes}</p>
+                </div>
+            `;
+        }
+        
+        detailsHtml += '</div>';
+        
+        detailsContainer.innerHTML = detailsHtml;
+        detailsContainer.classList.remove('hidden');
+    };
 
     function populateLabReservations(reservations) {
         const container = document.getElementById('labReservationsList');

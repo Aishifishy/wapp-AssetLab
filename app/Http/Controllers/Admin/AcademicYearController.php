@@ -241,6 +241,9 @@ class AcademicYearController extends Controller
                 ];
             });
 
+        // Get all computer laboratories for comprehensive data
+        $laboratories = \App\Models\ComputerLaboratory::orderBy('building')->orderBy('room_number')->get();
+
         // Get computer lab schedules for the selected day
         $regularSchedules = \App\Models\LaboratorySchedule::with(['laboratory', 'academicTerm'])
             ->whereHas('academicTerm', function($query) {
@@ -251,8 +254,8 @@ class AcademicYearController extends Controller
             ->get();
 
         // Get active schedule overrides for the selected date
-        $scheduleOverrides = \App\Models\LaboratoryScheduleOverride::with(['laboratory', 'createdBy', 'requestedBy'])
-            ->where('override_date', $selectedDate->format('Y-m-d'))
+        $scheduleOverrides = \App\Models\LaboratoryScheduleOverride::with(['laboratory', 'createdBy', 'requestedBy', 'originalSchedule'])
+            ->whereDate('override_date', $selectedDate->format('Y-m-d'))
             ->where('is_active', true)
             ->where(function($query) use ($selectedDate) {
                 $query->whereNull('expires_at')
@@ -260,147 +263,191 @@ class AcademicYearController extends Controller
             })
             ->get();
 
-        // Get all laboratories that have either regular schedules or overrides
-        $allLaboratoryIds = collect()
-            ->merge($regularSchedules->pluck('laboratory_id'))
-            ->merge($scheduleOverrides->pluck('laboratory_id'))
-            ->unique();
+        // Get laboratory reservations for the selected date
+        $labReservations = \App\Models\LaboratoryReservation::with(['laboratory', 'user'])
+            ->whereDate('reservation_date', $selectedDate->format('Y-m-d'))
+            ->where('status', 'approved') // Only approved reservations
+            ->get();
 
-        // Get laboratory information for all involved labs
-        $laboratories = \App\Models\ComputerLaboratory::whereIn('id', $allLaboratoryIds)->get();
-
-        // Create a map of overridden schedules by laboratory and time
-        $overrideMap = collect();
-        foreach ($scheduleOverrides as $override) {
-            $overrideMap->push([
-                'laboratory_id' => $override->laboratory_id,
-                'start_time' => $override->new_start_time,
-                'end_time' => $override->new_end_time,
-                'override' => $override
-            ]);
-        }
-
-        // Filter out regular schedules that are overridden
-        $effectiveSchedules = $regularSchedules->filter(function($schedule) use ($overrideMap, $selectedDate) {
-            return !$overrideMap->contains(function($override) use ($schedule) {
-                return $override['laboratory_id'] == $schedule->laboratory_id &&
-                       $override['start_time'] <= $schedule->start_time &&
-                       $override['end_time'] >= $schedule->end_time;
-            });
-        });
-
-        // Add override schedules to effective schedules
-        $allEffectiveSchedules = $effectiveSchedules->concat(
-            $scheduleOverrides->map(function($override) {
-                // Create a schedule-like object for overrides
-                return (object) [
-                    'laboratory' => $override->laboratory,
-                    'subject_code' => $override->override_type === 'cancel' ? 'CANCELLED' : ($override->new_subject_code ?? 'OVERRIDE'),
-                    'subject_name' => $override->override_type === 'cancel' ? 'Class Cancelled' : ($override->new_subject_name ?? $override->reason),
-                    'instructor_name' => $override->override_type === 'cancel' ? 'N/A' : ($override->new_instructor_name ?? $override->createdBy->name),
-                    'section' => $override->new_section ?? 'Override',
-                    'start_time' => \Carbon\Carbon::parse($override->new_start_time),
-                    'end_time' => \Carbon\Carbon::parse($override->new_end_time),
-                    'type' => $override->override_type,
-                    'time_range' => \Carbon\Carbon::parse($override->new_start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($override->new_end_time)->format('H:i'),
-                    'is_override' => true,
-                    'override_reason' => $override->reason,
-                    'override_id' => $override->id
-                ];
-            })
-        );
-
-        // Group by laboratory and ensure all labs are represented
-        $labSchedules = collect();
-        foreach ($laboratories as $laboratory) {
-            $labScheduleData = $allEffectiveSchedules->filter(function($schedule) use ($laboratory) {
-                // Handle both regular schedules and override schedules
-                $scheduleLabId = is_object($schedule->laboratory) ? $schedule->laboratory->id : $schedule->laboratory_id;
-                return $scheduleLabId == $laboratory->id;
-            });
+        // Build comprehensive lab data with new structure
+        $labData = $laboratories->map(function($laboratory) use ($regularSchedules, $scheduleOverrides, $labReservations, $selectedDate, $dayOfWeek) {
+            // Get regular schedules for this lab
+            $labRegularSchedules = $regularSchedules->where('laboratory_id', $laboratory->id);
             
-            $labSchedules->push([
-                'lab_name' => $laboratory->name,
-                'lab_id' => $laboratory->id,
-                'capacity' => $laboratory->capacity,
-                'computers' => $laboratory->number_of_computers,
-                'schedules' => $labScheduleData->map(function($schedule) {
-                    $scheduleData = [
-                        'subject_code' => $schedule->subject_code,
-                        'subject_name' => $schedule->subject_name,
-                        'instructor' => $schedule->instructor_name,
-                        'section' => $schedule->section,
-                        'time_range' => $schedule->time_range,
-                        'start_time' => $schedule->start_time->format('H:i'),
-                        'end_time' => $schedule->end_time->format('H:i'),
-                        'type' => $schedule->type,
-                        'is_override' => $schedule->is_override ?? false
-                    ];
-
-                    // Add override-specific data if it's an override
-                    if (isset($schedule->is_override) && $schedule->is_override) {
-                        $scheduleData['override_reason'] = $schedule->override_reason ?? '';
-                        $scheduleData['override_id'] = $schedule->override_id ?? null;
+            // Get overrides for this lab
+            $labOverrides = $scheduleOverrides->where('laboratory_id', $laboratory->id);
+            
+            // Get reservations for this lab
+            $labReservationsData = $labReservations->where('laboratory_id', $laboratory->id);
+            
+            // Create a map of overridden schedule IDs to avoid duplicates
+            $overriddenScheduleIds = $labOverrides->pluck('laboratory_schedule_id')->filter()->unique()->toArray();
+            
+            // Process schedules into unified format
+            $schedules = collect();
+            
+            // Add regular schedules (only if not overridden)
+            foreach ($labRegularSchedules as $schedule) {
+                // Skip this regular schedule if it has been overridden
+                if (in_array($schedule->id, $overriddenScheduleIds)) {
+                    continue;
+                }
+                
+                // Check if this schedule is for the current day
+                if ($schedule->day_of_week !== $dayOfWeek) {
+                    continue;
+                }
+                
+                $schedules->push([
+                    'id' => $schedule->id,
+                    'type' => 'regular',
+                    'schedule_type' => $schedule->type, // regular/special
+                    'subject_code' => $schedule->subject_code,
+                    'subject_name' => $schedule->subject_name,
+                    'instructor' => $schedule->instructor_name,
+                    'section' => $schedule->section,
+                    'start_time' => $schedule->start_time->format('H:i'),
+                    'end_time' => $schedule->end_time->format('H:i'),
+                    'time_range' => $schedule->start_time->format('H:i') . ' - ' . $schedule->end_time->format('H:i'),
+                    'is_override' => false,
+                    'is_reservation' => false,
+                    'notes' => $schedule->notes
+                ]);
+            }
+            
+            // Add override schedules
+            foreach ($labOverrides as $override) {
+                if ($override->override_type === 'cancel') {
+                    // For cancellations, we don't add anything to the schedule list
+                    // The original schedule is already excluded above
+                    // But we can add a cancelled entry for display purposes if needed
+                    if ($override->originalSchedule) {
+                        $schedules->push([
+                            'id' => $override->id,
+                            'type' => 'cancelled',
+                            'schedule_type' => 'cancel',
+                            'subject_code' => 'CANCELLED',
+                            'subject_name' => 'Class Cancelled - ' . ($override->originalSchedule->subject_name ?? 'Unknown'),
+                            'instructor' => 'N/A',
+                            'section' => 'N/A',
+                            'start_time' => $override->originalSchedule->start_time->format('H:i'),
+                            'end_time' => $override->originalSchedule->end_time->format('H:i'),
+                            'time_range' => $override->originalSchedule->start_time->format('H:i') . ' - ' . $override->originalSchedule->end_time->format('H:i'),
+                            'is_override' => true,
+                            'is_reservation' => false,
+                            'override_reason' => $override->reason,
+                            'override_id' => $override->id,
+                            'notes' => $override->reason
+                        ]);
                     }
-
-                    return $scheduleData;
-                })->sortBy('start_time')->values()->toArray()
-            ]);
-        }
-
-        // Convert to values collection
-        $labSchedules = $labSchedules->values();
-
-        // Get available time slots for each lab with schedule type information
-        $availableSlots = $labSchedules->map(function($lab) {
-            $schedules = collect($lab['schedules']);
-            $timeSlots = [];
+                } else {
+                    // For reschedule/replace, add the new schedule details
+                    $schedules->push([
+                        'id' => $override->id,
+                        'type' => 'override',
+                        'schedule_type' => $override->override_type, // reschedule/replace
+                        'subject_code' => $override->new_subject_code ?? ($override->originalSchedule ? $override->originalSchedule->subject_code : 'OVERRIDE'),
+                        'subject_name' => $override->new_subject_name ?? ($override->originalSchedule ? $override->originalSchedule->subject_name : $override->reason),
+                        'instructor' => $override->new_instructor_name ?? ($override->originalSchedule ? $override->originalSchedule->instructor_name : $override->createdBy->name),
+                        'section' => $override->new_section ?? ($override->originalSchedule ? $override->originalSchedule->section : 'Override'),
+                        'start_time' => \Carbon\Carbon::parse($override->new_start_time)->format('H:i'),
+                        'end_time' => \Carbon\Carbon::parse($override->new_end_time)->format('H:i'),
+                        'time_range' => \Carbon\Carbon::parse($override->new_start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($override->new_end_time)->format('H:i'),
+                        'is_override' => true,
+                        'is_reservation' => false,
+                        'override_reason' => $override->reason,
+                        'override_id' => $override->id,
+                        'notes' => $override->reason,
+                        'original_schedule_id' => $override->laboratory_schedule_id // For debugging
+                    ]);
+                }
+            }
             
-            // Generate hourly slots from 7 AM to 9 PM
+            // Add reservations
+            foreach ($labReservationsData as $reservation) {
+                $schedules->push([
+                    'id' => $reservation->id,
+                    'type' => 'reservation',
+                    'schedule_type' => 'reservation',
+                    'subject_code' => $reservation->course_code ?? 'RESERVATION',
+                    'subject_name' => $reservation->subject ?? $reservation->purpose,
+                    'instructor' => $reservation->user->name,
+                    'section' => $reservation->section ?? 'Reservation',
+                    'start_time' => \Carbon\Carbon::parse($reservation->start_time)->format('H:i'),
+                    'end_time' => \Carbon\Carbon::parse($reservation->end_time)->format('H:i'),
+                    'time_range' => \Carbon\Carbon::parse($reservation->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($reservation->end_time)->format('H:i'),
+                    'is_override' => false,
+                    'is_reservation' => true,
+                    'reservation_id' => $reservation->id,
+                    'purpose' => $reservation->purpose,
+                    'num_students' => $reservation->num_students,
+                    'notes' => $reservation->purpose
+                ]);
+            }
+            
+            // Sort schedules by start time
+            $schedules = $schedules->sortBy('start_time')->values();
+            
+            // Generate time slots from 7 AM to 9 PM
+            $timeSlots = [];
             for ($hour = 7; $hour <= 21; $hour++) {
                 $slotStart = sprintf('%02d:00', $hour);
                 $slotEnd = sprintf('%02d:00', $hour + 1);
                 
-                // Find the schedule that occupies this slot
-                $occupyingSchedule = $schedules->first(function($schedule) use ($slotStart, $slotEnd) {
-                    // Convert times to comparable format and check for overlap
-                    $scheduleStart = $schedule['start_time'];
-                    $scheduleEnd = $schedule['end_time'];
-                    
-                    // Check if there's any overlap between slot and schedule
-                    return ($scheduleStart < $slotEnd && $scheduleEnd > $slotStart);
+                // Find what occupies this time slot - now properly excluding overridden schedules
+                $occupyingItem = null;
+                $slotType = 'available';
+                
+                // Check all schedules/reservations for overlap
+                $overlappingItems = $schedules->filter(function($item) use ($slotStart, $slotEnd) {
+                    return ($item['start_time'] < $slotEnd && $item['end_time'] > $slotStart);
                 });
                 
-                $slotData = [
-                    'time' => $slotStart . ' - ' . $slotEnd,
-                    'available' => !$occupyingSchedule
-                ];
-                
-                // Add schedule type information if slot is occupied
-                if ($occupyingSchedule) {
-                    $slotData['schedule_type'] = $occupyingSchedule['type'];
-                    $slotData['is_override'] = $occupyingSchedule['is_override'];
-                    $slotData['subject_code'] = $occupyingSchedule['subject_code'];
-                    $slotData['instructor'] = $occupyingSchedule['instructor'];
+                if ($overlappingItems->isNotEmpty()) {
+                    // Priority order: 1. Cancelled/Overrides, 2. Reservations, 3. Regular schedules
+                    $prioritizedItems = $overlappingItems->sortBy(function($item) {
+                        if ($item['type'] === 'cancelled') return 1; // Highest priority
+                        if ($item['type'] === 'override') return 2;
+                        if ($item['type'] === 'reservation') return 3;
+                        return 4; // Regular schedules
+                    });
                     
-                    // Add debug info to see what's happening
-                    $slotData['debug'] = [
-                        'schedule_start' => $occupyingSchedule['start_time'],
-                        'schedule_end' => $occupyingSchedule['end_time'],
-                        'slot_start' => $slotStart,
-                        'slot_end' => $slotEnd
-                    ];
+                    $occupyingItem = $prioritizedItems->first();
+                    $slotType = $occupyingItem['type'];
                 }
                 
-                $timeSlots[] = $slotData;
+                $timeSlots[] = [
+                    'time' => $slotStart . ' - ' . $slotEnd,
+                    'hour' => $hour,
+                    'available' => !$occupyingItem,
+                    'type' => $slotType,
+                    'item' => $occupyingItem,
+                    'is_override' => $slotType === 'override' || ($occupyingItem && isset($occupyingItem['is_override']) && $occupyingItem['is_override'])
+                ];
             }
             
-            // Return the modified lab array with available_slots added
-            return array_merge($lab, ['available_slots' => $timeSlots]);
-        });
+            return [
+                'lab_id' => $laboratory->id,
+                'lab_name' => $laboratory->name,
+                'lab_building' => $laboratory->building,
+                'lab_room' => $laboratory->room_number,
+                'capacity' => $laboratory->capacity,
+                'computers' => $laboratory->number_of_computers,
+                'status' => $laboratory->status,
+                'schedules' => $schedules->toArray(),
+                'time_slots' => $timeSlots
+            ];
+        })->values();
 
-        // Get laboratory reservations for the selected date
-        $labReservations = \App\Models\LaboratoryReservation::with(['laboratory', 'user'])
+        // Temporary debugging - remove this after testing
+        logger('Lab Data Debug:', [
+            'selected_date' => $selectedDate->format('Y-m-d'),
+            'total_labs' => $labData->count(),
+            'sample_lab_data' => $labData->first()
+        ]);
+
+        // Get laboratory reservations for the selected date (separate for other tabs)
+        $labReservationsDisplay = \App\Models\LaboratoryReservation::with(['laboratory', 'user'])
             ->whereDate('reservation_date', $selectedDate->format('Y-m-d'))
             ->get()
             ->map(function($reservation) {
@@ -443,9 +490,16 @@ class AcademicYearController extends Controller
             'available_equipment' => $availableEquipment,
             'due_equipment' => $dueEquipment,
             'overdue_equipment' => $overdueEquipment,
-            'lab_schedules' => $availableSlots,
-            'lab_reservations' => $labReservations,
-            'equipment_borrowing' => $equipmentBorrowing
+            'lab_schedules' => $labData,
+            'lab_reservations' => $labReservationsDisplay,
+            'equipment_borrowing' => $equipmentBorrowing,
+            'debug_info' => [
+                'total_regular_schedules' => $regularSchedules->count(),
+                'total_schedule_overrides' => $scheduleOverrides->count(),
+                'total_lab_reservations' => $labReservations->count(),
+                'selected_date' => $selectedDate->format('Y-m-d'),
+                'day_of_week' => $dayOfWeek
+            ]
         ]);
     }
 } 
