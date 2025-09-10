@@ -213,27 +213,21 @@
                                             </button>
                                         </div>
                                         @if($request->reservation_date && $request->laboratory_id)
-                                            <a href="{{ route('admin.laboratory.create-override', [
-                                                'date' => $request->reservation_date->format('Y-m-d'),
-                                                'laboratory_id' => $request->laboratory_id,
-                                                'requested_by' => $request->user_id
-                                            ]) }}" 
-                                               class="text-blue-600 hover:text-blue-900 text-xs">
-                                                Create Override
-                                            </a>
+                                            <button type="button" 
+                                                    class="text-blue-600 hover:text-blue-900 text-xs"
+                                                    onclick="viewReservationDetails({{ $request->id }})">
+                                                View
+                                            </button>
                                         @endif
                                     </div>
                                 @elseif($request->status === 'approved' && $request->reservation_date && $request->laboratory_id)
                                     <div class="flex flex-col space-y-1">
                                         <span class="text-gray-400 text-sm">Processed {{ $request->updated_at->diffForHumans() }}</span>
-                                        <a href="{{ route('admin.laboratory.create-override', [
-                                            'date' => $request->reservation_date->format('Y-m-d'),
-                                            'laboratory_id' => $request->laboratory_id,
-                                            'requested_by' => $request->user_id
-                                        ]) }}" 
-                                           class="text-blue-600 hover:text-blue-900 text-xs">
-                                            Create Override
-                                        </a>
+                                        <button type="button" 
+                                                class="text-blue-600 hover:text-blue-900 text-xs"
+                                                onclick="viewReservationDetails({{ $request->id }})">
+                                            View
+                                        </button>
                                     </div>
                                 @else
                                     <span class="text-gray-400">Processed {{ $request->updated_at->diffForHumans() }}</span>
@@ -300,7 +294,269 @@
     </div>
 </div>
 
+<!-- View Details Modal -->
+<div id="viewDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Reservation Details</h3>
+                <button type="button" onclick="closeViewDetailsModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="modalContent" class="space-y-4">
+                <!-- Content will be loaded here via JavaScript -->
+                <div class="text-center py-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p class="mt-2 text-gray-500">Loading details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// View reservation details modal functionality
+function viewReservationDetails(reservationId) {
+    const modal = document.getElementById('viewDetailsModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Show modal with loading state
+    modal.classList.remove('hidden');
+    modalContent.innerHTML = `
+        <div class="text-center py-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-2 text-gray-500">Loading details...</p>
+        </div>
+    `;
+    
+    // Fetch reservation details
+    fetch(`{{ url('admin/laboratory/reservation') }}/${reservationId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            modalContent.innerHTML = `
+                <div class="max-h-96 overflow-y-auto">
+                    <!-- Header with Status Badge -->
+                    <div class="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-lg">
+                        <div>
+                            <h5 class="text-lg font-medium text-gray-900">Reservation #${data.id}</h5>
+                            <p class="text-sm text-gray-600">Submitted ${data.created_at}</p>
+                        </div>
+                        <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full 
+                            ${data.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                              data.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                              data.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                              'bg-gray-100 text-gray-800'}">
+                            ${data.status.charAt(0).toUpperCase() + data.status.slice(1)}
+                        </span>
+                    </div>
+
+                    <!-- User & Laboratory Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h6 class="font-medium text-blue-900 mb-3 flex items-center">
+                                <i class="fas fa-user mr-2"></i>Requester Information
+                            </h6>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Name:</span>
+                                    <span class="font-medium text-gray-900">${data.user.name}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Email:</span>
+                                    <span class="font-medium text-gray-900">${data.user.email}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h6 class="font-medium text-green-900 mb-3 flex items-center">
+                                <i class="fas fa-flask mr-2"></i>Laboratory Details
+                            </h6>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Name:</span>
+                                    <span class="font-medium text-gray-900">${data.laboratory.name}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Location:</span>
+                                    <span class="font-medium text-gray-900">${data.laboratory.building}, Room ${data.laboratory.room_number}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Capacity:</span>
+                                    <span class="font-medium text-gray-900">${data.laboratory.capacity} people</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reservation Details -->
+                    <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                        <h6 class="font-medium text-purple-900 mb-3 flex items-center">
+                            <i class="fas fa-calendar-alt mr-2"></i>Reservation Details
+                        </h6>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Date:</span>
+                                <span class="font-medium text-gray-900">${data.reservation_date}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Time:</span>
+                                <span class="font-medium text-gray-900">${data.start_time} - ${data.end_time}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Students:</span>
+                                <span class="font-medium text-gray-900">${data.num_students}</span>
+                            </div>
+                            ${data.course_code ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Course:</span>
+                                <span class="font-medium text-gray-900">${data.course_code}</span>
+                            </div>
+                            ` : ''}
+                            ${data.subject ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Subject:</span>
+                                <span class="font-medium text-gray-900">${data.subject}</span>
+                            </div>
+                            ` : ''}
+                            ${data.section ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Section:</span>
+                                <span class="font-medium text-gray-900">${data.section}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Purpose -->
+                    <div class="mb-6">
+                        <h6 class="font-medium text-gray-900 mb-2 flex items-center">
+                            <i class="fas fa-align-left mr-2"></i>Purpose
+                        </h6>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-700">${data.purpose || 'No purpose provided'}</p>
+                        </div>
+                    </div>
+
+                    <!-- Recurring Information -->
+                    ${data.is_recurring ? `
+                    <div class="bg-indigo-50 p-4 rounded-lg mb-6">
+                        <h6 class="font-medium text-indigo-900 mb-3 flex items-center">
+                            <i class="fas fa-redo mr-2"></i>Recurring Information
+                        </h6>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Pattern:</span>
+                                <span class="font-medium text-gray-900 capitalize">${data.recurrence_pattern}</span>
+                            </div>
+                            ${data.recurrence_end_date ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">End Date:</span>
+                                <span class="font-medium text-gray-900">${data.recurrence_end_date}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Submitted Form Image -->
+                    ${data.has_form_image ? `
+                    <div class="bg-amber-50 p-4 rounded-lg mb-6">
+                        <h6 class="font-medium text-amber-900 mb-3 flex items-center">
+                            <i class="fas fa-file-image mr-2"></i>Submitted Form Document
+                        </h6>
+                        <div class="text-center">
+                            <div class="relative inline-block">
+                                <img src="${data.form_image_url}" 
+                                     alt="Submitted Form" 
+                                     class="max-w-full max-h-64 mx-auto rounded-lg border-2 border-amber-200 shadow-md cursor-pointer hover:shadow-lg transition-shadow duration-200" 
+                                     onclick="window.open('${data.form_image_url}', '_blank')"
+                                     onerror="this.parentElement.innerHTML='<div class=\\'text-center p-8 bg-red-50 rounded-lg\\'><i class=\\'fas fa-exclamation-triangle text-red-500 text-2xl mb-2\\'></i><p class=\\'text-red-700\\'>Image could not be loaded</p></div>'">
+                                <div class="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full p-2 cursor-pointer hover:bg-opacity-100 transition-all duration-200" onclick="window.open('${data.form_image_url}', '_blank')">
+                                    <i class="fas fa-expand-alt text-gray-600 text-sm"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-amber-700 mt-3">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Click image to view in full size
+                            </p>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Rejection Reason -->
+                    ${data.rejection_reason ? `
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-lg mb-6">
+                        <h6 class="font-medium text-red-900 mb-2 flex items-center">
+                            <i class="fas fa-times-circle mr-2"></i>Rejection Reason
+                        </h6>
+                        <p class="text-sm text-red-700">${data.rejection_reason}</p>
+                    </div>
+                    ` : ''}
+
+                    <!-- Timeline -->
+                    <div class="border-t pt-4">
+                        <h6 class="font-medium text-gray-900 mb-3 flex items-center">
+                            <i class="fas fa-history mr-2"></i>Timeline
+                        </h6>
+                        <div class="space-y-3">
+                            <div class="flex items-center text-sm">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <span class="text-gray-600">Created:</span>
+                                <span class="font-medium text-gray-900 ml-2">${data.created_at}</span>
+                            </div>
+                            ${data.approved_at ? `
+                            <div class="flex items-center text-sm">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span class="text-gray-600">Approved:</span>
+                                <span class="font-medium text-gray-900 ml-2">${data.approved_at}</span>
+                                ${data.approved_by_name ? `<span class="text-gray-500 ml-1">by ${data.approved_by_name}</span>` : ''}
+                            </div>
+                            ` : ''}
+                            ${data.rejected_at ? `
+                            <div class="flex items-center text-sm">
+                                <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                                <span class="text-gray-600">Rejected:</span>
+                                <span class="font-medium text-gray-900 ml-2">${data.rejected_at}</span>
+                                ${data.rejected_by_name ? `<span class="text-gray-500 ml-1">by ${data.rejected_by_name}</span>` : ''}
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(error => {
+            console.error('Error fetching reservation details:', error);
+            modalContent.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="text-red-500 mb-2">
+                        <svg class="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-500">Error loading reservation details. Please try again.</p>
+                </div>
+            `;
+        });
+}
+
+function closeViewDetailsModal() {
+    document.getElementById('viewDetailsModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('viewDetailsModal');
+    if (e.target === modal) {
+        closeViewDetailsModal();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');

@@ -469,4 +469,46 @@ class LaboratoryController extends Controller
             })
         ]);
     }
+
+    /**
+     * Get reservation details for modal view
+     */
+    public function getReservationDetails(LaboratoryReservation $reservation)
+    {
+        $reservation->load(['user', 'laboratory', 'approvedBy', 'rejectedBy']);
+        
+        return response()->json([
+            'id' => $reservation->id,
+            'user' => [
+                'name' => $reservation->user->name,
+                'email' => $reservation->user->email,
+            ],
+            'laboratory' => [
+                'name' => $reservation->laboratory->name,
+                'building' => $reservation->laboratory->building,
+                'room_number' => $reservation->laboratory->room_number,
+                'capacity' => $reservation->laboratory->capacity,
+            ],
+            'reservation_date' => $reservation->reservation_date ? $reservation->reservation_date->format('M d, Y') : 'N/A',
+            'start_time' => $reservation->start_time ? \Carbon\Carbon::parse($reservation->start_time)->format('H:i') : 'N/A',
+            'end_time' => $reservation->end_time ? \Carbon\Carbon::parse($reservation->end_time)->format('H:i') : 'N/A',
+            'purpose' => $reservation->purpose,
+            'num_students' => $reservation->num_students,
+            'course_code' => $reservation->course_code,
+            'subject' => $reservation->subject,
+            'section' => $reservation->section,
+            'status' => $reservation->status,
+            'is_recurring' => $reservation->is_recurring,
+            'recurrence_pattern' => $reservation->recurrence_pattern,
+            'recurrence_end_date' => $reservation->recurrence_end_date ? $reservation->recurrence_end_date->format('M d, Y') : null,
+            'rejection_reason' => $reservation->rejection_reason,
+            'created_at' => $reservation->created_at->format('M d, Y H:i'),
+            'approved_at' => $reservation->approved_at ? $reservation->approved_at->format('M d, Y H:i') : null,
+            'rejected_at' => $reservation->rejected_at ? $reservation->rejected_at->format('M d, Y H:i') : null,
+            'approved_by_name' => $reservation->approvedBy ? $reservation->approvedBy->name : null,
+            'rejected_by_name' => $reservation->rejectedBy ? $reservation->rejectedBy->name : null,
+            'has_form_image' => $reservation->hasFormImage(),
+            'form_image_url' => $reservation->form_image_url,
+        ]);
+    }
 }

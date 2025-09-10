@@ -16,9 +16,9 @@ return new class extends Migration
             $table->boolean('requires_image')->default(false)->after('status');
         });
 
-        // Add form_image field to laboratory_reservations table
+        // Add form_image_path field to laboratory_reservations table
         Schema::table('laboratory_reservations', function (Blueprint $table) {
-            $table->string('form_image')->nullable()->after('rejected_by');
+            $table->string('form_image_path')->nullable()->after('rejected_by');
         });
     }
 
@@ -32,7 +32,7 @@ return new class extends Migration
         });
 
         Schema::table('laboratory_reservations', function (Blueprint $table) {
-            $table->dropColumn('form_image');
+            $table->dropColumn('form_image_path');
         });
     }
 };

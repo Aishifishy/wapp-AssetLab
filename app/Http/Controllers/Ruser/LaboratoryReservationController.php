@@ -46,7 +46,7 @@ class LaboratoryReservationController extends Controller
      */
     public function store(Request $request, ComputerLaboratory $laboratory)
     {
-        $rules = $this->reservationService->getValidationRules();
+        $rules = $this->reservationService->getValidationRulesForLaboratory($laboratory);
         $rules['num_students'] = 'required|integer|min:1|max:' . $laboratory->capacity;
         
         $validatedData = $this->validateRequest($request, $rules);

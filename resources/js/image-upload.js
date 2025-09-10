@@ -52,19 +52,55 @@ class ImageUploadHandler {
     }
 
     validateFile(file) {
-        // Validate file size
+        // Validate file size (10MB max)
         if (file.size > this.maxFileSize) {
-            alert(`File size must be less than ${this.maxFileSize / (1024 * 1024)}MB`);
+            this.showError(`File size must be less than ${this.maxFileSize / (1024 * 1024)}MB`);
             return false;
         }
 
         // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please select an image file');
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            this.showError('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
+            return false;
+        }
+
+        // Validate file extension
+        const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        const extension = file.name.split('.').pop().toLowerCase();
+        if (!allowedExtensions.includes(extension)) {
+            this.showError('Invalid file extension. Only JPG, PNG, GIF, and WebP files are allowed.');
             return false;
         }
 
         return true;
+    }
+
+    showError(message) {
+        // Create or update error message display
+        let errorDiv = document.getElementById('image-upload-error');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.id = 'image-upload-error';
+            errorDiv.className = 'mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2';
+            this.imageInput.parentElement.appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        
+        // Hide error after 5 seconds
+        setTimeout(() => {
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }, 5000);
+    }
+
+    hideError() {
+        const errorDiv = document.getElementById('image-upload-error');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
     }
 
     showPreview(file) {
@@ -72,6 +108,7 @@ class ImageUploadHandler {
         reader.onload = (e) => {
             this.previewImage.src = e.target.result;
             this.imagePreview.classList.remove('hidden');
+            this.hideError(); // Hide any previous errors
         };
         reader.readAsDataURL(file);
     }

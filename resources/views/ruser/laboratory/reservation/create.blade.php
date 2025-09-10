@@ -63,7 +63,7 @@
                     </div>
                 </div>
             @else
-                <form id="reservation-form" action="{{ route('ruser.laboratory.reservations.store', $laboratory) }}" method="POST">
+                <form id="reservation-form" action="{{ route('ruser.laboratory.reservations.store', $laboratory) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="laboratory_id" value="{{ $laboratory->id }}">
                     
@@ -187,10 +187,17 @@
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 10MB</p>
                                     <div id="image-preview" class="hidden mt-4">
                                         <img id="preview-image" class="mx-auto h-32 w-auto rounded-lg border border-gray-300" />
                                         <button type="button" id="remove-image" class="mt-2 text-red-600 hover:text-red-500 text-sm font-medium">Remove</button>
+                                    </div>
+                                    <!-- Upload progress bar -->
+                                    <div id="upload-progress" class="hidden mt-4">
+                                        <div class="bg-gray-200 rounded-full h-2">
+                                            <div id="progress-bar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-600 mt-1">Uploading...</p>
                                     </div>
                                 </div>
                             </div>

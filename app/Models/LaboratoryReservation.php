@@ -31,7 +31,7 @@ class LaboratoryReservation extends Model
         'rejected_at',
         'approved_by',
         'rejected_by',
-        'form_image',
+        'form_image_path',
     ];
 
     protected $casts = [
@@ -202,5 +202,24 @@ class LaboratoryReservation extends Model
         }
         
         return false;
+    }
+
+    /**
+     * Get the form image URL
+     */
+    public function getFormImageUrlAttribute()
+    {
+        if ($this->form_image_path) {
+            return asset('storage/' . $this->form_image_path);
+        }
+        return null;
+    }
+
+    /**
+     * Check if reservation has a form image
+     */
+    public function hasFormImage()
+    {
+        return !empty($this->form_image_path);
     }
 }

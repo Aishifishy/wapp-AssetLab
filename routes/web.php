@@ -132,6 +132,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/schedule-overrides', [LaboratoryController::class, 'storeScheduleOverride'])->name('store-override');
             Route::delete('/schedule-overrides/{override}', [LaboratoryController::class, 'deactivateScheduleOverride'])->name('deactivate-override');
             Route::post('/get-schedules-for-date', [LaboratoryController::class, 'getSchedulesForDate'])->name('get-schedules-for-date');
+            Route::get('/reservation/{reservation}/details', [LaboratoryController::class, 'getReservationDetails'])->name('reservation-details');
         });
 
         // Laboratory Calendar Management
