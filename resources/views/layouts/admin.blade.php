@@ -130,7 +130,7 @@
                 <li>
                     <a href="{{ route('admin.academic.index') }}" class="nav-link admin-nav-link text-white {{ request()->routeIs('admin.academic.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-alt me-2"></i>
-                        Academic Calendar
+                        Calendar
                     </a>
                 </li>
                 <!-- Com Lab Section Header -->

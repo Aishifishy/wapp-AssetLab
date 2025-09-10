@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Academic Calendar')
+@section('title', 'Calendar')
 
 @push('styles')
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
@@ -10,7 +10,7 @@
 @section('content')
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold text-gray-800">Academic Calendar</h1>
+        <h1 class="text-2xl font-semibold text-gray-800">Calendar</h1>
         <div class="flex space-x-3">
             <form action="{{ route('admin.academic.set-current-by-date') }}" method="POST" class="inline">
                 @csrf
@@ -89,7 +89,7 @@
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-medium text-gray-900 flex items-center">
                     <i class="fas fa-calendar-alt text-gray-500 mr-3"></i>
-                    Academic Calendar Overview
+                    Calendar Overview
                 </h3>
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center gap-2">
