@@ -1,11 +1,8 @@
 @props(['name', 'label', 'type' => 'text', 'required' => false, 'placeholder' => '', 'value' => '', 'options' => null, 'rows' => 3])
 
-<div>
-    <label for="{{ $name }}" class="block text-sm font-medium text-gray-700">
+<div class="form-group">
+    <label for="{{ $name }}" class="{{ $required ? 'form-label form-label-required' : 'form-label-optional' }}">
         {{ $label }}
-        @if($required)
-            <span class="text-red-500">*</span>
-        @endif
     </label>
     
     @if($type === 'textarea')
@@ -13,7 +10,7 @@
             id="{{ $name }}" 
             name="{{ $name }}" 
             rows="{{ $rows }}"
-            class="mt-1 block w-full rounded-md shadow-sm sm:text-sm @error($name) border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @else border-gray-300 focus:border-blue-500 focus:ring-blue-500 @enderror"
+            class="@error($name) form-textarea-error @else form-textarea @enderror"
             placeholder="{{ $placeholder }}"
             @if($required) required @endif
             {{ $attributes }}
@@ -22,7 +19,7 @@
         <select 
             id="{{ $name }}" 
             name="{{ $name }}"
-            class="mt-1 block w-full rounded-md shadow-sm sm:text-sm @error($name) border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @else border-gray-300 focus:border-blue-500 focus:ring-blue-500 @enderror"
+            class="@error($name) form-select-error @else form-select @enderror"
             @if($required) required @endif
             {{ $attributes }}
         >
@@ -38,7 +35,7 @@
             id="{{ $name }}" 
             name="{{ $name }}" 
             value="{{ old($name, $value) }}"
-            class="mt-1 block w-full rounded-md shadow-sm sm:text-sm @error($name) border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @else border-gray-300 focus:border-blue-500 focus:ring-blue-500 @enderror"
+            class="@error($name) form-input-error @else form-input @enderror"
             placeholder="{{ $placeholder }}"
             @if($required) required @endif
             {{ $attributes }}

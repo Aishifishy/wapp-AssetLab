@@ -11,10 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register PDF service using DOMPDF only
-        $this->app->singleton(\App\Services\PdfService::class, function ($app) {
-            return new \App\Services\PdfService();
-        });
+        //
     }
 
     /**

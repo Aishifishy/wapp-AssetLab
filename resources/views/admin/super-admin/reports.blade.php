@@ -35,7 +35,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                         <label for="period" class="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
-                        <select name="period" id="period" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" onchange="toggleCustomDates()">
+                        <select name="period" id="period" class="w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" onchange="toggleCustomDates()">
                             <option value="week" {{ $period == 'week' ? 'selected' : '' }}>This Week</option>
                             <option value="month" {{ $period == 'month' ? 'selected' : '' }}>This Month</option>
                             <option value="term" {{ $period == 'term' ? 'selected' : '' }}>Academic Term</option>
@@ -46,7 +46,7 @@
                     
                     <div id="academic-term-select" class="{{ $period != 'term' ? 'hidden' : '' }}">
                         <label for="academic_term_id" class="block text-sm font-medium text-gray-700 mb-2">Academic Term</label>
-                        <select name="academic_term_id" id="academic_term_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="academic_term_id" id="academic_term_id" class="w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Current Term</option>
                             @foreach($academicTerms as $term)
                                 <option value="{{ $term->id }}" {{ $academicTermId == $term->id ? 'selected' : '' }}>

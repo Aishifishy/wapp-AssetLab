@@ -19,20 +19,21 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-6">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700">ID Number</label>
+                        <div class="form-group">
+                            <label for="name" class="form-label form-label-required">ID Number</label>
                             <input type="text" 
                                    id="name" 
                                    name="name" 
                                    value="{{ old('name') }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                   class="form-input"
                                    required
-                                   placeholder="e.g., 0001">                            <x-form-error field="name" />
-                        </div>                        <div>
-                            <label for="category_id" class="block text-sm font-medium text-gray-700">Equipment Type</label>
+                                   placeholder="e.g., 0001">
+                            <x-form-error field="name" />
+                        </div>                        <div class="form-group">
+                            <label for="category_id" class="form-label form-label-required">Equipment Type</label>
                             <select name="category_id" 
                                     id="category_id" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                    class="form-select"
                                     required>
                                 <option value="">Select Equipment Type</option>
                                 @foreach($categories as $category)
@@ -40,7 +41,8 @@
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
-                            </select>                            <x-form-error field="category_id" />
+                            </select>
+                            <x-form-error field="category_id" />
                             <div class="mt-2">
                                 <a href="{{ route('admin.equipment.categories.create') }}" class="text-sm text-blue-600 hover:text-blue-800">
                                     <i class="fas fa-plus-circle mr-1"></i> Add New Equipment Type
@@ -48,23 +50,23 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label for="barcode" class="block text-sm font-medium text-gray-700">Barcode</label>
-                            <div class="mt-1 flex rounded-md shadow-sm">
+                        <div class="form-group">
+                            <label for="barcode" class="form-label-optional">Barcode</label>
+                            <div class="form-input-group">
                                 <input type="text" 
                                        id="barcode" 
                                        name="barcode" 
                                        value="{{ old('barcode') }}"
-                                       class="flex-1 block w-full rounded-l-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                       class="form-input-group-input"
                                        placeholder="Leave empty to auto-generate">
                                 <button type="button" 
                                         id="generate_barcode"
-                                        class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 text-sm hover:bg-gray-100">
+                                        class="form-input-group-button">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
                             </div>
                             <x-form-error field="barcode" />
-                            <p class="mt-1 text-sm text-gray-500">
+                            <p class="form-help">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 Barcode will be auto-generated if left empty
                             </p>
@@ -91,7 +93,7 @@
                             <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
                             <select name="status" 
                                     id="status" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                    class="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     required>
                                 <option value="available" {{ old('status') == 'available' ? 'selected' : '' }}>Available</option>
                                 <option value="unavailable" {{ old('status') == 'unavailable' ? 'selected' : '' }}>Unavailable</option>

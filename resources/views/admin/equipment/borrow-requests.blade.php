@@ -63,6 +63,19 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-gray-800">Borrow Requests</h2>
                 <div class="flex items-center space-x-4">
+                    <!-- Per Page Selector -->
+                    <div class="flex items-center space-x-2">
+                        <label for="perPageSelect" class="text-sm text-gray-600">Show:</label>
+                        <select id="perPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                            <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
+                            <option value="10" {{ request('per_page') == 10 || !request('per_page') ? 'selected' : '' }}>10</option>
+                            <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                        <span class="text-sm text-gray-600">per page</span>
+                    </div>
                     <!-- Search Function -->
                     <div class="relative">
                         <input type="text" id="searchInput" placeholder="Search requests..." 
@@ -71,15 +84,6 @@
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
                     </div>
-                    <!-- Status Filter -->
-                    <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-40">
-                        <option value="">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="checked_out">Borrowed</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="returned">Returned</option>
-                    </select>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -277,7 +281,7 @@
                         
                         <!-- Manual User Selection -->
                         <select name="user_id" id="user_id" required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="">Select User Manually</option>
                             @foreach($users as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->department }}</option>
@@ -329,7 +333,7 @@
                         
                         <!-- Manual Equipment Selection -->
                         <select name="equipment_id" id="equipment_id" required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="">Select Equipment Manually</option>
                             @foreach($availableEquipment as $equipment)
                                 <option value="{{ $equipment->id }}">
@@ -397,7 +401,7 @@
                     <div>
                         <label for="condition" class="block text-sm font-medium text-gray-700">Equipment Condition</label>
                         <select name="condition" id="condition" required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="good">Good</option>
                             <option value="damaged">Damaged</option>
                             <option value="needs_repair">Needs Repair</option>
@@ -434,7 +438,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
+    const perPageSelect = document.getElementById('perPageSelect');
     const table = document.getElementById('requestsTable');
     const rows = table.querySelectorAll('.request-row');
     
@@ -446,9 +450,12 @@ document.addEventListener('DOMContentLoaded', function() {
         filterTable();
     });
 
-    // Status filter functionality
-    statusFilter.addEventListener('change', function() {
-        filterTable();
+    // Per page functionality
+    perPageSelect.addEventListener('change', function() {
+        const url = new URL(window.location);
+        url.searchParams.set('per_page', this.value);
+        url.searchParams.delete('page'); // Reset to first page when changing per_page
+        window.location.href = url.toString();
     });
 
     // Sorting functionality
@@ -461,28 +468,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
-        const statusValue = statusFilter.value;
 
         rows.forEach(row => {
             const searchData = row.dataset.search;
-            const statusData = row.dataset.status;
-            
-            // Check if row represents a checked out request
-            const statusBadge = row.querySelector('x-status-badge, .status-badge');
-            const isCheckedOut = statusBadge && statusBadge.textContent.trim() === 'Borrowed';
             
             const matchesSearch = searchData.includes(searchTerm);
-            let matchesStatus = true;
             
-            if (statusValue) {
-                if (statusValue === 'checked_out') {
-                    matchesStatus = isCheckedOut;
-                } else {
-                    matchesStatus = statusData === statusValue && !isCheckedOut;
-                }
-            }
-            
-            if (matchesSearch && matchesStatus) {
+            if (matchesSearch) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';

@@ -61,22 +61,34 @@ class EquipmentController extends Controller
      */
     public function request(Request $request)
     {
-        $validated = $this->validateRequest($request, [
-            'equipment_id' => 'required|exists:equipment,id',
-            'purpose' => 'required|string|max:1000',
-            'requested_from' => 'required|date|after:now',
-            'requested_until' => 'required|date|after:requested_from',
-            'booking_type' => 'sometimes|in:immediate,advance',
-        ]);
+        try {
+            $validated = $this->validateRequest($request, [
+                'equipment_id' => 'required|exists:equipment,id',
+                'purpose' => 'required|string|max:1000',
+                'requested_from' => 'required|date|after_or_equal:now',
+                'requested_until' => 'required|date|after:requested_from',
+                'booking_type' => 'sometimes|in:immediate,advance',
+            ]);
 
-        $result = $this->equipmentService->createRequest($validated, Auth::id());
+            $result = $this->equipmentService->createRequest($validated, Auth::id());
 
-        if (!$result['success']) {
-            return back()->with('error', $result['message']);
+            if (!$result['success']) {
+                return back()->with('error', $result['message']);
+            }
+
+            return redirect()->route('dashboard')
+                ->with('success', $result['message']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->validator->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error('Equipment request creation failed', [
+                'user_id' => Auth::id(),
+                'equipment_id' => $request->equipment_id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return back()->with('error', 'An error occurred while processing your request. Please try again.');
         }
-
-        return redirect()->route('dashboard')
-            ->with('success', $result['message']);
     }
 
     /**
@@ -84,20 +96,49 @@ class EquipmentController extends Controller
      */
     public function checkAvailability(Request $request)
     {
-        $validated = $this->validateRequest($request, [
-            'equipment_id' => 'required|exists:equipment,id',
-            'requested_from' => 'required|date|after:now',
-            'requested_until' => 'required|date|after:requested_from',
-        ]);
+        try {
+            // Log the incoming request data for debugging
+            Log::info('Equipment availability check request', [
+                'user_id' => Auth::id(),
+                'equipment_id' => $request->equipment_id,
+                'requested_from' => $request->requested_from,
+                'requested_until' => $request->requested_until,
+                'current_time' => now()->toDateTimeString()
+            ]);
 
-        $result = $this->equipmentService->checkAvailabilityForTimeSlot(
-            $validated['equipment_id'],
-            $validated['requested_from'],
-            $validated['requested_until'],
-            Auth::id()
-        );
+            $validated = $this->validateRequest($request, [
+                'equipment_id' => 'required|exists:equipment,id',
+                'requested_from' => 'required|date|after_or_equal:now',
+                'requested_until' => 'required|date|after:requested_from',
+            ]);
 
-        return response()->json($result);
+            $result = $this->equipmentService->checkAvailabilityForTimeSlot(
+                $validated['equipment_id'],
+                $validated['requested_from'],
+                $validated['requested_until'],
+                Auth::id()
+            );
+
+            return response()->json($result);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Validation error: ' . implode(' ', $e->validator->errors()->all())
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Equipment availability check failed', [
+                'user_id' => Auth::id(),
+                'equipment_id' => $request->equipment_id,
+                'requested_from' => $request->requested_from,
+                'requested_until' => $request->requested_until,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'available' => false,
+                'message' => 'An error occurred while checking availability. Please try again.'
+            ], 500);
+        }
     }
 
     /**
@@ -161,11 +202,18 @@ class EquipmentController extends Controller
     /**
      * Show currently borrowed equipment by the user.
      */
-    public function borrowed()
+    public function borrowed(Request $request)
     {
-        $borrowedRequests = $this->equipmentService->getCurrentlyBorrowed(Auth::id());
+        $perPage = $request->get('per_page', 10);
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 10;
+        }
 
-        return view('ruser.equipment.borrowed', compact('borrowedRequests'));
+        $borrowedRequests = $this->equipmentService->getCurrentlyBorrowed(Auth::id(), $perPage);
+
+        return view('ruser.equipment.borrowed', compact('borrowedRequests', 'perPage'));
     }
 
     /**
@@ -174,10 +222,17 @@ class EquipmentController extends Controller
     /**
      * Show equipment borrowing history for the user.
      */
-    public function history()
+    public function history(Request $request)
     {
-        $historyRequests = $this->equipmentService->getHistory(Auth::id());
+        $perPage = $request->get('per_page', 15);
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 15;
+        }
 
-        return view('ruser.equipment.history', compact('historyRequests'));
+        $historyRequests = $this->equipmentService->getHistory(Auth::id(), $perPage);
+
+        return view('ruser.equipment.history', compact('historyRequests', 'perPage'));
     }
 }

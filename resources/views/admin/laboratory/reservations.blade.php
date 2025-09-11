@@ -68,10 +68,22 @@
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <i class="fas fa-clock text-yellow-500 mr-2"></i>
                     <h3 class="text-lg font-medium text-gray-900">Laboratory Reservation Requests</h3>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <!-- Per Page Selector -->
+                    <div class="flex items-center space-x-2">
+                        <label for="perPageSelect" class="text-sm text-gray-600">Show:</label>
+                        <select id="perPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                            <option value="5" {{ $perPage == 5 ? 'selected' : '' }}>5</option>
+                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                            <option value="15" {{ $perPage == 15 ? 'selected' : '' }}>15</option>
+                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                        <span class="text-sm text-gray-500">per page</span>
+                    </div>
                     <!-- Search Function -->
                     <div class="relative">
                         <input type="text" id="searchInput" placeholder="Search requests..." 
@@ -80,13 +92,6 @@
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
                     </div>
-                    <!-- Status Filter -->
-                    <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-40">
-                        <option value="">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
                 </div>
             </div>
         </div>
@@ -125,7 +130,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($pendingRequests->concat($recentRequests) as $request)
+                        @forelse($reservations as $request)
                         <tr class="request-row" 
                             data-user="{{ strtolower($request->user->name) }}" 
                             data-laboratory="{{ strtolower($request->laboratory->name) }}" 
@@ -283,15 +288,29 @@
                         @empty
                         <tr>
                             <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                                No reservation requests found
+                                No pending reservation requests found
                             </td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination -->
+            @if($reservations->hasPages())
+            <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Showing {{ $reservations->firstItem() }} to {{ $reservations->lastItem() }} of {{ $reservations->total() }} reservation requests
+                </div>
+                <div class="flex space-x-1">
+                    {{ $reservations->appends(request()->query())->links() }}
+                </div>
+            </div>
+            @endif
         </div>
     </div>
+
+
 </div>
 
 <!-- View Details Modal -->
@@ -559,43 +578,47 @@ document.addEventListener('click', function(e) {
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
     const table = document.getElementById('requestsTable');
     const rows = table.querySelectorAll('.request-row');
     
     let sortDirection = {};
     let currentSort = null;
 
-    // Search functionality
-    searchInput.addEventListener('input', function() {
-        filterTable();
-    });
+    // Per-page selector
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.delete('page'); // Reset to first page
+            window.location.href = url.toString();
+        });
+    }
 
-    // Status filter functionality
-    statusFilter.addEventListener('change', function() {
-        filterTable();
-    });
+    // Search functionality
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterTable(rows, this.value.toLowerCase());
+        });
+    }
 
     // Sorting functionality
-    table.querySelectorAll('th[data-sort]').forEach(header => {
-        header.addEventListener('click', function() {
-            const sortKey = this.dataset.sort;
-            sortTable(sortKey);
+    if (table) {
+        table.querySelectorAll('th[data-sort]').forEach(header => {
+            header.addEventListener('click', function() {
+                const sortKey = this.dataset.sort;
+                sortTable(rows, table, sortKey);
+            });
         });
-    });
+    }
 
-    function filterTable() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const statusValue = statusFilter.value;
-
-        rows.forEach(row => {
+    function filterTable(tableRows, searchTerm) {
+        tableRows.forEach(row => {
             const searchData = row.dataset.search;
-            const statusData = row.dataset.status;
             
             const matchesSearch = searchData.includes(searchTerm);
-            const matchesStatus = !statusValue || statusData === statusValue;
             
-            if (matchesSearch && matchesStatus) {
+            if (matchesSearch) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
@@ -603,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function sortTable(sortKey) {
+    function sortTable(tableRows, tableElement, sortKey) {
         // Toggle sort direction
         if (currentSort === sortKey) {
             sortDirection[sortKey] = sortDirection[sortKey] === 'asc' ? 'desc' : 'asc';
@@ -613,11 +636,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update sort icons
-        table.querySelectorAll('th[data-sort] i').forEach(icon => {
+        tableElement.querySelectorAll('th[data-sort] i').forEach(icon => {
             icon.className = 'fas fa-sort ml-2 text-gray-400';
         });
         
-        const currentHeader = table.querySelector(`th[data-sort="${sortKey}"] i`);
+        const currentHeader = tableElement.querySelector(`th[data-sort="${sortKey}"] i`);
         if (sortDirection[sortKey] === 'asc') {
             currentHeader.className = 'fas fa-sort-up ml-2 text-gray-600';
         } else {
@@ -625,8 +648,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Convert NodeList to Array and sort
-        const rowsArray = Array.from(rows);
-        const tbody = table.querySelector('tbody');
+        const rowsArray = Array.from(tableRows);
+        const tbody = tableElement.querySelector('tbody');
         
         rowsArray.sort((a, b) => {
             let aVal, bVal;

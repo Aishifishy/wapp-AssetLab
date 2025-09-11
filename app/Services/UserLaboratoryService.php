@@ -128,11 +128,18 @@ class UserLaboratoryService extends BaseService
      */
     public function getUserReservationsData($userId, $request)
     {
+        $perPage = $request->get('per_page', 15);
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 15;
+        }
+
         // Get paginated reservations using service
         $reservations = $this->getModel()::forUser($userId)
             ->with('laboratory')
             ->latest()
-            ->paginate(15);
+            ->paginate($perPage);
         
         // Get categorized reservations for backward compatibility
         $upcomingReservations = LaboratoryReservation::forUser($userId)
@@ -148,8 +155,20 @@ class UserLaboratoryService extends BaseService
             ->orderBy('created_at', 'desc')
             ->with('laboratory')
             ->get();
+            
+        // Get past/cancelled/rejected reservations with pagination
+        $pastReservations = LaboratoryReservation::forUser($userId)
+            ->whereIn('status', [LaboratoryReservation::STATUS_REJECTED, LaboratoryReservation::STATUS_CANCELLED])
+            ->orWhere(function($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->approved()
+                      ->where('reservation_date', '<', now()->toDateString());
+            })
+            ->with('laboratory')
+            ->latest()
+            ->paginate($perPage, ['*'], 'past_page');
         
-        return compact('upcomingReservations', 'pendingReservations', 'reservations');
+        return compact('upcomingReservations', 'pendingReservations', 'reservations', 'pastReservations', 'perPage');
     }
 
     /**
@@ -160,77 +179,7 @@ class UserLaboratoryService extends BaseService
         return $reservation->user_id === $userId;
     }
 
-    /**
-     * Get recent reservations for quick reserve
-     */
-    public function getRecentReservations($userId, $limit = 5)
-    {
-        return LaboratoryReservation::forUser($userId)
-            ->where(function($query) {
-                $query->approved()->orWhere('status', LaboratoryReservation::STATUS_PENDING);
-            })
-            ->orderBy('created_at', 'desc')
-            ->with('laboratory')
-            ->take($limit)
-            ->get();
-    }
 
-    /**
-     * Create quick reservation from template
-     */
-    public function createQuickReservation(array $data, $userId)
-    {
-        $templateReservation = LaboratoryReservation::findOrFail($data['template']);
-        
-        if ($templateReservation->user_id !== $userId) {
-            return [
-                'success' => false,
-                'message' => 'You can only use your own reservations as templates.'
-            ];
-        }
-        
-        $laboratory = ComputerLaboratory::findOrFail($templateReservation->laboratory_id);
-        
-        $reservationDate = Carbon::parse($data['reservation_date'])->toDateString();
-        $startTime = $data['start_time'];
-        $endTime = $data['end_time'];
-        
-        // Check for conflicts using service
-        $conflictService = app(ReservationConflictService::class);
-        $conflicts = $conflictService->checkConflicts(
-            $laboratory->id,
-            $reservationDate,
-            $startTime,
-            $endTime
-        );
-        
-        if ($conflicts['has_conflict']) {
-            return [
-                'success' => false,
-                'message' => $this->getConflictMessage($conflicts)
-            ];
-        }
-        
-        $reservation = LaboratoryReservation::create([
-            'user_id' => $userId,
-            'laboratory_id' => $laboratory->id,
-            'reservation_date' => $reservationDate,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'purpose' => $data['purpose'],
-            'num_students' => $templateReservation->num_students,
-            'course_code' => $templateReservation->course_code,
-            'subject' => $templateReservation->subject,
-            'section' => $templateReservation->section,
-            'status' => LaboratoryReservation::STATUS_PENDING,
-        ]);
-        
-        return [
-            'success' => true,
-            'message' => 'Quick reservation request submitted successfully. It will be reviewed by the administrator.',
-            'reservation' => $reservation
-        ];
-    }
 
     /**
      * Get conflict message

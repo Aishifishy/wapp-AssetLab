@@ -107,9 +107,12 @@ class UserController extends Controller
             $query->where('department', $request->get('department'));
         }
 
+        $perPage = $request->get('per_page', 10);
+        $perPage = in_array($perPage, [5, 10, 15, 25, 50, 100]) ? $perPage : 10;
+
         $users = $query->withCount(['equipmentRequests'])
                       ->orderBy('created_at', 'desc')
-                      ->paginate(15);
+                      ->paginate($perPage);
 
         // Get distinct departments and roles for filters
         $departments = Ruser::distinct()->pluck('department')->filter()->sort();

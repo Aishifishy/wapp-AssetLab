@@ -17,7 +17,7 @@
                 <div class="flex flex-wrap gap-4">
                     <div class="flex-grow min-w-[200px]">
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select id="status" name="status" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <select id="status" name="status" class="block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="all" {{ $status == 'all' ? 'selected' : '' }}>All ({{ $statusCounts['all'] }})</option>
                             <option value="pending" {{ $status == 'pending' ? 'selected' : '' }}>Pending ({{ $statusCounts['pending'] }})</option>
                             <option value="approved" {{ $status == 'approved' ? 'selected' : '' }}>Approved ({{ $statusCounts['approved'] }})</option>
@@ -27,7 +27,7 @@
                     </div>
                     <div class="flex-grow min-w-[200px]">
                         <label for="laboratory" class="block text-sm font-medium text-gray-700 mb-1">Laboratory</label>
-                        <select id="laboratory" name="laboratory" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <select id="laboratory" name="laboratory" class="block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                             <option value="">All Laboratories</option>
                             @foreach($laboratories as $lab)
                                 <option value="{{ $lab->id }}" {{ $laboratory == $lab->id ? 'selected' : '' }}>
@@ -49,12 +49,31 @@
     <!-- Reservations List -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">
-                Laboratory Reservations 
-                @if($status !== 'all')
-                    - {{ ucfirst($status) }}
-                @endif
-            </h2>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900">
+                        Laboratory Reservations 
+                        @if($status !== 'all')
+                            - {{ ucfirst($status) }}
+                        @endif
+                    </h2>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Per Page Selector -->
+                    <div class="flex items-center space-x-2">
+                        <label for="perPageSelect" class="text-sm text-gray-600">Show:</label>
+                        <select id="perPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                            <option value="5" {{ $perPage == 5 ? 'selected' : '' }}>5</option>
+                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                            <option value="15" {{ $perPage == 15 ? 'selected' : '' }}>15</option>
+                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                        <span class="text-sm text-gray-600">per page</span>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="p-6">
             @if($reservations->count() > 0)
@@ -147,6 +166,20 @@
 <x-rejection-modal />
 
 @push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Per page functionality
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.delete('page'); // Reset to first page when changing per_page
+            window.location.href = url.toString();
+        });
+    }
+});
+</script>
 <!-- Reservation rejection functionality is now handled by reservation-manager.js module -->
 @endpush
 @endsection

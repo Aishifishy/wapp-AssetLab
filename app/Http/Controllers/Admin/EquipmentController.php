@@ -52,9 +52,9 @@ class EquipmentController extends Controller
         ]);
     }
 
-    public function borrowRequests()
+    public function borrowRequests(Request $request)
     {
-        $data = $this->equipmentService->getBorrowRequests();
+        $data = $this->equipmentService->getBorrowRequests($request);
         
         return view('admin.equipment.borrow-requests', [
             'requests' => $data['requests'],
@@ -261,7 +261,7 @@ class EquipmentController extends Controller
             'user_id' => 'required|exists:rusers,id',
             'equipment_id' => 'required|exists:equipment,id',
             'purpose' => 'required|string|max:1000',
-            'requested_from' => 'required|date|after:now',
+            'requested_from' => 'required|date|after_or_equal:now',
             'requested_until' => 'required|date|after:requested_from',
         ]);
 
@@ -301,7 +301,7 @@ class EquipmentController extends Controller
             'user_id' => 'required|exists:rusers,id',
             'equipment_id' => 'required|exists:equipment,id',
             'purpose' => 'required|string|max:1000',
-            'requested_until' => 'required|date|after:now',
+            'requested_until' => 'required|date|after_or_equal:now',
         ]);
 
         $equipment = Equipment::findOrFail($validated['equipment_id']);

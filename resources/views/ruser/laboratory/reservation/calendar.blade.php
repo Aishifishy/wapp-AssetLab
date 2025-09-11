@@ -21,7 +21,7 @@
             <form id="filterForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label for="laboratory" class="block text-sm font-medium text-gray-700 mb-1">Laboratory</label>
-                    <select id="laboratory" name="laboratory" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <select id="laboratory" name="laboratory" class="w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">All Laboratories</option>
                         @foreach($laboratories as $lab)
                             <option value="{{ $lab->id }}" {{ $selectedLab == $lab->id ? 'selected' : '' }}>
@@ -32,14 +32,14 @@
                 </div>
                 <div>
                     <label for="view" class="block text-sm font-medium text-gray-700 mb-1">View Type</label>
-                    <select id="view" name="view" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <select id="view" name="view" class="w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="dayGridMonth" {{ $view == 'dayGridMonth' ? 'selected' : '' }}>Month</option>
                         <option value="timeGridWeek" {{ $view == 'timeGridWeek' ? 'selected' : '' }}>Week</option>
                         <option value="timeGridDay" {{ $view == 'timeGridDay' ? 'selected' : '' }}>Day</option>
                     </select>
                 </div>
                 <div class="flex items-end">
-                    <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                    <button type="submit" class="btn-primary w-full sm:w-auto">
                         Apply Filters
                     </button>
                 </div>
@@ -77,21 +77,21 @@
 </div>
 
 <!-- Event Modal -->
-<div id="eventModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 items-center justify-center hidden z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 class="text-lg font-medium text-gray-900" id="modal-title">Reservation Details</h3>
-            <button id="closeModal" class="text-gray-400 hover:text-gray-500">
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<div id="eventModal" class="modal-overlay hidden">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modal-title">Reservation Details</h3>
+            <button id="closeModal" class="modal-close">
+                <svg class="icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
-        <div class="p-6" id="modal-content">
+        <div class="modal-body" id="modal-content">
             <!-- Event details will be populated here -->
         </div>
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
-            <button id="viewDetailsBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <div class="modal-footer">
+            <button id="viewDetailsBtn" class="btn-primary">
                 View Full Details
             </button>
         </div>

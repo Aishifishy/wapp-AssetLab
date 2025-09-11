@@ -80,7 +80,7 @@
 
                     <div>
                         <label for="role" class="block text-sm font-medium text-gray-700 mb-2">Admin Role</label>
-                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 @error('role') border-red-500 @enderror" 
+                        <select class="w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 @error('role') border-red-500 @enderror" 
                                 id="role" name="role" required>
                             <option value="">Select Role</option>
                             <option value="super_admin" {{ old('role', $admin->role) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>

@@ -4,7 +4,7 @@
 @section('header', 'Schedule Overrides')
 
 @section('content')
-<div class="space-y-6">
+<div class="p-6">
     <x-flash-messages />
 
     <!-- Navigation Header -->
@@ -27,61 +27,13 @@
             </div>
         </div>
         <div class="flex items-center space-x-3">
-            <a href="{{ route('admin.laboratory.index') }}" 
-               class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+            <a href="{{ route('admin.laboratory.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                 <i class="fas fa-arrow-left mr-2"></i> Back to Laboratories
             </a>
-            <a href="{{ route('admin.laboratory.create-override') }}" 
-               class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <a href="{{ route('admin.laboratory.create-override') }}" class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <i class="fas fa-plus mr-2"></i>
                 Create Override
             </a>
-        </div>
-    </div>
-
-    <!-- Filters Section -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Filters</h2>
-        </div>
-        <div class="p-6">
-            <form action="{{ route('admin.laboratory.schedule-overrides') }}" method="GET">
-                <div class="flex flex-wrap gap-4">
-                    <div class="flex-grow min-w-[200px]">
-                        <label for="override_type" class="block text-sm font-medium text-gray-700 mb-1">Override Type</label>
-                        <select id="override_type" name="override_type" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <option value="all" {{ ($override_type ?? 'all') == 'all' ? 'selected' : '' }}>All Types ({{ $typeCounts['all'] ?? 0 }})</option>
-                            <option value="cancel" {{ ($override_type ?? '') == 'cancel' ? 'selected' : '' }}>Cancelled ({{ $typeCounts['cancel'] ?? 0 }})</option>
-                            <option value="reschedule" {{ ($override_type ?? '') == 'reschedule' ? 'selected' : '' }}>Rescheduled ({{ $typeCounts['reschedule'] ?? 0 }})</option>
-                            <option value="replace" {{ ($override_type ?? '') == 'replace' ? 'selected' : '' }}>Replaced ({{ $typeCounts['replace'] ?? 0 }})</option>
-                        </select>
-                    </div>
-                    <div class="flex-grow min-w-[200px]">
-                        <label for="laboratory" class="block text-sm font-medium text-gray-700 mb-1">Laboratory</label>
-                        <select id="laboratory" name="laboratory" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <option value="">All Laboratories</option>
-                            @foreach($laboratories as $lab)
-                                <option value="{{ $lab->id }}" {{ ($laboratory ?? '') == $lab->id ? 'selected' : '' }}>
-                                    {{ $lab->name }} ({{ $lab->building }}, Room {{ $lab->room_number }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="flex-grow min-w-[200px]">
-                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select id="status" name="status" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <option value="all" {{ ($status ?? 'all') == 'all' ? 'selected' : '' }}>All Status ({{ $statusCounts['all'] ?? 0 }})</option>
-                            <option value="active" {{ ($status ?? '') == 'active' ? 'selected' : '' }}>Active ({{ $statusCounts['active'] ?? 0 }})</option>
-                            <option value="inactive" {{ ($status ?? '') == 'inactive' ? 'selected' : '' }}>Inactive ({{ $statusCounts['inactive'] ?? 0 }})</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit" class="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Apply Filters
-                        </button>
-                    </div>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -90,126 +42,84 @@
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex justify-between items-center">
                 <div>
-                    <h2 class="text-lg font-medium text-gray-900">
-                        Schedule Overrides 
-                        @if(($override_type ?? 'all') !== 'all')
-                            - {{ ucfirst($override_type) }}
-                        @endif
-                        @if(($status ?? 'all') !== 'all')
-                            - {{ ucfirst($status) }}
-                        @endif
-                    </h2>
+                    <h2 class="text-lg font-medium text-gray-900">Schedule Overrides</h2>
                     @if(request('sort'))
                         <p class="text-sm text-gray-500 mt-1">
-                            Sorted by {{ ucfirst(str_replace('_', ' ', request('sort'))) }} 
+                            Sorted by {{ ucfirst(str_replace('_', ' ', request('sort'))) }}
                             ({{ request('direction') == 'asc' ? 'Ascending' : 'Descending' }})
                         </p>
                     @endif
                 </div>
-                <div class="text-sm text-gray-500">
-                    {{ $overrides->total() }} total records
+                <div class="flex items-center space-x-4">
+                    <!-- Per Page Selector -->
+                    <div class="flex items-center space-x-2">
+                        <label for="perPageSelect" class="text-sm text-gray-600">Show:</label>
+                        <select id="perPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                            <option value="5" {{ $perPage == 5 ? 'selected' : '' }}>5</option>
+                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                            <option value="15" {{ $perPage == 15 ? 'selected' : '' }}>15</option>
+                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                        <span class="text-sm text-gray-600">per page</span>
+                    </div>
+                    <!-- Search Function -->
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search overrides..."
+                               class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-80">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="p-6">
             @if($overrides->count() > 0)
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <table id="overridesTable" class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'id', 'direction' => request('sort') == 'id' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" 
-                                       class="group inline-flex items-center hover:text-gray-700">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="id">
+                                    <div class="flex items-center">
                                         ID
-                                        <span class="ml-2 flex-none rounded text-gray-400 group-hover:text-gray-500">
-                                            @if(request('sort') == 'id')
-                                                @if(request('direction') == 'asc')
-                                                    <i class="fas fa-sort-up"></i>
-                                                @else
-                                                    <i class="fas fa-sort-down"></i>
-                                                @endif
-                                            @else
-                                                <i class="fas fa-sort"></i>
-                                            @endif
-                                        </span>
-                                    </a>
+                                        <i class="fas fa-sort ml-2 text-gray-400"></i>
+                                    </div>
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'laboratory_name', 'direction' => request('sort') == 'laboratory_name' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" 
-                                       class="group inline-flex items-center hover:text-gray-700">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="laboratory">
+                                    <div class="flex items-center">
                                         Laboratory
-                                        <span class="ml-2 flex-none rounded text-gray-400 group-hover:text-gray-500">
-                                            @if(request('sort') == 'laboratory_name')
-                                                @if(request('direction') == 'asc')
-                                                    <i class="fas fa-sort-up"></i>
-                                                @else
-                                                    <i class="fas fa-sort-down"></i>
-                                                @endif
-                                            @else
-                                                <i class="fas fa-sort"></i>
-                                            @endif
-                                        </span>
-                                    </a>
+                                        <i class="fas fa-sort ml-2 text-gray-400"></i>
+                                    </div>
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'override_date', 'direction' => request('sort') == 'override_date' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" 
-                                       class="group inline-flex items-center hover:text-gray-700">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="override_date">
+                                    <div class="flex items-center">
                                         Override Date
-                                        <span class="ml-2 flex-none rounded text-gray-400 group-hover:text-gray-500">
-                                            @if(request('sort') == 'override_date')
-                                                @if(request('direction') == 'asc')
-                                                    <i class="fas fa-sort-up"></i>
-                                                @else
-                                                    <i class="fas fa-sort-down"></i>
-                                                @endif
-                                            @else
-                                                <i class="fas fa-sort"></i>
-                                            @endif
-                                        </span>
-                                    </a>
+                                        <i class="fas fa-sort ml-2 text-gray-400"></i>
+                                    </div>
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'override_type', 'direction' => request('sort') == 'override_type' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" 
-                                       class="group inline-flex items-center hover:text-gray-700">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="override_type">
+                                    <div class="flex items-center">
                                         Type
-                                        <span class="ml-2 flex-none rounded text-gray-400 group-hover:text-gray-500">
-                                            @if(request('sort') == 'override_type')
-                                                @if(request('direction') == 'asc')
-                                                    <i class="fas fa-sort-up"></i>
-                                                @else
-                                                    <i class="fas fa-sort-down"></i>
-                                                @endif
-                                            @else
-                                                <i class="fas fa-sort"></i>
-                                            @endif
-                                        </span>
-                                    </a>
+                                        <i class="fas fa-sort ml-2 text-gray-400"></i>
+                                    </div>
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule Details</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" 
-                                       class="group inline-flex items-center hover:text-gray-700">
-                                        Created
-                                        <span class="ml-2 flex-none rounded text-gray-400 group-hover:text-gray-500">
-                                            @if(request('sort') == 'created_at')
-                                                @if(request('direction') == 'asc')
-                                                    <i class="fas fa-sort-up"></i>
-                                                @else
-                                                    <i class="fas fa-sort-down"></i>
-                                                @endif
-                                            @else
-                                                <i class="fas fa-sort"></i>
-                                            @endif
-                                        </span>
-                                    </a>
-                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($overrides as $override)
-                                <tr class="hover:bg-gray-50">
+                                <tr class="override-row" 
+                                    data-override-id="{{ $override->id }}"
+                                    data-laboratory="{{ strtolower($override->laboratory->name) }}" 
+                                    data-override-type="{{ $override->override_type }}"
+                                    data-status="{{ $override->isCurrentlyActive() ? 'active' : 'inactive' }}"
+                                    data-override-date="{{ $override->override_date->format('Y-m-d') }}"
+                                    data-search="{{ strtolower($override->laboratory->name . ' ' . $override->override_type . ' ' . ($override->originalSchedule ? $override->originalSchedule->subject_name : '') . ' ' . ($override->createdBy ? $override->createdBy->name : '')) }}">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="text-sm font-medium text-gray-900">{{ $override->id }}</span>
                                     </td>
@@ -292,19 +202,9 @@
                     <i class="fas fa-exclamation-triangle text-gray-400 text-6xl mb-4"></i>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">No Schedule Overrides Found</h3>
                     <p class="text-gray-500 mb-6">
-                        @if(request()->hasAny(['override_type', 'laboratory', 'status']))
-                            No overrides match your current filters.
-                        @else
-                            You haven't created any schedule overrides yet.
-                        @endif
+                        You haven't created any schedule overrides yet.
                     </p>
                     <div class="flex justify-center space-x-3">
-                        @if(request()->hasAny(['override_type', 'laboratory', 'status']))
-                            <a href="{{ route('admin.laboratory.schedule-overrides') }}" 
-                               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                Clear Filters
-                            </a>
-                        @endif
                         <a href="{{ route('admin.laboratory.create-override') }}" 
                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
                             <i class="fas fa-plus mr-2"></i>
@@ -349,15 +249,123 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.getElementById('overridesTable');
+    const rows = table.querySelectorAll('.override-row');
+
+    let sortDirection = {};
+    let currentSort = null;
+
+    // Per page functionality
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.delete('page'); // Reset to first page when changing per_page
+            window.location.href = url.toString();
+        });
+    }
+
+    // Sorting functionality
+    table.querySelectorAll('th[data-sort]').forEach(header => {
+        header.addEventListener('click', function() {
+            const sortKey = this.dataset.sort;
+            sortTable(sortKey);
+        });
+    });
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+
+        rows.forEach(row => {
+            const searchData = row.dataset.search;
+
+            const matchesSearch = searchData.includes(searchTerm);
+
+            if (matchesSearch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function sortTable(sortKey) {
+        // Toggle sort direction
+        if (currentSort === sortKey) {
+            sortDirection[sortKey] = sortDirection[sortKey] === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortDirection[sortKey] = 'asc';
+            currentSort = sortKey;
+        }
+
+        // Update sort icons
+        table.querySelectorAll('th[data-sort] i').forEach(icon => {
+            icon.className = 'fas fa-sort ml-2 text-gray-400';
+        });
+
+        const currentHeader = table.querySelector(`th[data-sort="${sortKey}"] i`);
+        if (sortDirection[sortKey] === 'asc') {
+            currentHeader.className = 'fas fa-sort-up ml-2 text-gray-600';
+        } else {
+            currentHeader.className = 'fas fa-sort-down ml-2 text-gray-600';
+        }
+
+        // Convert NodeList to Array and sort
+        const rowsArray = Array.from(rows);
+        const tbody = table.querySelector('tbody');
+
+        rowsArray.sort((a, b) => {
+            let aVal, bVal;
+
+            switch(sortKey) {
+                case 'laboratory':
+                    aVal = a.dataset.laboratory;
+                    bVal = b.dataset.laboratory;
+                    break;
+                case 'override_type':
+                    aVal = a.dataset.overrideType;
+                    bVal = b.dataset.overrideType;
+                    break;
+                case 'override_date':
+                    aVal = a.dataset.overrideDate || '0000-00-00';
+                    bVal = b.dataset.overrideDate || '0000-00-00';
+                    break;
+                case 'id':
+                    aVal = parseInt(a.dataset.overrideId);
+                    bVal = parseInt(b.dataset.overrideId);
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (sortDirection[sortKey] === 'asc') {
+                return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+            } else {
+                return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+            }
+        });
+
+        // Remove all rows and re-append in sorted order
+        rowsArray.forEach(row => {
+            tbody.removeChild(row);
+        });
+
+        rowsArray.forEach(row => {
+            tbody.appendChild(row);
+        });
+    }
+
     // Override details functionality
     window.showOverrideDetails = function(overrideId) {
         const modal = document.getElementById('overrideDetailsModal');
         const content = document.getElementById('overrideDetailsContent');
-        
+
         // Show loading state
         content.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-gray-400"></i> Loading...</div>';
         modal.classList.remove('hidden');
-        
+
         // In a real implementation, you would fetch the details via AJAX
         // For now, we'll show basic information
         content.innerHTML = `
@@ -369,54 +377,54 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
     };
-    
+
     window.closeOverrideDetails = function() {
         document.getElementById('overrideDetailsModal').classList.add('hidden');
     };
-    
+
     // Deactivation modal functionality
     window.openDeactivateModal = function(overrideId) {
         const modal = document.getElementById('deactivation-modal');
         const form = document.getElementById('deactivate-form');
-        
+
         // Set the form action URL
         form.action = `/admin/laboratory/schedule-overrides/${overrideId}/deactivate`;
         modal.classList.remove('hidden');
     };
-    
+
     window.closeRejectModal = function() {
         document.getElementById('deactivation-modal').classList.add('hidden');
     };
-    
+
     // Close modal handlers
     document.addEventListener('click', function(e) {
         if (e.target.dataset.action === 'close-reject-modal') {
             closeRejectModal();
         }
     });
-    
+
     // Enhanced table sorting visual feedback
     const sortableHeaders = document.querySelectorAll('th a[href*="sort="]');
     sortableHeaders.forEach(header => {
         header.addEventListener('mouseenter', function() {
             this.classList.add('bg-gray-100', 'rounded', 'px-2', 'py-1');
         });
-        
+
         header.addEventListener('mouseleave', function() {
             this.classList.remove('bg-gray-100', 'rounded', 'px-2', 'py-1');
         });
     });
-    
+
     // Highlight currently sorted column
-    const currentSort = new URLSearchParams(window.location.search).get('sort');
-    if (currentSort) {
-        const currentSortHeader = document.querySelector(`th a[href*="sort=${currentSort}"]`);
+    const urlCurrentSort = new URLSearchParams(window.location.search).get('sort');
+    if (urlCurrentSort) {
+        const currentSortHeader = document.querySelector(`th a[href*="sort=${urlCurrentSort}"]`);
         if (currentSortHeader) {
             currentSortHeader.closest('th').classList.add('bg-blue-50');
             currentSortHeader.classList.add('text-blue-600', 'font-semibold');
         }
     }
-    
+
     // Auto-submit on filter changes (optional)
     const filterInputs = document.querySelectorAll('select');
     filterInputs.forEach(input => {
@@ -425,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // setTimeout(() => this.closest('form').submit(), 500);
         });
     });
-    
+
     // Add keyboard shortcut for sorting (Ctrl + S to show sort options)
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey && e.key === 's') {

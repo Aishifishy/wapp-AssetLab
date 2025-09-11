@@ -61,11 +61,14 @@ class LaboratoryController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->get('per_page', 10);
+        $perPage = in_array($perPage, [5, 10, 15, 25, 50, 100]) ? $perPage : 10;
+
         $laboratories = ComputerLaboratory::orderBy('building')
             ->orderBy('room_number')
-            ->get();
+            ->paginate($perPage);
 
         return view($this->getViewPrefix() . '.index', compact('laboratories'));
     }
@@ -110,18 +113,20 @@ class LaboratoryController extends Controller
     /**
      * Show laboratory reservation requests for admin approval
      */
-    public function reservations()
+    public function reservations(Request $request)
     {
-        $pendingRequests = LaboratoryReservation::with(['user', 'laboratory', 'approvedBy', 'rejectedBy'])
-            ->pending()
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Get per_page parameter with validation
+        $perPage = $request->get('per_page', 10);
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 10;
+        }
 
-        $recentRequests = LaboratoryReservation::with(['user', 'laboratory', 'approvedBy', 'rejectedBy'])
-            ->whereIn('status', ['approved', 'rejected'])
-            ->orderBy('updated_at', 'desc')
-            ->take(10)
-            ->get();
+        // Combine pending and recent requests into a single paginated collection
+        $reservations = LaboratoryReservation::with(['user', 'laboratory', 'approvedBy', 'rejectedBy'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
 
         // Get recent schedule overrides
         $recentOverrides = LaboratoryScheduleOverride::with(['laboratory', 'originalSchedule', 'createdBy', 'requestedBy'])
@@ -130,7 +135,7 @@ class LaboratoryController extends Controller
             ->take(10)
             ->get();
 
-        $pendingCount = $pendingRequests->count();
+        $pendingCount = LaboratoryReservation::pending()->count();
         $approvedTodayCount = LaboratoryReservation::approved()
             ->whereDate('updated_at', today())
             ->count();
@@ -144,13 +149,13 @@ class LaboratoryController extends Controller
             ->count();
 
         return view('admin.laboratory.reservations', compact(
-            'pendingRequests', 
-            'recentRequests', 
+            'reservations',
             'recentOverrides',
-            'pendingCount', 
-            'approvedTodayCount', 
+            'pendingCount',
+            'approvedTodayCount',
             'rejectedTodayCount',
-            'activeOverridesCount'
+            'activeOverridesCount',
+            'perPage'
         ));
     }
 
@@ -199,58 +204,32 @@ class LaboratoryController extends Controller
      * Show schedule overrides management
      */
     /**
-     * Display schedule overrides with filters
+     * Display schedule overrides with search functionality
      */
     public function scheduleOverrides(Request $request)
     {
-        // Get filter parameters
-        $override_type = $request->get('override_type', 'all');
-        $laboratory = $request->get('laboratory');
-        $status = $request->get('status', 'all');
-        
-        // Get sorting parameters
+        // Get per_page parameter with validation
+        $perPage = $request->get('per_page', 10);
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 10;
+        }
+
+        // Get sorting parameters (keeping server-side sorting for initial load)
         $sortBy = $request->get('sort', 'override_date');
         $sortDirection = $request->get('direction', 'desc');
-        
+
         // Validate sort parameters
         $allowedSorts = ['id', 'override_date', 'override_type', 'created_at', 'laboratory_name'];
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'override_date';
         }
-        
+
         if (!in_array($sortDirection, ['asc', 'desc'])) {
             $sortDirection = 'desc';
         }
-        
-        // Optimize: Get laboratories once and cache only needed fields
-        $laboratories = ComputerLaboratory::select('id', 'name', 'building', 'room_number')
-                                         ->orderBy('name')
-                                         ->get();
-        
-        // Calculate counts for filter dropdowns
-        $baseQuery = LaboratoryScheduleOverride::query();
-        
-        $typeCounts = [
-            'all' => $baseQuery->count(),
-            'cancel' => $baseQuery->where('override_type', 'cancel')->count(),
-            'reschedule' => $baseQuery->where('override_type', 'reschedule')->count(),
-            'replace' => $baseQuery->where('override_type', 'replace')->count(),
-        ];
-        
-        $statusCounts = [
-            'all' => $baseQuery->count(),
-            'active' => $baseQuery->where('is_active', true)
-                                  ->where(function ($q) {
-                                      $q->whereNull('expires_at')
-                                        ->orWhere('expires_at', '>', now());
-                                  })->count(),
-            'inactive' => $baseQuery->where(function ($q) {
-                                        $q->where('is_active', false)
-                                          ->orWhere('expires_at', '<=', now());
-                                    })->count(),
-        ];
-        
-        // Build optimized query with proper eager loading
+
+        // Build query with proper eager loading
         $query = LaboratoryScheduleOverride::with([
                 'laboratory:id,name,building,room_number',
                 'originalSchedule:id,subject_name,instructor_name,start_time,end_time,section',
@@ -264,9 +243,6 @@ class LaboratoryController extends Controller
                 'new_subject_name', 'new_instructor_name', 'reason', 'created_by',
                 'requested_by', 'expires_at', 'is_active', 'created_at'
             ]);
-
-        // Apply filters efficiently
-        $this->applyOverrideFilters($query, $request);
 
         // Apply sorting
         if ($sortBy === 'laboratory_name') {
@@ -282,64 +258,18 @@ class LaboratoryController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        // Paginate
-        $overrides = $query->paginate(20)->withQueryString(); // Preserve all query parameters in pagination
+        // Paginate (keeping pagination for performance)
+        $overrides = $query->paginate($perPage)->withQueryString(); // Preserve sort parameters in pagination
 
         return view('admin.laboratory.schedule-overrides', compact(
-            'overrides', 
-            'laboratories', 
-            'override_type', 
-            'laboratory', 
-            'status', 
-            'typeCounts', 
-            'statusCounts',
+            'overrides',
             'sortBy',
-            'sortDirection'
+            'sortDirection',
+            'perPage'
         ));
     }
 
-    /**
-     * Apply filters to override query efficiently
-     */
-    private function applyOverrideFilters($query, Request $request)
-    {
-        // Filter by laboratory
-        if ($request->filled('laboratory')) {
-            $query->where('laboratory_id', $request->laboratory);
-        }
 
-        // Filter by date range
-        if ($request->filled('start_date')) {
-            $query->where('override_date', '>=', $request->start_date);
-        }
-
-        if ($request->filled('end_date')) {
-            $query->where('override_date', '<=', $request->end_date);
-        }
-
-        // Filter by override type
-        if ($request->filled('override_type') && $request->override_type !== 'all') {
-            $query->where('override_type', $request->override_type);
-        }
-
-        // Filter by status with optimized conditions
-        if ($request->filled('status') && $request->status !== 'all') {
-            if ($request->status === 'active') {
-                $query->where('is_active', true)
-                      ->where(function ($q) {
-                          $q->whereNull('expires_at')
-                            ->orWhere('expires_at', '>', now());
-                      });
-            } elseif ($request->status === 'inactive') {
-                $query->where(function ($q) {
-                    $q->where('is_active', false)
-                      ->orWhere('expires_at', '<=', now());
-                });
-            }
-        }
-
-        return $query;
-    }
 
     /**
      * Show form to create schedule override

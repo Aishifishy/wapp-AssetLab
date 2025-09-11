@@ -10,6 +10,20 @@
             <p class="mt-1 text-sm text-gray-600">Manage your laboratory reservations</p>
         </div>
         <div class="flex space-x-4">
+            @if(isset($pastReservations) && $pastReservations->count() > 0)
+                <div class="flex items-center space-x-2">
+                    <label for="per_page" class="text-sm font-medium text-gray-700">Show:</label>
+                    <select id="per_page" name="per_page" class="form-select text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-20">
+                        <option value="5" {{ (isset($perPage) && $perPage == 5) ? 'selected' : '' }}>5</option>
+                        <option value="10" {{ (isset($perPage) && $perPage == 10) ? 'selected' : '' }}>10</option>
+                        <option value="15" {{ (isset($perPage) && $perPage == 15) ? 'selected' : '' }}>15</option>
+                        <option value="25" {{ (isset($perPage) && $perPage == 25) ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ (isset($perPage) && $perPage == 50) ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ (isset($perPage) && $perPage == 100) ? 'selected' : '' }}>100</option>
+                    </select>
+                    <span class="text-sm text-gray-500">per page</span>
+                </div>
+            @endif
             <a href="{{ route('ruser.laboratory.reservations.calendar') }}" 
                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
                 <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -70,6 +84,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Per-page selector functionality
+    const perPageSelect = document.getElementById('per_page');
+    
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.set('page', '1'); // Reset to first page when changing per_page
+            url.searchParams.set('past_page', '1'); // Reset past reservations page too
+            window.location.href = url.toString();
+        });
+    }
 });
 </script>
 @endsection

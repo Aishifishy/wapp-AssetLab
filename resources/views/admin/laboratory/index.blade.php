@@ -13,9 +13,24 @@
 
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center">
-                <i class="fas fa-table text-gray-500 mr-2"></i>
-                <h3 class="text-lg font-medium text-gray-900">Laboratory List</h3>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-table text-gray-500 mr-2"></i>
+                    <h3 class="text-lg font-medium text-gray-900">Laboratory List ({{ $laboratories->total() }} total)</h3>
+                </div>
+                <!-- Per Page Selector -->
+                <div class="flex items-center space-x-2">
+                    <label for="perPageSelect" class="text-sm text-gray-600">Show:</label>
+                    <select id="perPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                        <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
+                        <option value="10" {{ request('per_page') == 10 || !request('per_page') ? 'selected' : '' }}>10</option>
+                        <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                    <span class="text-sm text-gray-600">per page</span>
+                </div>
             </div>
         </div>
         <div class="p-6">
@@ -77,7 +92,7 @@
                                                         </h3>
                                                         <div class="mt-4">
                                                             <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                                                            <select name="status" id="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                                            <select name="status" id="status" class="mt-1 block w-full px-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
                                                                 <option value="available" {{ $lab->status === 'available' ? 'selected' : '' }}>Available</option>
                                                                 <option value="in_use" {{ $lab->status === 'in_use' ? 'selected' : '' }}>In Use</option>
                                                                 <option value="under_maintenance" {{ $lab->status === 'under_maintenance' ? 'selected' : '' }}>Under Maintenance</option>
@@ -111,8 +126,30 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination -->
+            <div class="mt-4">
+                {{ $laboratories->appends(request()->query())->links() }}
+            </div>
         </div>
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Per page functionality
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.delete('page'); // Reset to first page when changing per_page
+            window.location.href = url.toString();
+        });
+    }
+});
+</script>
 @endsection

@@ -212,36 +212,5 @@ class LaboratoryReservationController extends Controller
         ]);
     }
     
-    /**
-     * Show the quick reservation form
-     */
-    public function quickReserve()
-    {
-        $recentReservations = $this->userLaboratoryService->getRecentReservations(Auth::id(), 5);
 
-        return view('ruser.laboratory.reservation.quick-reserve', compact('recentReservations'));
-    }
-
-    /**
-     * Process a quick reservation
-     */
-    public function quickReserveStore(Request $request)
-    {
-        $validatedData = $this->validateRequest($request, [
-            'template' => 'required|exists:laboratory_reservations,id',
-            'reservation_date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'purpose' => 'required|string|max:1000',
-        ]);
-        
-        $result = $this->userLaboratoryService->createQuickReservation($validatedData, Auth::id());
-        
-        if ($result['success']) {
-            return redirect()->route('ruser.laboratory.reservations.confirmation', $result['reservation'])
-                ->with('success', $result['message']);
-        }
-        
-        return back()->withInput()->with('error', $result['message']);
-    }
 }

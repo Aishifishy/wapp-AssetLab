@@ -81,113 +81,116 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="purpose" class="block text-sm font-medium text-gray-700">
-                                Purpose <span class="text-red-500">*</span>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="purpose" class="form-label form-label-required">
+                                Purpose
                             </label>
                             <textarea name="purpose" id="purpose" rows="3" required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                class="form-textarea"
                                 placeholder="Describe the purpose of this reservation">{{ old('purpose') }}</textarea>
                             <x-form-error field="purpose" />
                         </div>
                         
-                        <div>
-                            <label for="reservation_date" class="block text-sm font-medium text-gray-700">
-                                Date <span class="text-red-500">*</span>
+                        <div class="form-group">
+                            <label for="reservation_date" class="form-label form-label-required">
+                                Date
                             </label>
                             <input type="date" name="reservation_date" id="reservation_date" required
                                 min="{{ date('Y-m-d') }}"
                                 value="{{ old('reservation_date') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="form-input">
                             <x-form-error field="reservation_date" />
                         </div>
                         
-                        <div>
-                            <label for="start_time" class="block text-sm font-medium text-gray-700">
-                                Start Time <span class="text-red-500">*</span>
+                        <div class="form-group">
+                            <label for="start_time" class="form-label form-label-required">
+                                Start Time
                             </label>
                             <input type="time" name="start_time" id="start_time" required
                                 value="{{ old('start_time') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="form-input">
                             <x-form-error field="start_time" />
                         </div>
                         
-                        <div>
-                            <label for="end_time" class="block text-sm font-medium text-gray-700">
-                                End Time <span class="text-red-500">*</span>
+                        <div class="form-group">
+                            <label for="end_time" class="form-label form-label-required">
+                                End Time
                             </label>
                             <input type="time" name="end_time" id="end_time" required
                                 value="{{ old('end_time') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="form-input">
                             <x-form-error field="end_time" />
                         </div>
                         
-                        <div>
-                            <label for="num_students" class="block text-sm font-medium text-gray-700">
-                                Number of Students <span class="text-red-500">*</span>
+                        <div class="form-group">
+                            <label for="num_students" class="form-label form-label-required">
+                                Number of Students
                             </label>
                             <input type="number" name="num_students" id="num_students" required
                                 min="1" max="{{ $laboratory->capacity }}"
                                 value="{{ old('num_students') }}"
                                 placeholder="Max: {{ $laboratory->capacity }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="form-input">
                             <x-form-error field="num_students" />
                         </div>
                         
-                        <div>
-                            <label for="course_code" class="block text-sm font-medium text-gray-700">Course Code</label>
+                        <div class="form-group">
+                            <label for="course_code" class="form-label-optional">Course Code</label>
                             <input type="text" name="course_code" id="course_code"
                                 value="{{ old('course_code') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="form-input">
                             <x-form-error field="course_code" />
                         </div>
                         
-                        <div>
-                            <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
+                        <div class="form-group">
+                            <label for="subject" class="form-label-optional">Subject</label>
                             <input type="text" name="subject" id="subject"
                                 value="{{ old('subject') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="form-input">
                             <x-form-error field="subject" />
                         </div>
                         
-                        <div>
-                            <label for="section" class="block text-sm font-medium text-gray-700">Section</label>
+                        <div class="form-group">
+                            <label for="section" class="form-label-optional">Section</label>
                             <input type="text" name="section" id="section"
                                 value="{{ old('section') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                class="form-input">
                             <x-form-error field="section" />
                         </div>
                         
-                        <div class="col-span-1 md:col-span-2">
-                            <div class="flex items-center">
-                                <input type="checkbox" name="is_recurring" id="is_recurring" value="1"
-                                    {{ old('is_recurring') ? 'checked' : '' }}
-                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                                <label for="is_recurring" class="ml-2 block text-sm text-gray-700">
-                                    Make this a recurring reservation
-                                </label>
+                        <div class="form-full-width">
+                            <div class="form-group">
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="is_recurring" id="is_recurring" value="1"
+                                        {{ old('is_recurring') ? 'checked' : '' }}
+                                        class="form-checkbox">
+                                    <label for="is_recurring" class="form-checkbox-label">
+                                        Make this a recurring reservation
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
                         @if($laboratory->requires_image)
-                        <div class="col-span-1 md:col-span-2">
-                            <label for="form_image" class="block text-sm font-medium text-gray-700 mb-2">
-                                Facilities Request Form <span class="text-red-500">*</span>
-                            </label>
-                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                                <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                    <div class="flex text-sm text-gray-600">
-                                        <label for="form_image" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                            <span>Upload a file</span>
-                                            <input id="form_image" name="form_image" type="file" class="sr-only" accept="image/*" required>
-                                        </label>
-                                        <p class="pl-1">or drag and drop</p>
-                                    </div>
-                                    <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 10MB</p>
+                        <div class="form-full-width">
+                            <div class="form-group">
+                                <label for="form_image" class="form-label form-label-required">
+                                    Facilities Request Form
+                                </label>
+                                <div class="form-file-upload">
+                                    <div class="form-file-upload-content">
+                                        <svg class="form-file-upload-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <div class="form-file-upload-text">
+                                            <label for="form_image" class="form-file-upload-button">
+                                                <span>Upload a file</span>
+                                                <input id="form_image" name="form_image" type="file" class="form-file-upload-input" accept="image/*" required>
+                                            </label>
+                                            <span class="pl-1">or drag and drop</span>
+                                        </div>
+                                        <p class="form-file-upload-hint">PNG, JPG, GIF, WebP up to 10MB</p>
                                     <div id="image-preview" class="hidden mt-4">
                                         <img id="preview-image" class="mx-auto h-32 w-auto rounded-lg border border-gray-300" />
                                         <button type="button" id="remove-image" class="mt-2 text-red-600 hover:text-red-500 text-sm font-medium">Remove</button>
@@ -218,7 +221,7 @@
                                     Recurrence Pattern
                                 </label>
                                 <select name="recurring_pattern" id="recurring_pattern"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                    class="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                     <option value="weekly" {{ old('recurring_pattern') == 'weekly' ? 'selected' : '' }}>Weekly</option>
                                     <option value="monthly" {{ old('recurring_pattern') == 'monthly' ? 'selected' : '' }}>Monthly</option>
                                 </select>

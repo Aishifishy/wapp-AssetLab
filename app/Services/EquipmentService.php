@@ -51,12 +51,15 @@ class EquipmentService extends BaseService
 
         $searchFields = ['name', 'description', 'barcode', 'rfid_tag', 'category.name'];
         
+        $perPage = $request->get('per_page', 10);
+        $perPage = in_array($perPage, [5, 10, 15, 25, 50, 100]) ? $perPage : 10;
+        
         $equipment = $this->getFilteredData(
             $request, 
             ['currentBorrower', 'borrowRequests', 'category'], 
             $searchFields, 
             $filters, 
-            0 // Get all records
+            $perPage
         );
 
         $categories = EquipmentCategory::all();
@@ -70,14 +73,17 @@ class EquipmentService extends BaseService
     /**
      * Get borrow requests with statistics
      */
-    public function getBorrowRequests()
+    public function getBorrowRequests(Request $request = null)
     {
         // Run background auto-repair for all equipment before loading page
         $this->autoRepairAllEquipment();
         
+        $perPage = $request ? $request->get('per_page', 10) : 10;
+        $perPage = in_array($perPage, [5, 10, 15, 25, 50, 100]) ? $perPage : 10;
+        
         $requests = EquipmentRequest::with(['user', 'equipment', 'approvedBy', 'rejectedBy', 'checkedOutBy'])
             ->latest()
-            ->paginate(15);
+            ->paginate($perPage);
 
         $statistics = [
             'pending' => EquipmentRequest::where('status', 'pending')->count(),

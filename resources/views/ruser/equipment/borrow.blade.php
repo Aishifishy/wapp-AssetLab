@@ -61,7 +61,7 @@
                             <input type="text" id="search" placeholder="Search equipment in {{ $selectedCategory->name }}..." 
                                 class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
-                        <select id="status-filter" class="w-full sm:w-auto px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <select id="status-filter" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                             <option value="">All Status</option>
                             <option value="available">Available</option>
                             <option value="borrowed">Currently Borrowed</option>
@@ -202,13 +202,18 @@
                 </div>
 
                 <!-- Date and Time Selection -->
+                @php
+                    $defaultFromTime = now()->addMinutes(1)->format('Y-m-d\TH:i');
+                    $minTime = now()->addMinutes(1)->format('Y-m-d\TH:i');
+                @endphp
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Borrowing Period *</label>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-gray-600 text-xs font-medium mb-1" for="requested_from">From</label>
                             <input type="datetime-local" name="requested_from" id="requested_from" required
-                                   min="{{ now()->format('Y-m-d\TH:i') }}"
+                                   min="{{ $minTime }}"
+                                   value="{{ $defaultFromTime }}"
                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <div>
@@ -220,6 +225,9 @@
                     </div>
                     <p class="text-xs text-gray-500 mt-1">
                         You can book equipment for immediate use or schedule it for future dates
+                    </p>
+                    <p class="text-xs text-blue-500 mt-1">
+                        *If conflict checker has error please manually adjust the date and time by 1 minute of the current time.
                     </p>
                 </div>
                 

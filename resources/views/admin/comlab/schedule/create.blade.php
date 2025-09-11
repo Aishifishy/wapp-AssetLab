@@ -83,7 +83,7 @@
                     <div class="space-y-6">
                         <div>
                             <label for="day_of_week" class="block text-sm font-medium text-gray-700">Day of Week</label>
-                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" 
+                            <select class="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" 
                                     id="day_of_week" 
                                     name="day_of_week" 
                                     required>
@@ -125,7 +125,7 @@
 
                         <div>
                             <label for="type" class="block text-sm font-medium text-gray-700">Schedule Type</label>
-                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" 
+                            <select class="mt-1 block w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" 
                                     id="type" 
                                     name="type" 
                                     required>

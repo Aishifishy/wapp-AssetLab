@@ -77,10 +77,20 @@
     <!-- Admins Management -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="text-lg font-medium text-gray-900">Admin Accounts</h2>
-            <a href="{{ route('admin.super-admin.admins.create') }}" class="mt-2 sm:mt-0 inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-md transition duration-150 ease-in-out">
-                <i class="fas fa-plus mr-2"></i>Add New Admin
-            </a>
+            <h2 class="text-lg font-medium text-gray-900">Admin Accounts ({{ $admins->total() }} total)</h2>
+            <!-- Per Page Selector for Admins -->
+            <div class="flex items-center space-x-2 mt-2 sm:mt-0">
+                <label for="adminsPerPageSelect" class="text-sm text-gray-600">Show:</label>
+                <select id="adminsPerPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                    <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
+                    <option value="10" {{ request('per_page') == 10 || !request('per_page') ? 'selected' : '' }}>10</option>
+                    <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+                <span class="text-sm text-gray-600">per page</span>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -154,13 +164,31 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination for Admins -->
+        <div class="px-6 py-4 border-t border-gray-200">
+            {{ $admins->appends(request()->query())->links() }}
+        </div>
     </div>
 
     <!-- Users Management -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="text-lg font-medium text-gray-900">User Accounts</h2>
+            <h2 class="text-lg font-medium text-gray-900">User Accounts ({{ $users->total() }} total)</h2>
             <div class="flex flex-wrap gap-2 mt-2 sm:mt-0">
+                <!-- Per Page Selector for Users -->
+                <div class="flex items-center space-x-2">
+                    <label for="usersPerPageSelect" class="text-sm text-gray-600">Show:</label>
+                    <select id="usersPerPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                        <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
+                        <option value="10" {{ request('per_page') == 10 || !request('per_page') ? 'selected' : '' }}>10</option>
+                        <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                    <span class="text-sm text-gray-600">per page</span>
+                </div>
                 <button type="button" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition duration-150 ease-in-out" id="bulkDeleteBtn" style="display: none;" onclick="confirmBulkDelete()">
                     <i class="fas fa-trash mr-2"></i>Delete Selected
                 </button>
@@ -238,6 +266,11 @@
                     </tbody>
                 </table>
             </form>
+        </div>
+        
+        <!-- Pagination for Users -->
+        <div class="px-6 py-4 border-t border-gray-200">
+            {{ $users->appends(request()->query())->links() }}
         </div>
     </div>
 </div>
@@ -384,5 +417,30 @@ function submitDelete() {
         currentForm.submit();
     }
 }
+
+// Per page functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Admins per page selector
+    const adminsPerPageSelect = document.getElementById('adminsPerPageSelect');
+    if (adminsPerPageSelect) {
+        adminsPerPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.delete('page'); // Reset to first page when changing per_page
+            window.location.href = url.toString();
+        });
+    }
+
+    // Users per page selector
+    const usersPerPageSelect = document.getElementById('usersPerPageSelect');
+    if (usersPerPageSelect) {
+        usersPerPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.delete('page'); // Reset to first page when changing per_page
+            window.location.href = url.toString();
+        });
+    }
+});
 </script>
 @endpush

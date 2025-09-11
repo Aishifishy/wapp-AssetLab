@@ -37,27 +37,28 @@ class SuperAdminController extends Controller
     /**
      * Display the user management dashboard.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->checkSuperAdminAccess();
         
-        $admins = Radmin::latest()->get();
-        $users = Ruser::latest()->get();
+        $perPage = $request->get('per_page', 10);
+        $perPage = in_array($perPage, [5, 10, 15, 25, 50, 100]) ? $perPage : 10;
+        
+        $admins = Radmin::latest()->paginate($perPage);
+        $users = Ruser::latest()->paginate($perPage);
         
         $stats = [
-            'total_admins' => $admins->count(),
-            'total_users' => $users->count(),
-            'super_admins' => $admins->where('is_super_admin', true)->count(),
-            'regular_admins' => $admins->where('role', 'admin')->count(),
-            'faculty_users' => $users->where('role', 'faculty')->count(),
-            'student_users' => $users->where('role', 'student')->count(),
-            'staff_users' => $users->where('role', 'staff')->count(),
+            'total_admins' => Radmin::count(),
+            'total_users' => Ruser::count(),
+            'super_admins' => Radmin::where('is_super_admin', true)->count(),
+            'regular_admins' => Radmin::where('role', 'admin')->count(),
+            'faculty_users' => Ruser::where('role', 'faculty')->count(),
+            'student_users' => Ruser::where('role', 'student')->count(),
+            'staff_users' => Ruser::where('role', 'staff')->count(),
         ];
 
         return view('admin.super-admin.index', compact('admins', 'users', 'stats'));
-    }
-
-    /**
+    }    /**
      * Show the form for creating a new admin.
      */
     public function createAdmin()

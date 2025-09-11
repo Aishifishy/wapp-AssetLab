@@ -7,7 +7,7 @@
     <div class="max-w-7xl w-full">
         <!-- Hero Section -->
         <div class="text-center mb-12 animate-float">
-            <h2 class="hero-text text-5xl lg:text-6xl">Welcome to ResourEase</h2>
+            <h2 class="hero-text text-5xl lg:text-6xl">AssetLab</h2>
             <h4 class="text-xl text-gray-600 max-w-2xl mx-auto mt-6">
                 Request IT Resources with Ease
             </p>

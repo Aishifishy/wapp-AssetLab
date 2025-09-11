@@ -113,10 +113,25 @@
     <div class="bg-white shadow-sm rounded-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-users mr-2 text-gray-600"></i>
-                    Users ({{ $users->total() }} total)
-                </h2>
+                <div class="flex items-center space-x-4">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-users mr-2 text-gray-600"></i>
+                        Users ({{ $users->total() }} total)
+                    </h2>
+                    <!-- Per Page Selector -->
+                    <div class="flex items-center space-x-2">
+                        <label for="perPageSelect" class="text-sm text-gray-600">Show:</label>
+                        <select id="perPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                            <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
+                            <option value="10" {{ request('per_page') == 10 || !request('per_page') ? 'selected' : '' }}>10</option>
+                            <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                        <span class="text-sm text-gray-600">per page</span>
+                    </div>
+                </div>
                 <div class="flex items-center space-x-2 text-sm text-gray-500">
                     <i class="fas fa-info-circle"></i>
                     <span>Click on any user row for details</span>
@@ -154,7 +169,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200" id="usersTableBody">
                         @foreach($users as $user)
-                            <tr class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onclick="window.location.href='{{ route('admin.users.show', $user) }}'">>>
+                            <tr class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onclick="window.location.href='{{ route('admin.users.show', $user) }}'">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-10 w-10">
@@ -356,6 +371,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (urlParams.get('active_only') === '1') {
         document.getElementById('showActiveOnly').checked = true;
+    }
+
+    // Per page functionality
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.delete('page'); // Reset to first page when changing per_page
+            window.location.href = url.toString();
+        });
     }
 });
 </script>

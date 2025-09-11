@@ -48,7 +48,22 @@
         </div>
     </div>    <!-- Equipment List -->
     <div class="bg-white shadow-sm rounded-lg p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">Equipment List</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">Equipment List ({{ $equipment->total() }} total)</h2>
+            <!-- Per Page Selector -->
+            <div class="flex items-center space-x-2">
+                <label for="perPageSelect" class="text-sm text-gray-600">Show:</label>
+                <select id="perPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                    <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
+                    <option value="10" {{ request('per_page') == 10 || !request('per_page') ? 'selected' : '' }}>10</option>
+                    <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+                <span class="text-sm text-gray-600">per page</span>
+            </div>
+        </div>
         
         <!-- Search and Filters -->
         <div class="mb-6">
@@ -147,6 +162,11 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination -->
+        <div class="mt-4">
+            {{ $equipment->appends(request()->query())->links() }}
+        </div>
     </div>
 </div>
 
@@ -226,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search');
     const statusFilter = document.getElementById('status-filter');
     const searchBtn = document.getElementById('search-btn');
+    const perPageSelect = document.getElementById('perPageSelect');
     
     // Handle search button click
     searchBtn.addEventListener('click', function() {
@@ -245,6 +266,14 @@ document.addEventListener('DOMContentLoaded', function() {
         performSearch();
     });
     
+    // Handle per page change
+    perPageSelect.addEventListener('change', function() {
+        const url = new URL(window.location);
+        url.searchParams.set('per_page', this.value);
+        url.searchParams.delete('page'); // Reset to first page when changing per_page
+        window.location.href = url.toString();
+    });
+    
     function performSearch() {
         const searchTerm = searchInput.value.trim();
         const status = statusFilter.value;
@@ -258,6 +287,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (status) {
             params.append('status', status);
+        }
+        
+        // Preserve per_page if it exists
+        const currentPerPage = new URLSearchParams(window.location.search).get('per_page');
+        if (currentPerPage) {
+            params.append('per_page', currentPerPage);
         }
         
         // Redirect with search parameters

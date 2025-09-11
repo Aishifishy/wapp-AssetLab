@@ -64,8 +64,6 @@ Route::middleware('auth')->group(function () {
         Route::prefix('reservations')->name('reservations.')->group(function () {
             Route::get('/', [RuserLaboratoryReservationController::class, 'index'])->name('index');
             Route::get('/calendar', [RuserLaboratoryReservationController::class, 'calendar'])->name('calendar');
-            Route::get('/quick', [RuserLaboratoryReservationController::class, 'quickReserve'])->name('quick');
-            Route::post('/quick-store', [RuserLaboratoryReservationController::class, 'quickStore'])->name('quick-store');
             Route::get('/{laboratory}/create', [RuserLaboratoryReservationController::class, 'create'])->name('create');
             Route::post('/{laboratory}', [RuserLaboratoryReservationController::class, 'store'])->name('store');
             Route::get('/{reservation}/show', [RuserLaboratoryReservationController::class, 'show'])->name('show');
