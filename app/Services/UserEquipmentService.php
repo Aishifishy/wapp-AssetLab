@@ -94,7 +94,7 @@ class UserEquipmentService extends BaseService
      */
     public function getAvailableEquipmentByCategory($categoryId = null)
     {
-        $query = Equipment::where('status', Equipment::STATUS_AVAILABLE)
+        $query = Equipment::whereIn('status', ['available', 'borrowed', 'unavailable'])
                           ->with('category');
 
         if ($categoryId) {

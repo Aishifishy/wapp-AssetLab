@@ -42,8 +42,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [RuserEquipmentController::class, 'index'])->name('borrow');
         Route::post('/request', [RuserEquipmentController::class, 'request'])->name('request');
         Route::post('/check-availability', [RuserEquipmentController::class, 'checkAvailability'])->name('check-availability');
-        Route::get('/borrowed', [RuserEquipmentController::class, 'borrowed'])->name('borrowed');
-        Route::get('/history', [RuserEquipmentController::class, 'history'])->name('history');
+        Route::get('/status-update', [RuserEquipmentController::class, 'statusUpdate'])->name('status-update');
         Route::patch('/request/{equipmentRequest}/cancel', [RuserEquipmentController::class, 'cancelRequest'])->name('cancel-request');
         Route::post('/return/{equipmentRequest}', [RuserEquipmentController::class, 'return'])->name('return');
     });

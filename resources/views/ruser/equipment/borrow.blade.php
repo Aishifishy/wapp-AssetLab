@@ -41,7 +41,7 @@
                                 <p class="text-gray-600 mt-1">{{ $selectedCategory->description }}</p>
                             @endif
                             <p class="text-sm text-gray-500 mt-2">
-                                {{ $equipment->total() }} {{ Str::plural('item', $equipment->total()) }} available for borrowing
+                                {{ $equipment->total() }} {{ Str::plural('item', $equipment->total()) }} in this category
                             </p>
                         </div>
                         <a href="{{ route('ruser.equipment.borrow') }}" 
@@ -100,8 +100,9 @@
                                     <p class="text-xs text-gray-500">Model: {{ $item->model }}</p>
                                 @endif
                             </div>
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                {{ ($item->status ?? 'available') === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full status-badge
+                                {{ ($item->status ?? 'available') === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}"
+                                data-equipment-id="{{ $item->id }}">
                                 {{ ucfirst($item->status ?? 'Available') }}
                             </span>
                         </div>
@@ -545,24 +546,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Allow advanced booking (queue system)
             if (data.can_queue) {
-                statusDiv.innerHTML += `
-                    <div class="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="text-sm font-medium text-purple-800">Join Queue</h3>
-                                <div class="mt-1 text-sm text-purple-700">
-                                    You can still submit a request to join the queue. You'll be notified when the equipment becomes available.
-                                    ${data.queue_position ? `Current queue position: ${data.queue_position}` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
                 submitBtn.classList.remove('hidden');
                 submitBtn.textContent = 'Join Queue';
                 submitBtn.className = submitBtn.className.replace('bg-green-600 hover:bg-green-700', 'bg-purple-600 hover:bg-purple-700');
@@ -620,28 +603,179 @@ document.addEventListener('DOMContentLoaded', function() {
         availabilityData = null;
     }
     
-    // Form submission
-    document.getElementById('borrowForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Basic validation
-        const purpose = document.getElementById('purpose').value.trim();
-        const fromDate = document.getElementById('requested_from').value;
-        const untilDate = document.getElementById('requested_until').value;
-        
-        if (!purpose || !fromDate || !untilDate) {
-            showError('Please fill in all required fields.');
-            return;
+    // Real-time status polling functionality
+    let statusPollingInterval = null;
+    let pollingEnabled = true;
+    const POLLING_INTERVAL = 30000; // 30 seconds
+    
+    function startStatusPolling() {
+        if (statusPollingInterval) {
+            clearInterval(statusPollingInterval);
         }
         
-        if (new Date(fromDate) >= new Date(untilDate)) {
-            showError('End date must be after start date.');
-            return;
-        }
+        statusPollingInterval = setInterval(async () => {
+            if (!pollingEnabled) return;
+            
+            try {
+                await updateEquipmentStatuses();
+            } catch (error) {
+                console.error('Error updating equipment statuses:', error);
+            }
+        }, POLLING_INTERVAL);
         
-        // Submit the form
-        this.submit();
+        console.log('Real-time status polling started');
+    }
+    
+    function stopStatusPolling() {
+        if (statusPollingInterval) {
+            clearInterval(statusPollingInterval);
+            statusPollingInterval = null;
+            console.log('Real-time status polling stopped');
+        }
+    }
+    
+    async function updateEquipmentStatuses() {
+        try {
+            const response = await fetch('{{ route("ruser.equipment.status-update") }}', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.equipment && Array.isArray(data.equipment)) {
+                updateStatusBadges(data.equipment);
+                updateAvailabilityStatuses(data.equipment);
+            }
+        } catch (error) {
+            console.error('Failed to fetch equipment statuses:', error);
+        }
+    }
+    
+    function updateStatusBadges(equipmentData) {
+        equipmentData.forEach(equipment => {
+            const statusBadge = document.querySelector(`[data-equipment-id="${equipment.id}"].status-badge`);
+            const card = statusBadge?.closest('[data-equipment-name]');
+            
+            if (statusBadge) {
+                const statusClasses = getStatusBadgeClasses(equipment.status);
+                const statusText = getStatusDisplayText(equipment.status);
+                
+                statusBadge.className = `px-2 py-1 text-xs font-semibold rounded-full status-badge ${statusClasses}`;
+                statusBadge.textContent = statusText;
+                
+                if (card) {
+                    card.setAttribute('data-status', equipment.status);
+                }
+            }
+        });
+    }
+    
+    function updateAvailabilityStatuses(equipmentData) {
+        equipmentData.forEach(equipment => {
+            const availabilityStatus = document.querySelector(`[data-equipment-id="${equipment.id}"].availability-status`);
+            
+            if (availabilityStatus) {
+                availabilityStatus.textContent = getAvailabilityStatusText(equipment.status);
+            }
+        });
+    }
+    
+    function getStatusBadgeClasses(status) {
+        const statusMap = {
+            'available': 'bg-green-100 text-green-800',
+            'borrowed': 'bg-yellow-100 text-yellow-800',
+            'unavailable': 'bg-red-100 text-red-800',
+            'maintenance': 'bg-red-100 text-red-800'
+        };
+        
+        return statusMap[status] || 'bg-gray-100 text-gray-800';
+    }
+    
+    function getStatusDisplayText(status) {
+        const statusMap = {
+            'available': 'Available',
+            'borrowed': 'Borrowed',
+            'unavailable': 'Unavailable',
+            'maintenance': 'Under Maintenance'
+        };
+        
+        return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
+    }
+    
+    function getAvailabilityStatusText(status) {
+        const statusMap = {
+            'available': 'Click to check availability',
+            'borrowed': 'Currently borrowed',
+            'unavailable': 'Currently unavailable',
+            'maintenance': 'Under maintenance'
+        };
+        
+        return statusMap[status] || 'Status unknown';
+    }
+    
+    // Pause polling when user is actively interacting
+    function pausePolling() {
+        pollingEnabled = false;
+    }
+    
+    function resumePolling() {
+        pollingEnabled = true;
+    }
+    
+    // Pause polling during user interactions
+    document.addEventListener('focus', pausePolling);
+    document.addEventListener('blur', resumePolling);
+    
+    // Pause polling when modal is open
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('.borrow-btn')) {
+            pausePolling();
+        }
     });
-});
+    
+    // Resume polling when modal is closed
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[data-action="close-modal"]')) {
+            setTimeout(resumePolling, 1000);
+        }
+    });
+    
+    // Start polling when page loads
+    startStatusPolling();
+    
+    // Clean up polling when page unloads
+    window.addEventListener('beforeunload', stopStatusPolling);
+    
+    // Add visual indicator for real-time updates
+    function addRealTimeIndicator() {
+        const indicator = document.createElement('div');
+        indicator.id = 'realtime-indicator';
+        indicator.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs flex items-center space-x-1 z-50';
+        indicator.innerHTML = `
+            <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span>Live</span>
+        `;
+        document.body.appendChild(indicator);
+        
+        // Update indicator every 30 seconds
+        setInterval(() => {
+            const dot = indicator.querySelector('.w-2');
+            if (dot) {
+                dot.classList.add('animate-pulse');
+                setTimeout(() => dot.classList.remove('animate-pulse'), 1000);
+            }
+        }, POLLING_INTERVAL);
+    }
+    
+    // Add the real-time indicator
+    addRealTimeIndicator();
 </script>
 @endpush

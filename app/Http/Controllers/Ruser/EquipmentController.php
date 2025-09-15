@@ -35,9 +35,7 @@ class EquipmentController extends Controller
         }
         
         // Show categories overview
-        $categories = EquipmentCategory::withCount(['equipment' => function ($query) {
-            $query->where('status', Equipment::STATUS_AVAILABLE);
-        }])
+        $categories = EquipmentCategory::withCount(['equipment'])
         ->orderBy('name')
         ->get()
         ->where('equipment_count', '>', 0);
@@ -200,39 +198,43 @@ class EquipmentController extends Controller
     }
 
     /**
-     * Show currently borrowed equipment by the user.
+     * Get real-time status updates for equipment items.
      */
-    public function borrowed(Request $request)
+    public function statusUpdate(Request $request)
     {
-        $perPage = $request->get('per_page', 10);
-        $allowedPerPage = [5, 10, 15, 25, 50, 100];
-        
-        if (!in_array($perPage, $allowedPerPage)) {
-            $perPage = 10;
+        try {
+            // Get all equipment that the user can see (available equipment across all categories)
+            $equipment = Equipment::select('id', 'status', 'updated_at')
+                ->whereIn('status', ['available', 'borrowed', 'unavailable'])
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'status' => $item->status,
+                        'updated_at' => $item->updated_at->toISOString(),
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'equipment' => $equipment,
+                'timestamp' => now()->toISOString()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Equipment status update failed', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch equipment status updates'
+            ], 500);
         }
-
-        $borrowedRequests = $this->equipmentService->getCurrentlyBorrowed(Auth::id(), $perPage);
-
-        return view('ruser.equipment.borrowed', compact('borrowedRequests', 'perPage'));
     }
 
     /**
      * Show pending equipment requests by the user.
      */
-    /**
-     * Show equipment borrowing history for the user.
-     */
-    public function history(Request $request)
-    {
-        $perPage = $request->get('per_page', 15);
-        $allowedPerPage = [5, 10, 15, 25, 50, 100];
-        
-        if (!in_array($perPage, $allowedPerPage)) {
-            $perPage = 15;
-        }
-
-        $historyRequests = $this->equipmentService->getHistory(Auth::id(), $perPage);
-
-        return view('ruser.equipment.history', compact('historyRequests', 'perPage'));
-    }
 }

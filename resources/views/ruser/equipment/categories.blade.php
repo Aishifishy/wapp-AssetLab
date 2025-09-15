@@ -80,7 +80,7 @@
                                         <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z" />
                                         </svg>
-                                        {{ $category->equipment_count }} {{ Str::plural('item', $category->equipment_count) }} available
+                                        {{ $category->equipment->where('status', 'available')->count() }} {{ Str::plural('item', $category->equipment->where('status', 'available')->count()) }} available
                                     </div>
                                     
                                     <div class="text-blue-600 group-hover:text-blue-700 transition-colors">
@@ -104,47 +104,6 @@
                     <p class="mt-2 text-sm text-gray-500">There are currently no equipment categories with available items for borrowing.</p>
                 </div>
             @endif
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="bg-white shadow-sm rounded-lg">
-        <div class="p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="{{ route('ruser.equipment.borrowed') }}" 
-                   class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                    <svg class="w-6 h-6 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <div>
-                        <div class="font-medium text-gray-900">My Borrowed Items</div>
-                        <div class="text-sm text-gray-600">View currently borrowed equipment</div>
-                    </div>
-                </a>
-
-                <a href="{{ route('ruser.equipment.history') }}" 
-                   class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-                    <svg class="w-6 h-6 text-green-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                        <div class="font-medium text-gray-900">Borrowing History</div>
-                        <div class="text-sm text-gray-600">View past equipment requests</div>
-                    </div>
-                </a>
-
-                <a href="{{ route('dashboard') }}" 
-                   class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <svg class="w-6 h-6 text-gray-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                    </svg>
-                    <div>
-                        <div class="font-medium text-gray-900">Dashboard</div>
-                        <div class="text-sm text-gray-600">Return to main dashboard</div>
-                    </div>
-                </a>
-            </div>
         </div>
     </div>
 </div>
