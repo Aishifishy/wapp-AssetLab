@@ -97,7 +97,7 @@
                 <i class="fas fa-user"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">Profile</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
@@ -224,6 +224,12 @@
                     <strong>{{ Auth::guard('admin')->user()->name ?? 'Admin' }}</strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                    <li>
+                        <a class="dropdown-item" href="{{ route('admin.profile.edit') }}">
+                            <i class="fas fa-user-edit me-2"></i>Profile
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
                     <li>
                         <form method="POST" action="{{ route('admin.logout') }}">
                             @csrf

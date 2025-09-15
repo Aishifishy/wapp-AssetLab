@@ -10,6 +10,8 @@ use App\Models\AcademicTerm;
 use App\Models\Ruser;
 use App\Services\LaboratoryReservationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LaboratoryReservationStatusChanged;
 
 class LaboratoryReservationController extends Controller
 {
@@ -47,12 +49,17 @@ class LaboratoryReservationController extends Controller
      */
     public function approve(Request $request, LaboratoryReservation $reservation)
     {
+        $previousStatus = $reservation->status;
         $result = $this->reservationService->approveReservationWithChecks($reservation);
 
         if (!$result['success']) {
             return redirect()->route('admin.laboratory.reservations.show', $reservation)
                 ->with('error', $result['message']);
         }
+
+        // Send email notification to user about approval
+        $reservation->refresh(); // Refresh to get updated status
+        Mail::to($reservation->user->email)->send(new LaboratoryReservationStatusChanged($reservation, $previousStatus));
 
         return redirect()->route('admin.laboratory.reservations.show', $reservation)
             ->with('success', $result['message']);
@@ -67,12 +74,17 @@ class LaboratoryReservationController extends Controller
             'rejection_reason' => 'required|string|max:500',
         ]);
 
+        $previousStatus = $reservation->status;
         $result = $this->reservationService->rejectReservationWithReason($reservation, $validated['rejection_reason']);
 
         if (!$result['success']) {
             return redirect()->route('admin.laboratory.reservations.show', $reservation)
                 ->with('error', $result['message']);
         }
+
+        // Send email notification to user about rejection
+        $reservation->refresh(); // Refresh to get updated status
+        Mail::to($reservation->user->email)->send(new LaboratoryReservationStatusChanged($reservation, $previousStatus));
 
         return redirect()->route('admin.laboratory.reservations.show', $reservation)
             ->with('success', $result['message']);

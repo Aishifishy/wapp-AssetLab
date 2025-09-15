@@ -57,10 +57,9 @@ trait ControllerHelpers
                 throw new ValidationException($validator);
             }
             
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput()
-                ->throwResponse();
+            // For non-JSON requests, throw a ValidationException as well
+            // since we want to handle it properly in the controller
+            throw new ValidationException($validator);
         }
         
         return $validator->validated();

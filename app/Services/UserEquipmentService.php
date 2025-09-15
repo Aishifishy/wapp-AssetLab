@@ -7,6 +7,7 @@ use App\Models\Equipment;
 use App\Services\EquipmentConflictService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -197,12 +198,24 @@ class UserEquipmentService extends BaseService
      */
     public function checkAvailabilityForTimeSlot($equipmentId, $requestedFrom, $requestedUntil, $userId = null)
     {
-        $equipment = Equipment::findOrFail($equipmentId);
-        $from = Carbon::parse($requestedFrom);
-        $until = Carbon::parse($requestedUntil);
+        Log::info('UserEquipmentService::checkAvailabilityForTimeSlot called', [
+            'equipment_id' => $equipmentId,
+            'requested_from' => $requestedFrom,
+            'requested_until' => $requestedUntil,
+            'user_id' => $userId
+        ]);
 
-        // Check if equipment is available for the requested time
-        $availability = $this->conflictService->checkAvailability($equipmentId, $requestedFrom, $requestedUntil);
+        try {
+            $equipment = Equipment::findOrFail($equipmentId);
+            Log::info('Equipment found', ['equipment' => $equipment->toArray()]);
+            
+            $from = Carbon::parse($requestedFrom);
+            $until = Carbon::parse($requestedUntil);
+            Log::info('Dates parsed', ['from' => $from->toDateTimeString(), 'until' => $until->toDateTimeString()]);
+
+            // Check if equipment is available for the requested time
+            $availability = $this->conflictService->checkAvailability($equipmentId, $requestedFrom, $requestedUntil);
+            Log::info('Conflict service result', ['availability' => $availability]);
         
         if ($availability['available']) {
             return [
@@ -221,7 +234,7 @@ class UserEquipmentService extends BaseService
         $queuePosition = null;
         
         if ($canQueue) {
-            $queuePosition = $this->conflictService->getQueuePosition($equipmentId, $from);
+            $queuePosition = $this->conflictService->getQueuePosition($equipmentId, $requestedFrom);
         }
 
         return [
@@ -240,6 +253,13 @@ class UserEquipmentService extends BaseService
             'queue_position' => $queuePosition,
             'can_book' => $canQueue // Allow booking even if there's a conflict (queue system)
         ];
+        } catch (\Exception $e) {
+            Log::error('Error in checkAvailabilityForTimeSlot', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     /**

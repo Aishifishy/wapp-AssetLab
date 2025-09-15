@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\LaboratoryReservation;
+use App\Models\EquipmentRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -10,19 +10,19 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class LaboratoryReservationStatusChanged extends Mailable
+class EquipmentRequestStatusChanged extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $reservation;
+    public $equipmentRequest;
     public $previousStatus;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(LaboratoryReservation $reservation, $previousStatus = null)
+    public function __construct(EquipmentRequest $equipmentRequest, $previousStatus = null)
     {
-        $this->reservation = $reservation;
+        $this->equipmentRequest = $equipmentRequest;
         $this->previousStatus = $previousStatus;
     }
 
@@ -31,16 +31,16 @@ class LaboratoryReservationStatusChanged extends Mailable
      */
     public function envelope(): Envelope
     {
-        $statusText = match($this->reservation->status) {
+        $statusText = match($this->equipmentRequest->status) {
             'approved' => 'Approved',
             'rejected' => 'Rejected',
+            'returned' => 'Equipment Returned',
             'cancelled' => 'Cancelled',
-            'completed' => 'Completed',
             default => 'Status Updated'
         };
 
         return new Envelope(
-            subject: 'Laboratory Reservation ' . $statusText . ' - ' . $this->reservation->laboratory->name,
+            subject: 'Equipment Request ' . $statusText . ' - ' . $this->equipmentRequest->equipment->name,
         );
     }
 
@@ -50,11 +50,11 @@ class LaboratoryReservationStatusChanged extends Mailable
     public function content(): Content
     {
         return new Content(
-            html: 'emails.laboratory.reservation-status-changed',
+            html: 'emails.equipment.request-status-changed',
             with: [
-                'reservation' => $this->reservation,
-                'user' => $this->reservation->user,
-                'laboratory' => $this->reservation->laboratory,
+                'equipmentRequest' => $this->equipmentRequest,
+                'user' => $this->equipmentRequest->user,
+                'equipment' => $this->equipmentRequest->equipment,
                 'previousStatus' => $this->previousStatus,
             ]
         );

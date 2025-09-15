@@ -30,18 +30,19 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
-    Route::get('/dashboard', [RDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [RDashboardController::class, 'index'])->name('ruser.dashboard');
 
     // Profile Routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('ruser.profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('ruser.profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('ruser.profile.destroy');
 
     // Equipment Borrowing Routes
     Route::prefix('equipment')->name('ruser.equipment.')->group(function () {
         Route::get('/', [RuserEquipmentController::class, 'index'])->name('borrow');
         Route::post('/request', [RuserEquipmentController::class, 'request'])->name('request');
         Route::post('/check-availability', [RuserEquipmentController::class, 'checkAvailability'])->name('check-availability');
+        Route::post('/test-availability', [RuserEquipmentController::class, 'testAvailability'])->name('test-availability');
         Route::get('/status-update', [RuserEquipmentController::class, 'statusUpdate'])->name('status-update');
         Route::patch('/request/{equipmentRequest}/cancel', [RuserEquipmentController::class, 'cancelRequest'])->name('cancel-request');
         Route::post('/return/{equipmentRequest}', [RuserEquipmentController::class, 'return'])->name('return');
@@ -86,6 +87,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Admin Profile Routes
+        Route::get('profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'update'])->name('profile.update');
+        Route::delete('profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'destroy'])->name('profile.destroy');
 
         // Academic Year Management
         Route::prefix('academic')->name('academic.')->group(function () {

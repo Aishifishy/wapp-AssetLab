@@ -12,6 +12,10 @@ use App\Services\UserLaboratoryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LaboratoryReservationSubmitted;
+use App\Mail\LaboratoryReservationReceived;
+use App\Models\Radmin;
 
 class LaboratoryReservationController extends Controller
 {
@@ -54,6 +58,15 @@ class LaboratoryReservationController extends Controller
         $result = $this->reservationService->createReservation($laboratory, $validatedData);
         
         if ($result['success']) {
+            // Send email notification to the user
+            Mail::to(Auth::user()->email)->send(new LaboratoryReservationSubmitted($result['reservation']));
+            
+            // Send email notification to admins
+            $adminEmails = Radmin::pluck('email')->toArray();
+            if (!empty($adminEmails)) {
+                Mail::to($adminEmails)->send(new LaboratoryReservationReceived($result['reservation']));
+            }
+            
             return redirect()->route('ruser.laboratory.reservations.confirmation', $result['reservation'])
                 ->with('success', $result['message']);
         } 

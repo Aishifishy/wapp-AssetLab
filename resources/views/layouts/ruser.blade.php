@@ -155,7 +155,7 @@
                     <div class="flex items-center">
                         <!-- Enhanced Logo -->
                         <div class="flex-shrink-0 flex items-center">
-                            <a href="{{ route('dashboard') }}" class="flex items-center group">
+                            <a href="{{ route('ruser.dashboard') }}" class="flex items-center group">
                                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -172,8 +172,8 @@
                         
                         <!-- Modern Navigation Links -->
                         <div class="hidden md:flex md:space-x-1 md:ml-10">
-                            <a href="{{ route('dashboard') }}" 
-                               class="nav-link-modern inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold {{ request()->routeIs('dashboard') ? 'active bg-blue-50 text-blue-700' : 'text-gray-600' }}">
+                            <a href="{{ route('ruser.dashboard') }}" 
+                               class="nav-link-modern inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold {{ request()->routeIs('ruser.dashboard') ? 'active bg-blue-50 text-blue-700' : 'text-gray-600' }}">
                                 <i class="fas fa-tachometer-alt mr-2"></i>
                                 Dashboard
                             </a>
@@ -218,7 +218,7 @@
                                 
                                 <ul class="dropdown-menu shadow-xl mt-2 glass-card rounded-xl border-0 animate-slide-down" aria-labelledby="dropdownUser1">
                                     <li>
-                                        <a href="{{ route('profile.edit') }}" class="dropdown-item flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors">
+                                        <a href="{{ route('ruser.profile.edit') }}" class="dropdown-item flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors">
                                             <i class="fas fa-user w-5 h-5 mr-3 text-blue-500"></i>
                                             Profile Settings
                                         </a>
@@ -255,8 +255,8 @@
                 <!-- Enhanced Mobile menu -->
                 <div class="mobile-menu hidden md:hidden glass-card mx-4 my-4 rounded-2xl animate-slide-down">
                     <div class="p-4 space-y-2">
-                        <a href="{{ route('dashboard') }}" 
-                           class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('dashboard') ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600' }}">
+                        <a href="{{ route('ruser.dashboard') }}" 
+                           class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('ruser.dashboard') ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600' }}">
                             <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
                             <span class="font-medium">Dashboard</span>
                         </a>
@@ -285,7 +285,7 @@
                             </div>
                         </div>
                         <div class="space-y-2">
-                            <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all duration-300">
+                            <a href="{{ route('ruser.profile.edit') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all duration-300">
                                 <i class="fas fa-user w-5 h-5 mr-3"></i>
                                 <span class="font-medium">Profile Settings</span>
                             </a>
@@ -312,7 +312,7 @@
                     </div>
                     <!-- Breadcrumb could go here -->
                     <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
-                        <a href="{{ route('dashboard') }}" class="hover:text-blue-600 transition-colors">Home</a>
+                        <a href="{{ route('ruser.dashboard') }}" class="hover:text-blue-600 transition-colors">Home</a>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>

@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
+use App\Mail\UserRegistrationWelcome;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -132,6 +134,9 @@ class UnifiedAuthController extends Controller
             'id' => $user->id,
             'role' => $user->role
         ]);
+
+        // Send welcome email
+        Mail::to($user->email)->send(new UserRegistrationWelcome($user));
 
         Auth::guard('web')->login($user);
 

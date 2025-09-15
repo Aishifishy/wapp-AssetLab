@@ -14,7 +14,9 @@ use App\Models\Ruser;
 use App\Services\ScheduleOverrideService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use App\Mail\ScheduleOverrideNotification;
 
 class LaboratoryController extends Controller
 {
@@ -341,6 +343,18 @@ class LaboratoryController extends Controller
 
         try {
             $override = $this->overrideService->createOverride($validated);
+
+            // Find affected reservations and notify users
+            $affectedReservations = LaboratoryReservation::where('laboratory_id', $validated['laboratory_id'])
+                ->whereDate('start_datetime', $validated['override_date'])
+                ->where('status', 'approved')
+                ->with('user')
+                ->get();
+
+            // Send notifications to affected users
+            foreach ($affectedReservations as $reservation) {
+                Mail::to($reservation->user->email)->send(new ScheduleOverrideNotification($override, [$reservation], $reservation->user));
+            }
 
             return redirect()->route('admin.laboratory.schedule-overrides')
                            ->with('success', 'Schedule override created successfully.');

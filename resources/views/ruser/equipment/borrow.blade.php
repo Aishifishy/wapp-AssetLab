@@ -395,6 +395,10 @@ document.addEventListener('DOMContentLoaded', function() {
             currentEquipmentStatus = e.target.getAttribute('data-equipment-status');
             const equipmentName = e.target.getAttribute('data-equipment-name');
             
+            console.log('Borrow button clicked for equipment:', equipmentName);
+            console.log('Equipment ID set to:', currentEquipmentId);
+            console.log('Equipment Status:', currentEquipmentStatus);
+            
             openBorrowModal(currentEquipmentId, equipmentName, currentEquipmentStatus);
         }
     });
@@ -432,8 +436,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Check Availability button
-    document.getElementById('checkAvailabilityBtn').addEventListener('click', checkAvailability);
-    
+    document.getElementById('checkAvailabilityBtn').addEventListener('click', function() {
+        console.log('Check availability button clicked');
+        checkAvailability();
+    });
+
     // Auto-check availability when dates change
     document.getElementById('requested_from').addEventListener('change', autoCheckAvailability);
     document.getElementById('requested_until').addEventListener('change', autoCheckAvailability);
@@ -498,6 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Restore button state
             checkBtn.textContent = originalText;
             checkBtn.disabled = false;
+            console.log('Button state restored');
         }
     }
     
@@ -849,5 +857,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add the real-time indicator
     addRealTimeIndicator();
+});
 </script>
 @endpush

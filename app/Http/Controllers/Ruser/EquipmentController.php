@@ -11,6 +11,10 @@ use App\Services\UserEquipmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EquipmentRequestSubmitted;
+use App\Mail\EquipmentRequestReceived;
+use App\Models\Radmin;
 
 class EquipmentController extends Controller
 {
@@ -35,7 +39,9 @@ class EquipmentController extends Controller
         }
         
         // Show categories overview
-        $categories = EquipmentCategory::withCount(['equipment'])
+        $categories = EquipmentCategory::withCount(['equipment' => function ($query) {
+            $query->where('status', Equipment::STATUS_AVAILABLE);
+        }])
         ->orderBy('name')
         ->get()
         ->where('equipment_count', '>', 0);
@@ -74,6 +80,18 @@ class EquipmentController extends Controller
                 return back()->with('error', $result['message']);
             }
 
+            // Send email notifications
+            $equipmentRequest = $result['request']; // Assuming the service returns the created request
+            
+            // Send confirmation email to user
+            Mail::to(Auth::user()->email)->send(new EquipmentRequestSubmitted($equipmentRequest));
+            
+            // Send notification email to admins
+            $adminEmails = Radmin::pluck('email')->toArray();
+            if (!empty($adminEmails)) {
+                Mail::to($adminEmails)->send(new EquipmentRequestReceived($equipmentRequest));
+            }
+
             return redirect()->route('dashboard')
                 ->with('success', $result['message']);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -88,6 +106,8 @@ class EquipmentController extends Controller
             return back()->with('error', 'An error occurred while processing your request. Please try again.');
         }
     }
+
+
 
     /**
      * Check equipment availability for booking.
@@ -197,6 +217,42 @@ class EquipmentController extends Controller
             ->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
+
+
+    /**
+     * Show currently borrowed equipment by the user.
+     */
+    public function borrowed(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 10;
+        }
+
+        $borrowedRequests = $this->equipmentService->getCurrentlyBorrowed(Auth::id(), $perPage);
+
+        return view('ruser.equipment.borrowed', compact('borrowedRequests', 'perPage'));
+    }
+
+    /**
+     * Show equipment borrowing history for the user.
+     */
+    public function history(Request $request)
+    {
+        $perPage = $request->get('per_page', 15);
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 15;
+        }
+
+        $historyRequests = $this->equipmentService->getHistory(Auth::id(), $perPage);
+
+        return view('ruser.equipment.history', compact('historyRequests', 'perPage'));
+    }
+
     /**
      * Get real-time status updates for equipment items.
      */
@@ -233,8 +289,4 @@ class EquipmentController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Show pending equipment requests by the user.
-     */
 }

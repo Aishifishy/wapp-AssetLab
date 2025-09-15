@@ -9,8 +9,8 @@
                 @auth
                     <!-- Navigation Links for Authenticated Users -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <a href="{{ route('dashboard') }}" 
-                           class="nav-link {{ request()->routeIs('dashboard') ? 'text-accent-dark' : 'text-primary' }}">
+                        <a href="{{ route('ruser.dashboard') }}" 
+                           class="nav-link {{ request()->routeIs('ruser.dashboard') ? 'text-accent-dark' : 'text-primary' }}">
                             Dashboard
                         </a>
                         @if(auth()->guard('admin')->check())
@@ -46,7 +46,7 @@
                                 </button>                                <div x-show="open" 
                                      class="header-dropdown-menu"
                                      x-cloak>
-                                    <a href="{{ route('profile.edit') }}" 
+                                    <a href="{{ route('ruser.profile.edit') }}" 
                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         Profile
                                     </a>

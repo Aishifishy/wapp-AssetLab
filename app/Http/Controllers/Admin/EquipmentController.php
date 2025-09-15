@@ -11,8 +11,10 @@ use App\Models\EquipmentRequest;
 use App\Models\EquipmentCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Mail\EquipmentRequestStatusChanged;
 
 class EquipmentController extends Controller
 {
@@ -176,11 +178,16 @@ class EquipmentController extends Controller
 
     public function approveRequest(EquipmentRequest $request)
     {
+        $previousStatus = $request->status;
         $result = $this->equipmentService->approveRequest($request);
 
         if (!$result['success']) {
             return back()->with('error', $result['message']);
         }
+
+        // Send email notification to user about approval
+        $request->refresh(); // Refresh to get updated status
+        Mail::to($request->user->email)->send(new EquipmentRequestStatusChanged($request, $previousStatus));
 
         // Include information about auto-rejected requests if any
         $message = $result['message'];
@@ -211,12 +218,17 @@ class EquipmentController extends Controller
             return back()->with('error', 'This request cannot be rejected.');
         }
 
+        $previousStatus = $request->status;
+
         $request->update([
             'status' => EquipmentRequest::STATUS_REJECTED,
             'rejected_at' => now(),
             'rejected_by' => auth('admin')->id(),
             'rejection_reason' => $validated['rejection_reason']
         ]);
+
+        // Send email notification to user about rejection
+        Mail::to($request->user->email)->send(new EquipmentRequestStatusChanged($request, $previousStatus));
 
         return back()->with('success', 'Equipment request rejected successfully.');
     }
@@ -239,11 +251,16 @@ class EquipmentController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
+        $previousStatus = $request->status;
         $result = $this->equipmentService->returnEquipment($request, $validatedData);
 
         if (!$result['success']) {
             return back()->with('error', $result['message']);
         }
+
+        // Send email notification to user about equipment return confirmation
+        $request->refresh(); // Refresh to get updated status
+        Mail::to($request->user->email)->send(new EquipmentRequestStatusChanged($request, $previousStatus));
 
         return back()->with('success', $result['message']);
     }
