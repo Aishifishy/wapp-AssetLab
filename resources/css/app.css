@@ -264,9 +264,199 @@ body {
     background: linear-gradient(135deg, #EFF6FF 0%, #FEFCE8 100%);
 }
 
+/* Background Grid Pattern */
+.bg-grid-pattern {
+    background-image:
+        radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.15) 1px, transparent 0);
+    background-size: 20px 20px;
+}
+
+/* Premium Gradient Animations */
+@keyframes gradient-x {
+    0%, 100% {
+        background-size: 200% 200%;
+        background-position: left center;
+    }
+    50% {
+        background-size: 200% 200%;
+        background-position: right center;
+    }
+}
+
+.animate-gradient-x {
+    animation: gradient-x 3s ease infinite;
+    background-size: 200% 200%;
+}
+
+/* Enhanced Button Effects */
+.btn-premium {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.6), 0 10px 25px -5px rgba(59, 130, 246, 0.2);
+}
+
+.btn-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-premium:hover::before {
+    left: 100%;
+}
+
+/* Glassmorphism Effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Premium Card Hover Effects */
+.premium-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.premium-card:hover {
+    transform: translateY(-8px) rotateX(2deg);
+    box-shadow:
+        0 25px 50px -12px rgba(59, 130, 246, 0.25),
+        0 0 0 1px rgba(59, 130, 246, 0.1);
+}
+
+/* Floating Animation */
+@keyframes float-gentle {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-10px) rotate(1deg); }
+    66% { transform: translateY(-5px) rotate(-1deg); }
+}
+
+.animate-float-gentle {
+    animation: float-gentle 6s ease-in-out infinite;
+}
+
+/* Pulse Glow Effect */
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.4);
+    }
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Text Gradient Effects */
+.text-gradient-primary {
+    background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-secondary {
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Enhanced Shadow System */
+.shadow-premium {
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.12),
+        0 1px 2px rgba(0, 0, 0, 0.24),
+        0 20px 40px -10px rgba(59, 130, 246, 0.1);
+}
+
+.shadow-premium-lg {
+    box-shadow:
+        0 10px 25px -5px rgba(59, 130, 246, 0.1),
+        0 10px 10px -5px rgba(59, 130, 246, 0.04),
+        0 25px 50px -12px rgba(59, 130, 246, 0.25);
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Enhanced Focus States */
+.focus-premium:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3B82F6;
+}
+
+/* Loading States */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Premium Typography */
+.font-display {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    letter-spacing: -0.02em;
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 768px) {
+    .premium-card:hover {
+        transform: translateY(-4px) rotateX(0deg);
+    }
+
+    .btn-premium:hover {
+        transform: translateY(-1px) scale(1.01);
+    }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+    .animate-gradient-x,
+    .animate-float-gentle,
+    .animate-pulse-glow {
+        animation: none;
+    }
+
+    .premium-card,
+    .btn-premium {
+        transition: none;
+    }
+}
+
 /* Custom Button Styles */
 .btn-primary {
-    @apply inline-flex items-center border border-transparent text-base font-medium rounded-lg;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid transparent;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
     background-color: var(--color-primary);
     color: white;
     transition: all 0.3s ease-in-out;
@@ -285,7 +475,12 @@ body {
 }
 
 .btn-secondary {
-    @apply inline-flex items-center border text-base font-medium rounded-lg;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
     background-color: white;
     border-color: var(--color-accent);
     color: var(--color-accent-dark);
@@ -316,7 +511,8 @@ body {
 
 /* Navigation Styles */
 .nav-link {
-    @apply text-sm font-medium;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--color-primary-dark);
     transition: all 0.2s ease-in-out;
 }
@@ -351,7 +547,9 @@ body {
 
 /* Hero Section Styles */
 .hero-text {
-    @apply text-4xl font-extrabold mb-4;
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
     background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-dark) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -360,9 +558,11 @@ body {
 
 /* Custom Focus Styles */
 .focus-ring-custom {
-    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-    --tw-ring-color: var(--color-primary-light);
+    outline: none;
+    --tw-ring-offset-width: 2px;
     --tw-ring-offset-color: var(--color-accent-light);
+    --tw-ring-color: var(--color-primary-light);
+    box-shadow: var(--tw-ring-offset-width) 0 0 0 var(--tw-ring-offset-color), var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
 }
 
 /* Admin Layout Styles */

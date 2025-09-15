@@ -140,7 +140,7 @@
         </div>
     </div>
     <div class="footer">
-        ResourEase Equipment Management System - Generated: {{ $generatedAt }}
+        AssetLab Equipment Management System - Generated: {{ $generatedAt }}
     </div>
 </body>
 </html>

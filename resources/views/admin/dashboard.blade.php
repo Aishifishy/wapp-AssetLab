@@ -76,23 +76,39 @@
 <div class="mt-8">
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <h3 class="text-xl font-semibold">Recent Activities</h3>
                 
-                <!-- Activity Filter Buttons -->
-                <div class="inline-flex rounded-md shadow-sm">
-                    <a href="{{ route('admin.dashboard', ['activity_type' => 'all']) }}" 
-                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border border-gray-300 rounded-l-md">
-                        All
-                    </a>
-                    <a href="{{ route('admin.dashboard', ['activity_type' => 'equipment']) }}" 
-                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'equipment' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300">
-                        Equipment
-                    </a>
-                    <a href="{{ route('admin.dashboard', ['activity_type' => 'laboratory']) }}" 
-                       class="px-4 py-2 text-sm font-medium {{ $activityType == 'laboratory' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300 rounded-r-md">
-                        Laboratory
-                    </a>
+                <div class="d-flex align-items-center space-x-4">
+                    <!-- Per Page Selector -->
+                    <div class="flex items-center space-x-2">
+                        <label for="perPageSelect" class="text-sm text-gray-600">Show:</label>
+                        <select id="perPageSelect" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-20">
+                            <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
+                            <option value="10" {{ request('per_page') == 10 || !request('per_page') ? 'selected' : '' }}>10</option>
+                            <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                        <span class="text-sm text-gray-600">per page</span>
+                    </div>
+                    
+                    <!-- Activity Filter Buttons -->
+                    <div class="inline-flex rounded-md shadow-sm">
+                        <a href="{{ route('admin.dashboard', array_merge(request()->query(), ['activity_type' => 'all', 'page' => 1])) }}" 
+                           class="px-4 py-2 text-sm font-medium {{ $activityType == 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border border-gray-300 rounded-l-md">
+                            All
+                        </a>
+                        <a href="{{ route('admin.dashboard', array_merge(request()->query(), ['activity_type' => 'equipment', 'page' => 1])) }}" 
+                           class="px-4 py-2 text-sm font-medium {{ $activityType == 'equipment' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300">
+                            Equipment
+                        </a>
+                        <a href="{{ route('admin.dashboard', array_merge(request()->query(), ['activity_type' => 'laboratory', 'page' => 1])) }}" 
+                           class="px-4 py-2 text-sm font-medium {{ $activityType == 'laboratory' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }} border-t border-b border-r border-gray-300 rounded-r-md">
+                            Laboratory
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -167,14 +183,38 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination -->
+            @if($recentActivities instanceof \Illuminate\Pagination\LengthAwarePaginator && $recentActivities->hasPages())
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-sm text-gray-600">
+                    Showing {{ $recentActivities->firstItem() ?? 0 }} to {{ $recentActivities->lastItem() ?? 0 }} of {{ $recentActivities->total() }} results
+                </div>
+                <div>
+                    {{ $recentActivities->appends(request()->query())->links() }}
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
 
 @endsection
 
-<!-- @push('scripts')
+@push('scripts')
 <script>
     // Add any dashboard-specific JavaScript here
+    // Per page functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const perPageSelect = document.getElementById('perPageSelect');
+        if (perPageSelect) {
+            perPageSelect.addEventListener('change', function() {
+                const url = new URL(window.location);
+                url.searchParams.set('per_page', this.value);
+                url.searchParams.delete('page'); // Reset to first page when changing per_page
+                window.location.href = url.toString();
+            });
+        }
+    });
 </script>
-@endpush  -->
+@endpush

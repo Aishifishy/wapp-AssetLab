@@ -38,7 +38,7 @@
     <!-- Print Only Header -->
     <div class="print-only mb-6 text-center border-b pb-4">
         <h1 class="text-2xl font-bold text-gray-900">Laboratory Reservation Confirmation</h1>
-        <p class="text-sm text-gray-600 mt-1">wappResourEase - Resource Management System</p>
+        <p class="text-sm text-gray-600 mt-1">wappAssetLab - Resource Management System</p>
         <p class="text-xs text-gray-500 mt-1">Printed on: {{ now()->format('F d, Y \a\t g:i A') }}</p>
     </div>
 

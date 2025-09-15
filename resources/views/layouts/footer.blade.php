@@ -1,82 +1,112 @@
-<footer class="bg-white border-t border-gray-200">
-    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <!-- Logo and Description -->
-            <div class="col-span-1 md:col-span-2">
-                <h3 class="text-xl font-bold header-gradient mb-4">ResourEase</h3>
-                <p class="text-gray-600 mb-4">
-                    Streamlining equipment management and resource 
-                    tracking for NU Laguna's ITSO.
+<footer class="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-blue-600/5 to-transparent rounded-full"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            <!-- Brand Section -->
+            <div class="lg:col-span-1">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">AssetLab</h3>
+                        <div class="w-8 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full mt-1"></div>
+                    </div>
+                </div>
+
+                <p class="text-gray-300 mb-6 leading-relaxed">
+                    Integrated equipment tracking, laboratory reservations, and automated academic resource management for educational institutions.
                 </p>
-                <!-- <div class="flex space-x-4">
-                    <a href="#" class="text-primary hover:text-accent transition-colors">
-                        <span class="sr-only">Facebook</span>
-                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd"/>
-                        </svg>
-                    </a>
-                    <a href="#" class="text-primary hover:text-accent transition-colors">
-                        <span class="sr-only">Twitter</span>
-                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"/>
-                        </svg>
-                    </a>
-                </div> -->
             </div>
 
             <!-- Quick Links -->
-            <div>
-                <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Quick Links</h4>
-                <ul class="space-y-3">
+            <div class="lg:col-span-1">
+                <h4 class="text-lg font-semibold text-white mb-6 relative">
+                    Platform
+                    <div class="absolute bottom-0 left-0 w-6 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full"></div>
+                </h4>
+                <ul class="space-y-4">
                     <li>
-                        <a href="{{ route('login') }}" class="text-gray-600 hover:text-primary transition-colors">
+                        <a href="{{ route('login') }}" class="text-gray-300 hover:text-white transition-all duration-300 flex items-center group">
+                            <svg class="w-4 h-4 mr-3 text-blue-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                            </svg>
                             Login
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('register') }}" class="text-gray-600 hover:text-primary transition-colors">
+                        <a href="{{ route('register') }}" class="text-gray-300 hover:text-white transition-all duration-300 flex items-center group">
+                            <svg class="w-4 h-4 mr-3 text-blue-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                            </svg>
                             Register
                         </a>
                     </li>
-                    <li>
-                        <a href="#" class="text-gray-600 hover:text-primary transition-colors">
-                            About Us
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="text-gray-600 hover:text-primary transition-colors">
-                            Contact
-                        </a>
-                    </li>
                 </ul>
             </div>
 
-            <!-- Contact Info -->
-            <div>
-                <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Contact</h4>
-                <ul class="space-y-3">
-                    <li class="flex items-center text-gray-600">
-                        <svg class="h-5 w-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Contact & Support -->
+            <div class="lg:col-span-1">
+                <h4 class="text-lg font-semibold text-white mb-6 relative">
+                    Contact & Support
+                    <div class="absolute bottom-0 left-0 w-6 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full"></div>
+                </h4>
+
+                <div class="space-y-6">
+                    <!-- Contact Info -->
+                    <div class="flex items-start text-gray-300">
+                        <svg class="h-6 w-6 mr-4 text-blue-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
-                        itso@nu-laguna.edu.ph
-                    </li>                    
-                    <li class="flex items-center text-gray-600">
-                        <svg class="h-5 w-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div>
+                            <div class="font-semibold text-white mb-1">Email Support</div>
+                            <div class="text-sm leading-relaxed">itso@nu-laguna.edu.ph</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start text-gray-300">
+                        <svg class="h-6 w-6 mr-4 text-blue-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
-                        KM. 53, Pan Philippine Highway, Brgy. Milagrosa, Calamba City, Laguna, Philippines 4027 
-                    </li>
-                </ul>
+                        <div>
+                            <div class="font-semibold text-white mb-1">Location</div>
+                            <div class="text-sm leading-relaxed">KM. 53, Pan Philippine Highway<br>Brgy. Milagrosa, Calamba City<br>Laguna, Philippines 4027</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Copyright -->
-        <div class="mt-8 pt-8 border-t border-gray-200">
-            <p class="text-center text-gray-400 text-sm">
-                &copy; {{ date('Y') }} ResourEase. All rights reserved.
-            </p>
+        <!-- Bottom Section -->
+        <div class="mt-16 pt-8 border-t border-white/10">
+            <div class="flex flex-col lg:flex-row justify-between items-center">
+                <div class="flex flex-col lg:flex-row items-center space-y-4 lg:space-y-0 lg:space-x-6 mb-6 lg:mb-0">
+                    <p class="text-gray-400 text-sm">
+                        &copy; {{ date('Y') }} AssetLab. All rights reserved. | National University - Laguna
+                    </p>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-400 text-sm">Powered by</span>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <span class="text-white font-semibold">Laravel</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </footer> 

@@ -217,7 +217,7 @@
     @endforeach
     
     <div class="footer">
-        ResourEase Equipment Management System - Generated on {{ $generatedAt }}
+        AssetLab Equipment Management System - Generated on {{ $generatedAt }}
     </div>
 </body>
 </html>

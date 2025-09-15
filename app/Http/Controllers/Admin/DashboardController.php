@@ -30,6 +30,9 @@ class DashboardController extends Controller
         
         // Get activity type from request (default is 'all')
         $activityType = $request->input('activity_type', 'all');
+        
+        // Get per_page parameter (default is 10)
+        $perPage = request('per_page', 10);
 
         // Get equipment statistics
         $totalEquipment = Equipment::count();
@@ -64,9 +67,8 @@ class DashboardController extends Controller
         if ($activityType == 'all' || $activityType == 'equipment') {
             $equipmentActivities = \App\Models\EquipmentRequest::with(['user', 'equipment', 'approvedBy', 'rejectedBy', 'checkedOutBy'])
                 ->latest()
-                ->take(10)
-                ->get()
-                ->map(function ($request) {
+                ->paginate($perPage)
+                ->through(function ($request) {
                     $statusClass = '';
                     $description = '';
                     $adminInfo = '';
@@ -145,9 +147,8 @@ class DashboardController extends Controller
         if ($activityType == 'all' || $activityType == 'laboratory') {
             $labActivities = \App\Models\LaboratoryReservation::with(['user', 'laboratory', 'approvedBy', 'rejectedBy'])
                 ->latest()
-                ->take(10)
-                ->get()
-                ->map(function ($reservation) {
+                ->paginate($perPage)
+                ->through(function ($reservation) {
                     $statusClass = '';
                     $description = '';
                     $adminInfo = '';
@@ -203,9 +204,20 @@ class DashboardController extends Controller
             }
         }
         
-        // Sort activities if we have multiple types and limit to 10
+        // Sort activities if we have multiple types and limit to per_page
         if ($activityType == 'all') {
-            $recentActivities = $recentActivities->sortByDesc('created_at')->take(10)->values();
+            $recentActivities = $recentActivities->sortByDesc('created_at')->forPage($request->input('page', 1), $perPage)->values();
+            
+            // Create a manual paginator for the combined results
+            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                $recentActivities,
+                $recentActivities->count() >= $perPage ? $perPage * 10 : $recentActivities->count(), // Total count approximation
+                $perPage,
+                $request->input('page', 1),
+                ['path' => $request->url(), 'pageName' => 'page']
+            );
+            $paginator->appends($request->query());
+            $recentActivities = $paginator;
         }
 
         return view('admin.dashboard', compact(

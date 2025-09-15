@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'ResourEase') }} - @yield('title')</title>
+    <title>{{ config('app.name', 'AssetLab') }} - @yield('title')</title>
 
     <!-- Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -32,7 +32,7 @@
                         <!-- Logo -->
                         <div class="flex-shrink-0 flex items-center">
                             <a href="{{ route('dashboard') }}" class="text-xl sm:text-2xl font-bold text-gray-900">
-                                <span class="hidden sm:inline">ResourEase</span>
+                                <span class="hidden sm:inline">AssetLab</span>
                                 <span class="sm:hidden">RE</span>
                             </a>
                         </div>

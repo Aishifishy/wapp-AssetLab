@@ -3,7 +3,7 @@
         <div class="flex justify-between h-16">
             <div class="flex">
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="{{ url('/') }}" class="text-2xl font-bold header-gradient">ResourEase</a>
+                    <a href="{{ url('/') }}" class="text-2xl font-bold header-gradient">AssetLab</a>
                 </div>
 
                 @auth

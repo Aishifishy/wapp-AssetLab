@@ -62,7 +62,7 @@
     </div>
       <div class="email-footer">
         <p>This is an automated message. Please do not reply to this email.</p>
-        <p>&copy; {{ date('Y') }} WappResourEase. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} WappAssetLab. All rights reserved.</p>
     </div>
 </body>
 </html>

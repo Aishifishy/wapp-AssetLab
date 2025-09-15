@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Admin') - {{ config('app.name', 'ResourEase') }}</title>
+    <title>@yield('title', 'Admin') - {{ config('app.name', 'AssetLab') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -91,7 +91,7 @@
         <button class="btn btn-outline-light mobile-menu-toggle" type="button">
             <i class="fas fa-bars"></i>
         </button>
-        <h5 class="mb-0">ResourEase Admin</h5>
+        <h5 class="mb-0">AssetLab Admin</h5>
         <div class="dropdown">
             <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
                 <i class="fas fa-user"></i>
@@ -117,7 +117,7 @@
         <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark admin-sidebar" id="adminSidebar">
             <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                 <i class="fas fa-laptop-code me-2"></i>
-                <span class="fs-4">ResourEase</span>
+                <span class="fs-4">AssetLab</span>
             </a>
             <hr>
             <ul class="nav nav-pills flex-column mb-auto">

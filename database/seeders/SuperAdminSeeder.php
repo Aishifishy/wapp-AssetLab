@@ -15,26 +15,26 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         // Create super admin if it doesn't exist
-        $superAdmin = Radmin::where('email', 'superadmin@resourease.com')->first();
+        $superAdmin = Radmin::where('email', 'superadmin@assetlab.com')->first();
         
         if (!$superAdmin) {
             Radmin::create([
                 'name' => 'Super Administrator',
-                'email' => 'superadmin@resourease.com',
+                'email' => 'superadmin@assetlab.com',
                 'password' => Hash::make('password123'),
                 'role' => 'super_admin',
                 'is_super_admin' => true,
             ]);
             
             $this->command->info('Super admin created successfully!');
-            $this->command->info('Email: superadmin@resourease.com');
+            $this->command->info('Email: superadmin@assetlab.com');
             $this->command->info('Password: password123');
         } else {
             $this->command->info('Super admin already exists.');
         }
         
         // Create additional test admins if they don't exist
-        $equipmentAdmin = Radmin::where('email', 'equipment@resourease.com')->first();
+        $equipmentAdmin = Radmin::where('email', 'equipment@assetlab.com')->first();
         if (!$equipmentAdmin) {
             Radmin::create([
                 'name' => 'Equipment Administrator',
