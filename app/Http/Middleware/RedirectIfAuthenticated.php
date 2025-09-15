@@ -27,7 +27,7 @@ class RedirectIfAuthenticated
                     return redirect()->route('admin.dashboard');
                 }
 
-                return redirect()->route('dashboard');
+                return redirect()->route('ruser.dashboard');
             }
         }
 

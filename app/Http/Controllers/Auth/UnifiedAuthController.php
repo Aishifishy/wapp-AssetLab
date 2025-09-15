@@ -75,7 +75,7 @@ class UnifiedAuthController extends Controller
                 ]);
 
                 $request->session()->regenerate();
-                return redirect()->intended(route('dashboard'));
+                return redirect()->intended(route('ruser.dashboard'));
             }
         }
 
@@ -140,6 +140,6 @@ class UnifiedAuthController extends Controller
 
         Auth::guard('web')->login($user);
 
-        return redirect(route('dashboard'));
+        return redirect(route('ruser.dashboard'));
     }
 }

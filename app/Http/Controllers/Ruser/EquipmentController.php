@@ -92,7 +92,7 @@ class EquipmentController extends Controller
                 Mail::to($adminEmails)->send(new EquipmentRequestReceived($equipmentRequest));
             }
 
-            return redirect()->route('dashboard')
+            return redirect()->route('ruser.dashboard')
                 ->with('success', $result['message']);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->validator->errors())->withInput();
@@ -189,7 +189,7 @@ class EquipmentController extends Controller
             }
 
             Log::info('Returning redirect response');
-            return redirect()->route('dashboard')
+            return redirect()->route('ruser.dashboard')
                 ->with($result['success'] ? 'success' : 'error', $result['message']);
         } catch (\Exception $e) {
             Log::error('Cancel request error: ' . $e->getMessage());
@@ -201,7 +201,7 @@ class EquipmentController extends Controller
                 ], 500);
             }
             
-            return redirect()->route('dashboard')
+            return redirect()->route('ruser.dashboard')
                 ->with('error', 'An error occurred while cancelling the request.');
         }
     }
@@ -213,7 +213,7 @@ class EquipmentController extends Controller
     {
         $result = $this->equipmentService->requestReturn($equipmentRequest, Auth::id());
 
-        return redirect()->route('dashboard')
+        return redirect()->route('ruser.dashboard')
             ->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 

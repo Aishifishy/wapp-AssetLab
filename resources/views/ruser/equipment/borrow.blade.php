@@ -390,24 +390,43 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Borrow button handlers
     document.addEventListener('click', function(e) {
-        if (e.target.matches('.borrow-btn')) {
-            currentEquipmentId = e.target.getAttribute('data-equipment-id');
-            currentEquipmentStatus = e.target.getAttribute('data-equipment-status');
-            const equipmentName = e.target.getAttribute('data-equipment-name');
+        if (e.target.matches('.borrow-btn') || e.target.closest('.borrow-btn')) {
+            const button = e.target.matches('.borrow-btn') ? e.target : e.target.closest('.borrow-btn');
+            
+            currentEquipmentId = button.getAttribute('data-equipment-id');
+            currentEquipmentStatus = button.getAttribute('data-equipment-status');
+            const equipmentName = button.getAttribute('data-equipment-name');
             
             console.log('Borrow button clicked for equipment:', equipmentName);
             console.log('Equipment ID set to:', currentEquipmentId);
             console.log('Equipment Status:', currentEquipmentStatus);
+            console.log('Button element:', button);
+            console.log('All button attributes:', {
+                id: button.getAttribute('data-equipment-id'),
+                name: button.getAttribute('data-equipment-name'),
+                status: button.getAttribute('data-equipment-status')
+            });
+            
+            if (!currentEquipmentId) {
+                console.error('Equipment ID is missing from button attributes!');
+                showError('Equipment ID is missing. Please try again.');
+                return;
+            }
             
             openBorrowModal(currentEquipmentId, equipmentName, currentEquipmentStatus);
         }
     });
     
     function openBorrowModal(equipmentId, equipmentName, status) {
+        console.log('openBorrowModal called with:', { equipmentId, equipmentName, status });
+        
         // Set form values
         document.getElementById('equipment_id').value = equipmentId;
         document.getElementById('equipmentName').textContent = equipmentName;
         document.getElementById('equipmentStatus').textContent = `Status: ${status}`;
+        
+        // Verify the hidden input was set correctly
+        console.log('Hidden input value after setting:', document.getElementById('equipment_id').value);
         
         // Show equipment info
         document.getElementById('equipmentInfo').classList.remove('hidden');
@@ -438,6 +457,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check Availability button
     document.getElementById('checkAvailabilityBtn').addEventListener('click', function() {
         console.log('Check availability button clicked');
+        console.log('Current state before check:', {
+            currentEquipmentId: currentEquipmentId,
+            formEquipmentId: document.getElementById('equipment_id').value
+        });
         checkAvailability();
     });
 
@@ -457,11 +480,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     async function checkAvailability() {
-        const equipmentId = currentEquipmentId;
+        // Get equipment ID from multiple sources as backup
+        const equipmentId = currentEquipmentId || document.getElementById('equipment_id').value;
         const fromDate = document.getElementById('requested_from').value;
         const untilDate = document.getElementById('requested_until').value;
         
+        console.log('checkAvailability debug:', {
+            currentEquipmentId: currentEquipmentId,
+            formEquipmentId: document.getElementById('equipment_id').value,
+            finalEquipmentId: equipmentId,
+            fromDate: fromDate,
+            untilDate: untilDate
+        });
+        
         if (!equipmentId || !fromDate || !untilDate) {
+            console.error('Missing required fields:', { equipmentId, fromDate, untilDate });
             showError('Please fill in all required fields.');
             return;
         }
@@ -661,9 +694,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function resetForm() {
+        console.log('resetForm called');
+        
         // Reset form values
         document.getElementById('borrowForm').reset();
         document.getElementById('equipment_id').value = '';
+        
+        // Reset state variables
+        currentEquipmentId = null;
+        currentEquipmentStatus = null;
+        availabilityData = null;
+        
+        console.log('Form reset complete, currentEquipmentId:', currentEquipmentId);
         
         // Hide all status sections
         document.getElementById('availabilityStatus').classList.add('hidden');
@@ -855,6 +897,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }, POLLING_INTERVAL);
     }
     
+    // Form submission validation
+    document.getElementById('borrowForm').addEventListener('submit', function(e) {
+        const equipmentId = document.getElementById('equipment_id').value;
+        const purpose = document.getElementById('purpose').value.trim();
+        const fromDate = document.getElementById('requested_from').value;
+        const untilDate = document.getElementById('requested_until').value;
+        
+        console.log('Form submission validation:', {
+            equipmentId: equipmentId,
+            purpose: purpose,
+            fromDate: fromDate,
+            untilDate: untilDate
+        });
+        
+        if (!equipmentId) {
+            e.preventDefault();
+            console.error('Form submission blocked: Equipment ID is missing');
+            showError('Equipment ID is missing. Please close the modal and try selecting the equipment again.');
+            return false;
+        }
+        
+        if (!purpose || !fromDate || !untilDate) {
+            e.preventDefault();
+            console.error('Form submission blocked: Missing required fields');
+            showError('Please fill in all required fields.');
+            return false;
+        }
+        
+        if (new Date(fromDate) >= new Date(untilDate)) {
+            e.preventDefault();
+            console.error('Form submission blocked: Invalid date range');
+            showError('End date must be after start date.');
+            return false;
+        }
+        
+        console.log('Form validation passed, submitting...');
+    });
+
     // Add the real-time indicator
     addRealTimeIndicator();
 });
