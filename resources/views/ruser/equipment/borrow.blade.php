@@ -54,18 +54,37 @@
                     </div>
                 </div>
 
-                <!-- Search Filter -->
-                <div class="mb-6">
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <div class="flex-1">
-                            <input type="text" id="search" placeholder="Search equipment in {{ $selectedCategory->name }}..." 
-                                class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                <!-- Enhanced Search & Filter -->
+                <div class="mb-8">
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex flex-col lg:flex-row gap-4">
+                            <!-- Search Input -->
+                            <div class="flex-1 relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="search" placeholder="Search equipment in {{ $selectedCategory->name }}..." 
+                                    class="w-full pl-12 pr-4 py-3 bg-white/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400">
+                            </div>
+                            
+                            <!-- Status Filter -->
+                            <div class="lg:w-64">
+                                <select id="status-filter" class="w-full px-4 py-3 bg-white/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">All Status</option>
+                                    <option value="available">🟢 Available</option>
+                                    <option value="borrowed">🟡 Currently Borrowed</option>
+                                    <option value="maintenance">🔴 Under Maintenance</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Real-time Status Indicator -->
+                            <div class="flex items-center px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                <div class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></div>
+                                <span class="text-sm font-medium text-emerald-700">Live Updates</span>
+                            </div>
                         </div>
-                        <select id="status-filter" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">All Status</option>
-                            <option value="available">Available</option>
-                            <option value="borrowed">Currently Borrowed</option>
-                        </select>
                     </div>
                 </div>
             @else
@@ -86,59 +105,112 @@
                 </div>
             @endif
 
-            <!-- Equipment Grid -->
+            <!-- Enhanced Equipment Grid -->
             @if(isset($selectedCategory) && $equipment->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 @foreach($equipment as $item)
-                <div class="bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow" data-equipment-name="{{ strtolower($item->name) }}" data-status="{{ $item->status ?? 'available' }}">
-                    <div class="p-4">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-gray-900">{{ $item->name }}</h3>
-                                <p class="text-sm text-gray-600">{{ $selectedCategory->name }}</p>
-                                @if($item->model)
-                                    <p class="text-xs text-gray-500">Model: {{ $item->model }}</p>
-                                @endif
+                <div class="glass-card rounded-2xl overflow-hidden border-0" data-equipment-name="{{ strtolower($item->name) }}" data-status="{{ $item->status ?? 'available' }}">
+                    <!-- Status Indicator Bar -->
+                    <div class="h-1 bg-gradient-to-r {{ ($item->status ?? 'available') === 'available' ? 'from-emerald-400 to-emerald-600' : (($item->status ?? 'available') === 'borrowed' ? 'from-amber-400 to-amber-600' : 'from-red-400 to-red-600') }}"></div>
+                    
+                    <div class="p-6">
+                        <!-- Header Section -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 12l-6-3"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-lg font-bold text-gray-900 truncate">{{ $item->name }}</h3>
+                                        <p class="text-sm text-gray-600 font-medium">{{ $selectedCategory->name }}</p>
+                                        @if($item->model)
+                                            <p class="text-xs text-gray-500 mt-1 bg-gray-50 px-2 py-1 rounded-md inline-block">{{ $item->model }}</p>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full status-badge
-                                {{ ($item->status ?? 'available') === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}"
-                                data-equipment-id="{{ $item->id }}">
-                                {{ ucfirst($item->status ?? 'Available') }}
-                            </span>
+                            
+                            <!-- Enhanced Status Badge -->
+                            <div class="flex flex-col items-end">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold status-badge
+                                    {{ ($item->status ?? 'available') === 'available' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 
+                                       (($item->status ?? 'available') === 'borrowed' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-red-100 text-red-800 border border-red-200') }}"
+                                    data-equipment-id="{{ $item->id }}">
+                                    @if(($item->status ?? 'available') === 'available')
+                                        🟢 Available
+                                    @elseif(($item->status ?? 'available') === 'borrowed')
+                                        🟡 Borrowed
+                                    @else
+                                        🔴 Unavailable
+                                    @endif
+                                </span>
+                                <div class="text-xs text-gray-400 mt-1">ID: {{ $item->id }}</div>
+                            </div>
                         </div>
                         
+                        <!-- Description -->
                         @if($item->description)
-                            <p class="mt-2 text-sm text-gray-600">{{ Str::limit($item->description, 100) }}</p>
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-xl">{{ Str::limit($item->description, 120) }}</p>
+                            </div>
                         @endif
                         
-                        <div class="mt-4 flex items-center justify-between">
-                            <div class="text-xs text-gray-500">
-                                @if($item->brand)
-                                    <span>{{ $item->brand }}</span>
-                                @endif
-                                @if($item->serial_number)
-                                    <span class="ml-2">SN: {{ Str::limit($item->serial_number, 10) }}</span>
-                                @endif
-                            </div>
+                        <!-- Equipment Details -->
+                        <div class="mb-6 space-y-2">
+                            @if($item->brand)
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                    </svg>
+                                    <span class="font-medium">Brand:</span> {{ $item->brand }}
+                                </div>
+                            @endif
+                            @if($item->serial_number)
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <svg class="w-4 h-4 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span class="font-medium">S/N:</span> {{ Str::limit($item->serial_number, 15) }}
+                                </div>
+                            @endif
                         </div>
                         
-                        <div class="mt-4 space-y-2">
-                            <!-- Always show the borrow button, but with different states -->
+                        <!-- Action Section -->
+                        <div class="space-y-3">
+                            <!-- Enhanced Borrow Button -->
                             <button data-equipment-id="{{ $item->id }}" 
                                     data-equipment-name="{{ $item->name }}"
                                     data-equipment-status="{{ $item->status ?? 'available' }}"
-                                    class="borrow-btn btn-primary w-full py-2 rounded-lg">
-                                @if(($item->status ?? 'available') === 'available')
-                                    Borrow Equipment
-                                @else
-                                    Schedule / Advance Book
-                                @endif
+                                    class="borrow-btn w-full py-3 px-4 rounded-xl font-semibold
+                                        {{ ($item->status ?? 'available') === 'available' ? 
+                                           'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg' : 
+                                           'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg' }}">
+                                
+                                <div class="flex items-center justify-center space-x-2">
+                                    @if(($item->status ?? 'available') === 'available')
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                        </svg>
+                                        <span>Borrow Now</span>
+                                    @else
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span>Schedule Booking</span>
+                                    @endif
+                                </div>
                             </button>
                             
-                            <!-- Quick availability info -->
-                            <div class="text-xs text-center text-gray-500">
-                                <span class="availability-status" data-equipment-id="{{ $item->id }}">
-                                    Click to check availability
+                            <!-- Availability Status -->
+                            <div class="text-center">
+                                <span class="availability-status inline-flex items-center text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full transition-all duration-300 hover:bg-blue-50 hover:text-blue-600" data-equipment-id="{{ $item->id }}">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Click to check real-time availability
                                 </span>
                             </div>
                         </div>

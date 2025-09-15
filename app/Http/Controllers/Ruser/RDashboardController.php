@@ -7,6 +7,7 @@ use App\Services\UserEquipmentService;
 use App\Services\UserLaboratoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class RDashboardController extends Controller
 {
@@ -26,6 +27,12 @@ class RDashboardController extends Controller
     {
         $user = Auth::user();
         $activityType = $request->input('activity_type', 'all');
+        $perPage = (int) $request->input('per_page', 5);
+        
+        // Validate per_page parameter
+        if (!in_array($perPage, [5, 10, 15, 20])) {
+            $perPage = 5;
+        }
 
         // Get equipment request statistics
         $equipmentStats = $this->equipmentService->getUserStats($user->id);
@@ -36,8 +43,8 @@ class RDashboardController extends Controller
         // Get available laboratories count
         $availableLabs = $this->laboratoryService->getAvailableLabsCount();
 
-        // Get recent activities based on filter
-        $recentActivities = $this->getFilteredActivities($user->id, $activityType);
+        // Get recent activities based on filter with pagination
+        $recentActivities = $this->getFilteredActivities($user->id, $activityType, $request->input('page', 1), $perPage);
 
         return view('ruser.dashboard', compact(
             'pendingRequests',
@@ -50,43 +57,59 @@ class RDashboardController extends Controller
     }
 
     /**
-     * Get filtered activities based on type
+     * Get filtered activities based on type with pagination
      */
-    private function getFilteredActivities($userId, $activityType)
+    private function getFilteredActivities($userId, $activityType, $page = 1, $perPage = 5)
     {
-        $recentActivities = collect();
+        // First, collect all activities without pagination to get total count
+        $allActivities = collect();
         
         if ($activityType == 'all' || $activityType == 'equipment') {
-            $equipmentActivities = $this->equipmentService->getRecentActivities(
-                $userId, 
-                $activityType == 'equipment' ? 10 : 15
-            );
+            // Get a larger number to ensure we have enough for pagination
+            $equipmentActivities = $this->equipmentService->getRecentActivities($userId, 100);
             
             if ($activityType == 'equipment') {
-                $recentActivities = $equipmentActivities;
+                $allActivities = $equipmentActivities;
             } else {
-                $recentActivities = $recentActivities->merge($equipmentActivities);
+                $allActivities = $allActivities->merge($equipmentActivities);
             }
         }
         
         if ($activityType == 'all' || $activityType == 'laboratory') {
-            $laboratoryActivities = $this->laboratoryService->getRecentActivities(
-                $userId, 
-                $activityType == 'laboratory' ? 10 : 15
-            );
+            // Get a larger number to ensure we have enough for pagination
+            $laboratoryActivities = $this->laboratoryService->getRecentActivities($userId, 100);
             
             if ($activityType == 'laboratory') {
-                $recentActivities = $laboratoryActivities;
+                $allActivities = $laboratoryActivities;
             } else {
-                $recentActivities = $recentActivities->merge($laboratoryActivities);
+                $allActivities = $allActivities->merge($laboratoryActivities);
             }
         }
         
-        // Sort all activities by time and limit to 10 for 'all' view
-        if ($activityType == 'all') {
-            $recentActivities = $recentActivities->sortByDesc('time')->take(10)->values();
-        }
-
-        return $recentActivities;
+        // Sort all activities by time
+        $allActivities = $allActivities->sortByDesc('time')->values();
+        
+        // Create manual pagination
+        $total = $allActivities->count();
+        $currentPage = max(1, (int) $page);
+        $offset = ($currentPage - 1) * $perPage;
+        $items = $allActivities->slice($offset, $perPage)->values();
+        
+        // Create a paginator-like object
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'pageName' => 'page',
+            ]
+        );
+        
+        // Append current query parameters to pagination links
+        $paginator->appends(request()->query());
+        
+        return $paginator;
     }
 }
