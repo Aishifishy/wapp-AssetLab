@@ -451,8 +451,7 @@ class LaboratoryController extends Controller
             'rejected_at' => $reservation->rejected_at ? $reservation->rejected_at->format('M d, Y H:i') : null,
             'approved_by_name' => $reservation->approvedBy ? $reservation->approvedBy->name : null,
             'rejected_by_name' => $reservation->rejectedBy ? $reservation->rejectedBy->name : null,
-            'has_form_image' => $reservation->hasFormImage(),
-            'form_image_url' => $reservation->form_image_url,
+
         ]);
     }
 }

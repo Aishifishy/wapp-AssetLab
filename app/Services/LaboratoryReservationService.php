@@ -15,12 +15,10 @@ use Illuminate\Support\Facades\Mail;
 class LaboratoryReservationService extends BaseService
 {
     protected $conflictService;
-    protected $imageUploadService;
 
-    public function __construct(ReservationConflictService $conflictService, ImageUploadService $imageUploadService)
+    public function __construct(ReservationConflictService $conflictService)
     {
         $this->conflictService = $conflictService;
-        $this->imageUploadService = $imageUploadService;
     }
 
     protected function getModel()
@@ -117,12 +115,15 @@ class LaboratoryReservationService extends BaseService
             ];
         }
 
+        // Store previous status for email notification
+        $previousStatus = $reservation->status;
+        
         // Update status
         $reservation->status = LaboratoryReservation::STATUS_APPROVED;
         $reservation->save();
         
         // Send email notification
-        $this->sendStatusChangeEmail($reservation);
+        $this->sendStatusChangeEmail($reservation, $previousStatus);
         
         // Log the approval
         $this->logAction('approve_reservation', $reservation, [
@@ -147,12 +148,15 @@ class LaboratoryReservationService extends BaseService
             ];
         }
 
+        // Store previous status for email notification
+        $previousStatus = $reservation->status;
+
         $reservation->status = LaboratoryReservation::STATUS_REJECTED;
         $reservation->rejection_reason = $rejectionReason;
         $reservation->save();
         
         // Send email notification
-        $this->sendStatusChangeEmail($reservation);
+        $this->sendStatusChangeEmail($reservation, $previousStatus);
         
         // Log the rejection
         $this->logAction('reject_reservation', $reservation, [
@@ -186,13 +190,13 @@ class LaboratoryReservationService extends BaseService
     /**
      * Send status change email notification
      */
-    protected function sendStatusChangeEmail(LaboratoryReservation $reservation)
+    protected function sendStatusChangeEmail(LaboratoryReservation $reservation, $previousStatus = null)
     {
         $reservation->load(['user', 'laboratory']);
         
         if ($reservation->user->email) {
             try {
-                Mail::to($reservation->user->email)->send(new LaboratoryReservationStatusChanged($reservation));
+                Mail::to($reservation->user->email)->send(new LaboratoryReservationStatusChanged($reservation, $previousStatus));
             } catch (\Exception $e) {
                 $this->logAction('email_failed', $reservation, [
                     'error' => $e->getMessage()
@@ -275,25 +279,7 @@ class LaboratoryReservationService extends BaseService
             
             $reservation->save();
             
-            // Handle image upload if present
-            if (isset($validatedData['form_image']) && $validatedData['form_image']) {
-                $imageUploadResult = $this->imageUploadService->uploadLaboratoryFormImage(
-                    $validatedData['form_image'],
-                    $userId,
-                    $laboratory->id
-                );
-                
-                if ($imageUploadResult['success']) {
-                    $reservation->form_image_path = $imageUploadResult['path'];
-                    $reservation->save();
-                } else {
-                    // Log warning but don't fail the reservation
-                    Log::warning('Failed to upload image for reservation', [
-                        'reservation_id' => $reservation->id,
-                        'error' => $imageUploadResult['message']
-                    ]);
-                }
-            }
+
             
             return [
                 'success' => true,
@@ -470,7 +456,7 @@ class LaboratoryReservationService extends BaseService
             'is_recurring' => 'nullable|boolean',
             'recurrence_pattern' => 'required_if:is_recurring,true|in:daily,weekly,monthly',
             'recurrence_end_date' => 'required_if:is_recurring,true|date|after:reservation_date',
-            'form_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max
+
         ];
     }
 
@@ -481,10 +467,7 @@ class LaboratoryReservationService extends BaseService
     {
         $rules = $this->getValidationRules();
         
-        // Make image required if laboratory requires it
-        if ($laboratory->requires_image) {
-            $rules['form_image'] = 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240';
-        }
+
         
         return $rules;
     }

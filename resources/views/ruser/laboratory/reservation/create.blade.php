@@ -172,47 +172,7 @@
                             </div>
                         </div>
 
-                        @if($laboratory->requires_image)
-                        <div class="form-full-width">
-                            <div class="form-group">
-                                <label for="form_image" class="form-label form-label-required">
-                                    Facilities Request Form
-                                </label>
-                                <div class="form-file-upload">
-                                    <div class="form-file-upload-content">
-                                        <svg class="form-file-upload-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                        <div class="form-file-upload-text">
-                                            <label for="form_image" class="form-file-upload-button">
-                                                <span>Upload a file</span>
-                                                <input id="form_image" name="form_image" type="file" class="form-file-upload-input" accept="image/*" required>
-                                            </label>
-                                            <span class="pl-1">or drag and drop</span>
-                                        </div>
-                                        <p class="form-file-upload-hint">PNG, JPG, GIF, WebP up to 10MB</p>
-                                    <div id="image-preview" class="hidden mt-4">
-                                        <img id="preview-image" class="mx-auto h-32 w-auto rounded-lg border border-gray-300" />
-                                        <button type="button" id="remove-image" class="mt-2 text-red-600 hover:text-red-500 text-sm font-medium">Remove</button>
-                                    </div>
-                                    <!-- Upload progress bar -->
-                                    <div id="upload-progress" class="hidden mt-4">
-                                        <div class="bg-gray-200 rounded-full h-2">
-                                            <div id="progress-bar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-xs text-gray-600 mt-1">Uploading...</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="mt-2 text-sm text-gray-600">
-                                <svg class="inline w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Please upload a clear image of the signed written form required for this laboratory reservation.
-                            </p>
-                            <x-form-error field="form_image" />
-                        </div>
-                        @endif
+
                         
                         <div id="recurring-details" class="hidden md:col-span-2">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -318,17 +278,8 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/image-upload.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize image upload handler
-    const imageUploadHandler = new ImageUploadHandler({
-        imageInputId: 'form_image',
-        imagePreviewId: 'image-preview',
-        previewImageId: 'preview-image',
-        removeImageBtnId: 'remove-image',
-        maxFileSize: 10 * 1024 * 1024 // 10MB
-    });
 
     // Existing conflict checking code
     const form = document.getElementById('reservation-form');

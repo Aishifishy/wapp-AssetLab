@@ -482,30 +482,7 @@ function viewReservationDetails(reservationId) {
                     </div>
                     ` : ''}
 
-                    <!-- Submitted Form Image -->
-                    ${data.has_form_image ? `
-                    <div class="bg-amber-50 p-4 rounded-lg mb-6">
-                        <h6 class="font-medium text-amber-900 mb-3 flex items-center">
-                            <i class="fas fa-file-image mr-2"></i>Submitted Form Document
-                        </h6>
-                        <div class="text-center">
-                            <div class="relative inline-block">
-                                <img src="${data.form_image_url}" 
-                                     alt="Submitted Form" 
-                                     class="max-w-full max-h-64 mx-auto rounded-lg border-2 border-amber-200 shadow-md cursor-pointer hover:shadow-lg transition-shadow duration-200" 
-                                     onclick="window.open('${data.form_image_url}', '_blank')"
-                                     onerror="this.parentElement.innerHTML='<div class=\\'text-center p-8 bg-red-50 rounded-lg\\'><i class=\\'fas fa-exclamation-triangle text-red-500 text-2xl mb-2\\'></i><p class=\\'text-red-700\\'>Image could not be loaded</p></div>'">
-                                <div class="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full p-2 cursor-pointer hover:bg-opacity-100 transition-all duration-200" onclick="window.open('${data.form_image_url}', '_blank')">
-                                    <i class="fas fa-expand-alt text-gray-600 text-sm"></i>
-                                </div>
-                            </div>
-                            <p class="text-sm text-amber-700 mt-3">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                Click image to view in full size
-                            </p>
-                        </div>
-                    </div>
-                    ` : ''}
+
 
                     <!-- Rejection Reason -->
                     ${data.rejection_reason ? `

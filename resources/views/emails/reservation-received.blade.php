@@ -21,7 +21,7 @@
     </div>
     <div class="info-row">
         <span class="label">Reserved by:</span>
-        <span class="value">{{ $reservation->user->fname }} {{ $reservation->user->lname }}</span>
+        <span class="value">{{ $reservation->user->name }}</span>
     </div>
     <div class="info-row">
         <span class="label">Contact:</span>

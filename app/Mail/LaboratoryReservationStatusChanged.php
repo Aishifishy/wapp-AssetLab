@@ -50,7 +50,7 @@ class LaboratoryReservationStatusChanged extends Mailable
     public function content(): Content
     {
         return new Content(
-            html: 'emails.laboratory.reservation-status-changed',
+            view: 'emails.laboratory.reservation-status-changed',
             with: [
                 'reservation' => $this->reservation,
                 'user' => $this->reservation->user,
