@@ -210,20 +210,6 @@ class LaboratoryReservationController extends Controller
             ->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
-    /**
-     * Show calendar view of reservations
-     */
-    public function calendar(Request $request)
-    {
-        $calendarData = $this->reservationService->getCalendarData($request);
-        
-        return view('ruser.laboratory.reservation.calendar', [
-            'events' => $calendarData['events'],
-            'laboratories' => $calendarData['laboratories'],
-            'selectedLab' => $request->input('laboratory'),
-            'view' => $request->input('view', 'dayGridMonth')
-        ]);
-    }
-    
+
 
 }

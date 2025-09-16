@@ -318,28 +318,9 @@ class AcademicYearController extends Controller
             // Add override schedules
             foreach ($labOverrides as $override) {
                 if ($override->override_type === 'cancel') {
-                    // For cancellations, we don't add anything to the schedule list
-                    // The original schedule is already excluded above
-                    // But we can add a cancelled entry for display purposes if needed
-                    if ($override->originalSchedule) {
-                        $schedules->push([
-                            'id' => $override->id,
-                            'type' => 'cancelled',
-                            'schedule_type' => 'cancel',
-                            'subject_code' => 'CANCELLED',
-                            'subject_name' => 'Class Cancelled - ' . ($override->originalSchedule->subject_name ?? 'Unknown'),
-                            'instructor' => 'N/A',
-                            'section' => 'N/A',
-                            'start_time' => $override->originalSchedule->start_time->format('H:i'),
-                            'end_time' => $override->originalSchedule->end_time->format('H:i'),
-                            'time_range' => $override->originalSchedule->start_time->format('H:i') . ' - ' . $override->originalSchedule->end_time->format('H:i'),
-                            'is_override' => true,
-                            'is_reservation' => false,
-                            'override_reason' => $override->reason,
-                            'override_id' => $override->id,
-                            'notes' => $override->reason
-                        ]);
-                    }
+                    // For cancellations, we don't add anything - cancelled slots become available
+                    // The original schedule is already excluded above, so the time slot will show as available
+                    continue;
                 } else {
                     // For reschedule/replace, add the new schedule details
                     $schedules->push([
@@ -404,12 +385,11 @@ class AcademicYearController extends Controller
                 });
                 
                 if ($overlappingItems->isNotEmpty()) {
-                    // Priority order: 1. Cancelled/Overrides, 2. Reservations, 3. Regular schedules
+                    // Priority order: 1. Overrides, 2. Reservations, 3. Regular schedules
                     $prioritizedItems = $overlappingItems->sortBy(function($item) {
-                        if ($item['type'] === 'cancelled') return 1; // Highest priority
-                        if ($item['type'] === 'override') return 2;
-                        if ($item['type'] === 'reservation') return 3;
-                        return 4; // Regular schedules
+                        if ($item['type'] === 'override') return 1; // Highest priority
+                        if ($item['type'] === 'reservation') return 2;
+                        return 3; // Regular schedules
                     });
                     
                     $occupyingItem = $prioritizedItems->first();

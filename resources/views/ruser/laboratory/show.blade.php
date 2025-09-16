@@ -76,7 +76,7 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div class="bg-gray-50 rounded-lg p-4">
                     <div class="flex items-center">
                         <i class="fas fa-users text-blue-500 mr-2"></i>
@@ -104,6 +104,21 @@
                         </div>
                     </div>
                 </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-bookmark text-orange-500 mr-2"></i>
+                        <div>
+                            <p class="text-sm text-gray-600">
+                                @if($weekData['is_current_week'])
+                                    This Week's Reservations
+                                @else
+                                    Week of {{ $weekData['selected_week_start']->format('M d') }}
+                                @endif
+                            </p>
+                            <p class="text-lg font-semibold text-gray-900">{{ isset($reservations) ? $reservations->count() : 0 }} bookings</p>
+                        </div>
+                    </div>
+                </div>
             </div>            @if(!$currentTerm)
                 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
                     <div class="flex">
@@ -115,22 +130,27 @@
         </div>
     </div>
 
-    <!-- Schedule View Type Toggle -->
-    <div class="flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-gray-800">Weekly Schedule</h2>
-        <div class="flex items-center space-x-4">
-            <div class="flex items-center space-x-2 text-xs">
-                <div class="flex items-center">
-                    <div class="w-3 h-3 bg-blue-100 border border-blue-200 rounded mr-1"></div>
-                    <span>Regular Class</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-3 h-3 bg-yellow-100 border border-yellow-200 rounded mr-1"></div>
-                    <span>Special Class</span>
-                </div>
-            </div>            <div class="flex items-center space-x-2">
+    <!-- Schedule Header -->
+    <div class="space-y-4">
+        <!-- Title and Week Info -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800">Weekly Schedule</h2>
+                <p class="text-sm text-gray-600 mt-1">
+                    {{ $weekData['selected_week_start']->format('M d') }} - {{ $weekData['selected_week_end']->format('M d, Y') }}
+                    @if($weekData['is_current_week'])
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                            Current Week
+                        </span>
+                    @endif
+                </p>
+            </div>
+            
+            <!-- View Toggle (Desktop) -->
+            <div class="hidden sm:flex items-center space-x-2 mt-4 sm:mt-0">
                 <span class="text-sm font-medium text-gray-700" id="view-label">View:</span>
-                <div class="flex rounded-md shadow-sm" role="group" aria-labelledby="view-label" aria-describedby="view-description">                    <button id="calendar-view" 
+                <div class="flex rounded-md shadow-sm" role="group" aria-labelledby="view-label" aria-describedby="view-description">
+                    <button id="calendar-view" 
                             type="button"
                             role="tab"
                             aria-pressed="true"
@@ -153,9 +173,69 @@
                         <i class="fas fa-table mr-2" aria-hidden="true"></i>Table
                     </button>
                 </div>
-                <div id="view-description" class="sr-only">Use arrow keys to navigate between view options. Press Enter or Space to select a view.                </div>
             </div>
         </div>
+
+        <!-- Navigation and Controls -->
+        <div class="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
+            <!-- Week Navigation -->
+            <div class="flex items-center justify-center sm:justify-start space-x-2">
+                <a href="{{ route('ruser.laboratory.show', array_merge(['laboratory' => $laboratory->id], ['week' => $weekData['current_offset'] - 1])) }}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    <i class="fas fa-chevron-left mr-2"></i>
+                    Previous Week
+                </a>
+                @if(!$weekData['is_current_week'])
+                    <a href="{{ route('ruser.laboratory.show', $laboratory) }}" 
+                       class="inline-flex items-center px-4 py-2 border border-blue-600 text-sm font-medium rounded-md text-blue-600 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        <i class="fas fa-calendar-day mr-2"></i>
+                        Current Week
+                    </a>
+                @endif
+                <a href="{{ route('ruser.laboratory.show', array_merge(['laboratory' => $laboratory->id], ['week' => $weekData['current_offset'] + 1])) }}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    Next Week
+                    <i class="fas fa-chevron-right ml-2"></i>
+                </a>
+            </div>
+            
+            <!-- Legend -->
+            <div class="flex items-center justify-center sm:justify-end space-x-4 text-xs">
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
+                    <span class="text-gray-700">Regular Class</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-yellow-100 border border-yellow-200 rounded"></div>
+                    <span class="text-gray-700">Special Class</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
+                    <span class="text-gray-700">Approved Reservation</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile View Toggle -->
+        <div class="flex sm:hidden items-center justify-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-sm font-medium text-gray-700">View:</span>
+                <div class="flex rounded-md shadow-sm">
+                    <button id="calendar-view-mobile" 
+                            type="button"
+                            class="view-toggle-btn px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-500 rounded-l-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200">
+                        <i class="fas fa-calendar mr-2"></i>Calendar
+                    </button>
+                    <button id="table-view-mobile" 
+                            type="button"
+                            class="view-toggle-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 border-l-0 transition-colors duration-200">
+                        <i class="fas fa-table mr-2"></i>Table
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="view-description" class="sr-only">Use arrow keys to navigate between view options. Press Enter or Space to select a view.</div>
     </div>    <!-- Table View -->
     <div id="table-content" 
          role="tabpanel" 
@@ -167,46 +247,83 @@
             <table class="min-w-full divide-y divide-gray-200" role="table" aria-label="Laboratory schedule table">
                 <thead class="bg-gray-50">
                     <tr role="row">
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject/Purpose</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor/User</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section/Course</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day/Date</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @if($currentTerm && $schedules && $schedules->count() > 0)
-                        @foreach($schedules as $schedule)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {{ $schedule->subject_name }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $schedule->instructor_name }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $schedule->section }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    @php
-                                        $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                                    @endphp
-                                    {{ $days[$schedule->day_of_week] ?? 'Unknown' }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ date('h:i A', strtotime($schedule->start_time)) }} - 
-                                    {{ date('h:i A', strtotime($schedule->end_time)) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        {{ $schedule->type === 'regular' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                        <div class="w-2 h-2 {{ $schedule->type === 'regular' ? 'bg-blue-400' : 'bg-yellow-400' }} rounded-full mr-1"></div>
-                                        {{ ucfirst($schedule->type) }}
-                                    </span>
-                                </td>
-                            </tr>
-                        @endforeach
+                    @php
+                        $hasData = ($currentTerm && $schedules && $schedules->count() > 0) || (isset($reservations) && $reservations->count() > 0);
+                    @endphp
+                    
+                    @if($hasData)
+                        {{-- Show recurring class schedules --}}
+                        @if($currentTerm && $schedules && $schedules->count() > 0)
+                            @foreach($schedules as $schedule)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ $schedule->subject_name }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $schedule->instructor_name }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $schedule->section }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        @php
+                                            $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                        @endphp
+                                        {{ $days[$schedule->day_of_week] ?? 'Unknown' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ date('h:i A', strtotime($schedule->start_time)) }} - 
+                                        {{ date('h:i A', strtotime($schedule->end_time)) }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {{ $schedule->type === 'regular' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                            <div class="w-2 h-2 {{ $schedule->type === 'regular' ? 'bg-blue-400' : 'bg-yellow-400' }} rounded-full mr-1"></div>
+                                            {{ ucfirst($schedule->type) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endif
+
+                        {{-- Show individual reservations --}}
+                        @if(isset($reservations) && $reservations->count() > 0)
+                            @foreach($reservations as $reservation)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ $reservation->purpose }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $reservation->user->name }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $reservation->course_code ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ \Carbon\Carbon::parse($reservation->reservation_date)->format('M d, Y (l)') }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ date('h:i A', strtotime($reservation->start_time)) }} - 
+                                        {{ date('h:i A', strtotime($reservation->end_time)) }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+                                            Reservation
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endif
                     @else
                         <tr>
                             <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">
@@ -219,8 +336,8 @@
                                 @else
                                     <div class="flex flex-col items-center">
                                         <i class="fas fa-calendar-check text-4xl text-gray-300 mb-4"></i>
-                                        <p class="font-medium">No Scheduled Classes</p>
-                                        <p>This laboratory has no scheduled classes for the current term.</p>
+                                        <p class="font-medium">No Scheduled Activities</p>
+                                        <p>This laboratory has no scheduled classes or approved reservations.</p>
                                     </div>
                                 @endif
                             </td>
@@ -242,8 +359,16 @@
                     <thead>
                         <tr>
                             <th class="calendar-time-slot px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Time</th>
-                            @foreach(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as $day)
-                                <th class="calendar-day-slot px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $day }}</th>
+                            @foreach($weekData['week_dates'] as $date)
+                                <th class="calendar-day-slot px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex flex-col">
+                                        <span>{{ $date->format('D') }}</span>
+                                        <span class="text-lg font-semibold text-gray-800 mt-1">{{ $date->format('j') }}</span>
+                                        @if($date->isToday())
+                                            <span class="inline-block w-2 h-2 bg-blue-500 rounded-full mx-auto mt-1"></span>
+                                        @endif
+                                    </div>
+                                </th>
                             @endforeach
                         </tr>
                     </thead><tbody class="bg-white divide-y divide-gray-200">
@@ -262,13 +387,21 @@
                                         {{ date('h:i A', strtotime($time))}}
                                     </div>
                                 </td>
-                                @for($day = 0; $day <= 6; $day++)
+                                @foreach($weekData['week_dates'] as $dayIndex => $currentDate)
                                     <td class="calendar-day-slot border-r border-gray-200 p-1 h-16 overflow-hidden relative">
+                                        @php
+                                            $day = $dayIndex; // 0 = Sunday, 1 = Monday, etc.
+                                            $hasSchedule = false;
+                                            $hasReservation = false;
+                                        @endphp
+                                        
+                                        {{-- Show recurring class schedules --}}
                                         @if($currentTerm && $schedules)
                                             @foreach($schedules as $schedule)
                                                 @if($schedule->day_of_week === $day && 
                                                     strtotime($schedule->start_time) <= strtotime($time) && 
                                                     strtotime($schedule->end_time) > strtotime($time))
+                                                    @php $hasSchedule = true; @endphp
                                                     <div class="schedule-block w-full h-full {{ $schedule->type === 'regular' ? 'bg-blue-100' : 'bg-yellow-100' }} border-l-4 {{ $schedule->type === 'regular' ? 'border-blue-500' : 'border-yellow-500' }} rounded-r p-1 overflow-hidden">
                                                         <div class="font-semibold text-gray-900 truncate leading-tight mb-1">{{ $schedule->subject_name }}</div>
                                                         <div class="text-gray-700 truncate leading-tight">{{ $schedule->instructor_name }}</div>
@@ -280,8 +413,32 @@
                                                 @endif
                                             @endforeach
                                         @endif
+
+                                        {{-- Show individual reservations if no schedule conflict --}}
+                                        @if(!$hasSchedule && isset($reservations) && $reservations->count() > 0)
+                                            @foreach($reservations as $reservation)
+                                                @php
+                                                    $reservationDate = \Carbon\Carbon::parse($reservation->reservation_date);
+                                                @endphp
+                                                @if($reservationDate->isSameDay($currentDate) && 
+                                                    strtotime($reservation->start_time) <= strtotime($time) && 
+                                                    strtotime($reservation->end_time) > strtotime($time))
+                                                    @php $hasReservation = true; @endphp
+                                                    <div class="schedule-block w-full h-full bg-green-100 border-l-4 border-green-500 rounded-r p-1 overflow-hidden">
+                                                        <div class="font-semibold text-gray-900 truncate leading-tight mb-1">{{ $reservation->purpose }}</div>
+                                                        <div class="text-gray-700 truncate leading-tight">{{ $reservation->user->name }}</div>
+                                                        @if($reservation->course_code)
+                                                            <div class="text-gray-600 truncate leading-tight">{{ $reservation->course_code }}</div>
+                                                        @endif
+                                                        <div class="text-gray-500 leading-tight mt-1">
+                                                            {{ $reservationDate->format('M d') }} • {{ date('h:i A', strtotime($reservation->start_time)) }}-{{ date('h:i A', strtotime($reservation->end_time)) }}
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        @endif
                                     </td>
-                                @endfor
+                                @endforeach
                             </tr>
                         @endforeach
                     </tbody>
@@ -309,8 +466,10 @@
                     <h3 class="text-sm font-medium text-blue-800 mb-2">Reservation Guidelines</h3>
                     <ul class="text-sm text-blue-700 space-y-1">
                         <li>• Please check the schedule above to avoid conflicts with regular classes</li>
+                        <li>• Use the Previous/Next buttons to navigate between weeks for advance planning</li>
                         <li>• Reservations must be made at least 24 hours in advance</li>
                         <li>• All reservations are subject to approval by laboratory administrators</li>
+                        <li>• Keyboard shortcuts: ← → arrow keys to navigate weeks, Home key to return to current week</li>
                     </ul>
                 </div>
 
@@ -337,3 +496,135 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sync mobile and desktop view toggles
+    const calendarViewDesktop = document.getElementById('calendar-view');
+    const tableViewDesktop = document.getElementById('table-view');
+    const calendarViewMobile = document.getElementById('calendar-view-mobile');
+    const tableViewMobile = document.getElementById('table-view-mobile');
+    
+    // Sync clicks between desktop and mobile toggles
+    if (calendarViewMobile) {
+        calendarViewMobile.addEventListener('click', function() {
+            if (calendarViewDesktop) calendarViewDesktop.click();
+        });
+    }
+    if (tableViewMobile) {
+        tableViewMobile.addEventListener('click', function() {
+            if (tableViewDesktop) tableViewDesktop.click();
+        });
+    }
+    
+    // Week navigation keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Only activate shortcuts when not in input fields
+        if (e.target.tagName.toLowerCase() === 'input' || 
+            e.target.tagName.toLowerCase() === 'textarea' ||
+            e.target.isContentEditable) {
+            return;
+        }
+        
+        switch(e.key) {
+            case 'ArrowLeft':
+                e.preventDefault();
+                navigateWeek(-1);
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                navigateWeek(1);
+                break;
+            case 'Home':
+                e.preventDefault();
+                navigateToCurrentWeek();
+                break;
+        }
+    });
+    
+    function navigateWeek(direction) {
+        const currentOffset = {!! $weekData['current_offset'] !!};
+        const newOffset = currentOffset + direction;
+        const baseUrl = "{!! route('ruser.laboratory.show', $laboratory) !!}";
+        const url = baseUrl + (newOffset !== 0 ? "?week=" + newOffset : "");
+        window.location.href = url;
+    }
+    
+    function navigateToCurrentWeek() {
+        const url = "{!! route('ruser.laboratory.show', $laboratory) !!}";
+        window.location.href = url;
+    }
+    
+    // Add loading states to navigation buttons
+    const navButtons = document.querySelectorAll('a[href*="week="], a[href*="laboratory"]');
+    navButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.style.opacity = '0.6';
+            this.style.pointerEvents = 'none';
+        });
+    });
+    
+    // Highlight today's date
+    const today = new Date();
+    const todayString = today.getFullYear() + '-' + 
+                       String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                       String(today.getDate()).padStart(2, '0');
+    
+    // Add subtle animation to schedule blocks
+    const scheduleBlocks = document.querySelectorAll('.schedule-block');
+    scheduleBlocks.forEach((block, index) => {
+        block.style.animationDelay = (index * 0.1) + 's';
+        block.classList.add('animate-fade-in');
+    });
+});
+</script>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Today highlight */
+.today-highlight {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-top: 2px solid #3b82f6;
+}
+
+/* Navigation button hover effects */
+.nav-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+/* Schedule header improvements */
+.schedule-header {
+    background: linear-gradient(to right, #f8fafc, #f1f5f9);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Legend improvements */
+.legend-item {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile responsiveness for buttons */
+@media (max-width: 640px) {
+    .mobile-nav-button {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+</style>
+@endpush

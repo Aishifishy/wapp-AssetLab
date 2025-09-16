@@ -180,7 +180,7 @@
                             <!-- Schedule Legend -->
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
                                 <h4 class="text-sm font-medium text-gray-900 mb-3">Color Legend</h4>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                                     <div class="flex items-center">
                                         <div class="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
                                         <span>Available</span>
@@ -190,16 +190,8 @@
                                         <span>Regular Class</span>
                                     </div>
                                     <div class="flex items-center">
-                                        <div class="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded mr-2"></div>
-                                        <span>Special Class</span>
-                                    </div>
-                                    <div class="flex items-center">
                                         <div class="w-4 h-4 bg-orange-100 border border-orange-300 rounded mr-2"></div>
-                                        <span>Override</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-4 h-4 bg-red-100 border border-red-300 rounded mr-2"></div>
-                                        <span>Cancelled</span>
+                                        <span>Override/Reschedule</span>
                                     </div>
                                     <div class="flex items-center">
                                         <div class="w-4 h-4 bg-purple-100 border border-purple-300 rounded mr-2"></div>
@@ -587,21 +579,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     switch (item.type) {
                         case 'regular':
-                            if (item.schedule_type === 'special') {
-                                slotClass += ' bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200';
-                                tooltip = `Special Class: ${item.subject_code} - ${item.instructor}`;
-                            } else {
-                                slotClass += ' bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
-                                tooltip = `Regular Class: ${item.subject_code} - ${item.instructor}`;
-                            }
+                            // Treat both regular and special classes as "Regular Class" (blue)
+                            slotClass += ' bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
+                            tooltip = `Regular Class: ${item.subject_code} - ${item.instructor}`;
                             break;
                         case 'override':
                             slotClass += ' bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200';
-                            tooltip = `Override (${item.schedule_type}): ${item.subject_code} - ${item.instructor}`;
-                            break;
-                        case 'cancelled':
-                            slotClass += ' bg-red-100 text-red-800 border-red-300 hover:bg-red-200';
-                            tooltip = `Cancelled: ${item.override_reason || 'Class cancelled'}`;
+                            tooltip = `Override/Reschedule: ${item.subject_code} - ${item.instructor}`;
                             break;
                         case 'reservation':
                             slotClass += ' bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200';
