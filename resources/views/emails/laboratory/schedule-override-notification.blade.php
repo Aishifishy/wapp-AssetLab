@@ -25,32 +25,89 @@
         <div class="info-item">
             <span class="info-label">Affected Time:</span>
             <span class="info-value">
-                {{ \Carbon\Carbon::parse($override->start_time)->format('g:i A') }} - 
-                {{ \Carbon\Carbon::parse($override->end_time)->format('g:i A') }}
+                @if($override->originalSchedule)
+                    {{ $override->originalSchedule->start_time->format('g:i A') }} - {{ $override->originalSchedule->end_time->format('g:i A') }}
+                @elseif($override->originalReservation)
+                    {{ \Carbon\Carbon::parse($override->originalReservation->start_time)->format('g:i A') }} - {{ \Carbon\Carbon::parse($override->originalReservation->end_time)->format('g:i A') }}
+                @else
+                    Time details not available
+                @endif
             </span>
         </div>
         <div class="info-item">
             <span class="info-label">Override Type:</span>
             <span class="info-value">
-                @if($override->is_closure)
-                    <span class="status-badge cancelled">🚫 Laboratory Closure</span>
+                @if($override->override_type === 'cancel')
+                    <span class="status-badge cancelled">🚫 Cancelled</span>
+                @elseif($override->override_type === 'reschedule')
+                    <span class="status-badge pending">📅 Rescheduled</span>
+                @elseif($override->override_type === 'replace')
+                    <span class="status-badge pending">🔄 Replaced</span>
                 @else
                     <span class="status-badge pending">📅 Schedule Override</span>
                 @endif
             </span>
         </div>
+        @if($override->originalSchedule)
+            <div class="info-item">
+                <span class="info-label">Affected Schedule:</span>
+                <span class="info-value">{{ $override->originalSchedule->subject_name }} (Regular Class)</span>
+            </div>
+        @elseif($override->originalReservation)
+            <div class="info-item">
+                <span class="info-label">Affected Reservation:</span>
+                <span class="info-value">{{ $override->originalReservation->subject ?? $override->originalReservation->purpose }} (Laboratory Reservation)</span>
+            </div>
+        @endif
     </div>
 
-    @if($override->is_closure)
+    @if($override->override_type === 'cancel')
         <div class="alert alert-warning">
-            <strong>🚫 Laboratory Closure:</strong>
-            <br>The laboratory will be temporarily closed during the specified time due to: {{ $override->reason }}
+            <strong>🚫 Schedule Cancelled:</strong>
+            <br>
+            @if($override->originalSchedule)
+                The regular class schedule has been cancelled for this date.
+            @elseif($override->originalReservation)
+                Your laboratory reservation has been cancelled.
+            @endif
+            Reason: {{ $override->reason }}
         </div>
     @else
         <div class="alert alert-info">
             <strong>📅 Schedule Override:</strong>
-            <br>The regular laboratory schedule will be modified during the specified time for: {{ $override->reason }}
+            <br>
+            @if($override->originalSchedule)
+                The regular laboratory schedule has been modified for this date.
+            @elseif($override->originalReservation)
+                Your laboratory reservation has been overridden/rescheduled.
+            @endif
+            Reason: {{ $override->reason }}
         </div>
+        
+        @if($override->override_type === 'reschedule' || $override->override_type === 'replace')
+            <div class="info-card">
+                <h4>New Schedule Details:</h4>
+                <div class="info-item">
+                    <span class="info-label">New Time:</span>
+                    <span class="info-value">
+                        {{ \Carbon\Carbon::parse($override->new_start_time)->format('g:i A') }} - 
+                        {{ \Carbon\Carbon::parse($override->new_end_time)->format('g:i A') }}
+                    </span>
+                </div>
+                @if($override->new_subject_name)
+                    <div class="info-item">
+                        <span class="info-label">Subject:</span>
+                        <span class="info-value">{{ $override->new_subject_name }}</span>
+                    </div>
+                @endif
+                @if($override->new_instructor_name)
+                    <div class="info-item">
+                        <span class="info-label">Instructor:</span>
+                        <span class="info-value">{{ $override->new_instructor_name }}</span>
+                    </div>
+                @endif
+            </div>
+        @endif
     @endif
 
     @if($override->reason)
@@ -76,8 +133,9 @@
             <div class="info-item">
                 <span class="info-label">Original Time:</span>
                 <span class="info-value">
-                    {{ \Carbon\Carbon::parse($reservation->start_datetime)->format('F j, Y \a\t g:i A') }} - 
-                    {{ \Carbon\Carbon::parse($reservation->end_datetime)->format('g:i A') }}
+                    {{ \Carbon\Carbon::parse($reservation->reservation_date)->format('F j, Y') }} 
+                    {{ \Carbon\Carbon::parse($reservation->start_time)->format('g:i A') }} - 
+                    {{ \Carbon\Carbon::parse($reservation->end_time)->format('g:i A') }}
                 </span>
             </div>
             <div class="info-item">
@@ -87,10 +145,10 @@
             <div class="info-item">
                 <span class="info-label">Status:</span>
                 <span class="info-value">
-                    @if($override->is_closure)
-                        <span class="status-badge cancelled">❌ Affected by Closure</span>
+                    @if($override->override_type === 'cancel')
+                        <span class="status-badge cancelled">❌ Cancelled</span>
                     @else
-                        <span class="status-badge pending">⚠️ Schedule Conflict</span>
+                        <span class="status-badge pending">⚠️ Schedule Changed</span>
                     @endif
                 </span>
             </div>

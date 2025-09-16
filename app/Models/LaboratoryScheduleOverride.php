@@ -10,6 +10,7 @@ class LaboratoryScheduleOverride extends Model
 {
     protected $fillable = [
         'laboratory_schedule_id',
+        'laboratory_reservation_id',
         'laboratory_id',
         'academic_term_id',
         'override_date',
@@ -47,6 +48,14 @@ class LaboratoryScheduleOverride extends Model
     public function originalSchedule(): BelongsTo
     {
         return $this->belongsTo(LaboratorySchedule::class, 'laboratory_schedule_id');
+    }
+
+    /**
+     * Get the original laboratory reservation being overridden.
+     */
+    public function originalReservation(): BelongsTo
+    {
+        return $this->belongsTo(LaboratoryReservation::class, 'laboratory_reservation_id');
     }
 
     /**

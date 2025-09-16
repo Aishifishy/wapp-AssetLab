@@ -316,6 +316,7 @@ class LaboratoryController extends Controller
         $validated = $request->validate([
             'laboratory_id' => 'required|exists:computer_laboratories,id',
             'laboratory_schedule_id' => 'nullable|exists:laboratory_schedules,id',
+            'laboratory_reservation_id' => 'nullable|exists:laboratory_reservations,id',
             'override_date' => 'required|date|after_or_equal:today',
             'override_type' => 'required|in:cancel,reschedule,replace',
             'new_start_time' => 'required_unless:override_type,cancel|date_format:H:i',
@@ -329,6 +330,20 @@ class LaboratoryController extends Controller
             'requested_by' => 'nullable|exists:rusers,id',
             'expires_at' => 'nullable|date|after:override_date',
         ]);
+
+        // Ensure either a schedule or reservation is selected
+        if (empty($validated['laboratory_schedule_id']) && empty($validated['laboratory_reservation_id'])) {
+            throw ValidationException::withMessages([
+                'laboratory_schedule_id' => 'You must select either a regular schedule or a reservation to override.',
+            ]);
+        }
+
+        // Ensure only one is selected
+        if (!empty($validated['laboratory_schedule_id']) && !empty($validated['laboratory_reservation_id'])) {
+            throw ValidationException::withMessages([
+                'laboratory_schedule_id' => 'You can only override one schedule or reservation at a time.',
+            ]);
+        }
 
         // Get current term
         $currentTerm = AcademicTerm::where('is_current', true)->first();
@@ -344,16 +359,29 @@ class LaboratoryController extends Controller
         try {
             $override = $this->overrideService->createOverride($validated);
 
-            // Find affected reservations and notify users
-            $affectedReservations = LaboratoryReservation::where('laboratory_id', $validated['laboratory_id'])
-                ->whereDate('start_datetime', $validated['override_date'])
-                ->where('status', 'approved')
-                ->with('user')
-                ->get();
+            // Handle notifications based on what was overridden
+            if (!empty($validated['laboratory_reservation_id'])) {
+                // If a reservation was overridden, notify the reservation owner
+                $overriddenReservation = LaboratoryReservation::with('user')->find($validated['laboratory_reservation_id']);
+                if ($overriddenReservation) {
+                    Mail::to($overriddenReservation->user->email)->send(
+                        new ScheduleOverrideNotification($override, [$overriddenReservation], $overriddenReservation->user)
+                    );
+                }
+            } else {
+                // If a regular schedule was overridden, find and notify affected reservation users
+                $affectedReservations = LaboratoryReservation::where('laboratory_id', $validated['laboratory_id'])
+                    ->whereDate('reservation_date', $validated['override_date'])
+                    ->where('status', 'approved')
+                    ->with('user')
+                    ->get();
 
-            // Send notifications to affected users
-            foreach ($affectedReservations as $reservation) {
-                Mail::to($reservation->user->email)->send(new ScheduleOverrideNotification($override, [$reservation], $reservation->user));
+                // Send notifications to affected users
+                foreach ($affectedReservations as $reservation) {
+                    Mail::to($reservation->user->email)->send(
+                        new ScheduleOverrideNotification($override, [$reservation], $reservation->user)
+                    );
+                }
             }
 
             return redirect()->route('admin.laboratory.schedule-overrides')
@@ -377,7 +405,7 @@ class LaboratoryController extends Controller
     }
 
     /**
-     * AJAX endpoint to get schedules for a specific laboratory and date
+     * AJAX endpoint to get schedules and reservations for a specific laboratory and date
      */
     public function getSchedulesForDate(Request $request)
     {
@@ -394,23 +422,66 @@ class LaboratoryController extends Controller
             return response()->json(['schedules' => []]);
         }
 
-        $schedules = LaboratorySchedule::where('laboratory_id', $request->laboratory_id)
+        // Get regular schedules for the day
+        $regularSchedules = LaboratorySchedule::where('laboratory_id', $request->laboratory_id)
             ->where('academic_term_id', $currentTerm->id)
             ->where('day_of_week', $dayOfWeek)
             ->get();
 
+        // Get approved reservations for the specific date
+        $reservations = LaboratoryReservation::with(['user'])
+            ->where('laboratory_id', $request->laboratory_id)
+            ->whereDate('reservation_date', $date->format('Y-m-d'))
+            ->where('status', 'approved')
+            ->get();
+
+        // Combine both into a unified schedule list
+        $allSchedules = collect();
+
+        // Add regular schedules
+        foreach ($regularSchedules as $schedule) {
+            $allSchedules->push([
+                'id' => $schedule->id,
+                'type' => 'regular_schedule',
+                'schedule_id' => $schedule->id,
+                'reservation_id' => null,
+                'subject_name' => $schedule->subject_name,
+                'instructor_name' => $schedule->instructor_name,
+                'section' => $schedule->section,
+                'time_range' => $schedule->time_range,
+                'start_time' => $schedule->start_time->format('H:i'),
+                'end_time' => $schedule->end_time->format('H:i'),
+                'schedule_type_label' => 'Regular Class',
+                'details' => $schedule->subject_code . ' - ' . $schedule->subject_name
+            ]);
+        }
+
+        // Add reservations as overrideable schedules
+        foreach ($reservations as $reservation) {
+            $startTime = Carbon::parse($reservation->start_time);
+            $endTime = Carbon::parse($reservation->end_time);
+            
+            $allSchedules->push([
+                'id' => 'reservation_' . $reservation->id,
+                'type' => 'reservation',
+                'schedule_id' => null,
+                'reservation_id' => $reservation->id,
+                'subject_name' => $reservation->subject ?? $reservation->purpose,
+                'instructor_name' => $reservation->user->name,
+                'section' => $reservation->section ?? 'Reservation',
+                'time_range' => $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
+                'start_time' => $startTime->format('H:i'),
+                'end_time' => $endTime->format('H:i'),
+                'schedule_type_label' => 'Laboratory Reservation',
+                'details' => ($reservation->course_code ?? 'Reservation') . ' - ' . ($reservation->subject ?? $reservation->purpose) . ' (Requested by: ' . $reservation->user->name . ')'
+            ]);
+        }
+
+        // Sort by start time
+        $sortedSchedules = $allSchedules->sortBy('start_time');
+
         return response()->json([
-            'schedules' => $schedules->map(function ($schedule) {
-                return [
-                    'id' => $schedule->id,
-                    'subject_name' => $schedule->subject_name,
-                    'instructor_name' => $schedule->instructor_name,
-                    'section' => $schedule->section,
-                    'time_range' => $schedule->time_range,
-                    'start_time' => $schedule->start_time->format('H:i'),
-                    'end_time' => $schedule->end_time->format('H:i'),
-                ];
-            })
+            'schedules' => $sortedSchedules->values()->toArray()
         ]);
     }
 
