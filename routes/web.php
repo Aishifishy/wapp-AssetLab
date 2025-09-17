@@ -42,7 +42,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [RuserEquipmentController::class, 'index'])->name('borrow');
         Route::post('/request', [RuserEquipmentController::class, 'request'])->name('request');
         Route::post('/check-availability', [RuserEquipmentController::class, 'checkAvailability'])->name('check-availability');
-        Route::post('/test-availability', [RuserEquipmentController::class, 'testAvailability'])->name('test-availability');
         Route::get('/status-update', [RuserEquipmentController::class, 'statusUpdate'])->name('status-update');
         Route::patch('/request/{equipmentRequest}/cancel', [RuserEquipmentController::class, 'cancelRequest'])->name('cancel-request');
         Route::post('/return/{equipmentRequest}', [RuserEquipmentController::class, 'return'])->name('return');
@@ -85,7 +84,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Authenticated admin routes
     Route::middleware('auth:admin')->group(function () {
-        Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
+        Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('admin.logout');
         
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

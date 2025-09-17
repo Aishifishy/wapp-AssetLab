@@ -100,7 +100,7 @@
                 <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">Profile</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('admin.logout') }}">
                         @csrf
                         <button type="submit" class="dropdown-item">Logout</button>
                     </form>
