@@ -14,6 +14,8 @@ use App\Http\Controllers\Ruser\RDashboardController;
 use App\Http\Controllers\Ruser\EquipmentController as RuserEquipmentController;
 use App\Http\Controllers\Ruser\LaboratoryController as RuserLaboratoryController;
 use App\Http\Controllers\Ruser\LaboratoryReservationController as RuserLaboratoryReservationController;
+use App\Http\Controllers\Auth\EmailVerificationController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,8 +30,23 @@ Route::middleware('guest')->group(function () {
     Route::post('register', [UnifiedAuthController::class, 'register']);
 });
 
+
+
+// Email Verification Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:6,1')->name('verification.send');
+});
+
+// Logout should be available for all authenticated users (verified or not)
 Route::middleware('auth')->group(function () {
     Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [RDashboardController::class, 'index'])->name('ruser.dashboard');
 
     // Profile Routes
@@ -84,7 +101,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Authenticated admin routes
     Route::middleware('auth:admin')->group(function () {
-        Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('admin.logout');
+        Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
         
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

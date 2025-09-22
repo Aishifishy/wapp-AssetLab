@@ -14,6 +14,7 @@ use Illuminate\Validation\Rules;
 use App\Mail\UserRegistrationWelcome;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Auth\Events\Registered;
 
 class UnifiedAuthController extends Controller
 {
@@ -66,8 +67,15 @@ class UnifiedAuthController extends Controller
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                // Login as user
+                // Login user (verified or unverified)
                 Auth::guard('web')->login($user, $request->boolean('remember'));
+
+                // Check if email is verified after login
+                if (!$user->hasVerifiedEmail()) {
+                    // Redirect to existing verification notice page
+                    return redirect()->route('verification.notice')
+                        ->with('message', 'Please verify your email address to access your account.');
+                }
                 
                 Log::info('User login successful via unified login', [
                     'email' => $credentials['email'], 
@@ -135,11 +143,14 @@ class UnifiedAuthController extends Controller
             'role' => $user->role
         ]);
 
-        // Send welcome email
-        Mail::to($user->email)->send(new UserRegistrationWelcome($user));
+        // Trigger email verification
+        event(new Registered($user));
 
+        // Log the user in so they can access the verification notice
         Auth::guard('web')->login($user);
 
-        return redirect(route('ruser.dashboard'));
+        return redirect()->route('verification.notice')->with('success', 'Registration successful! Please check your email to verify your account.');
     }
+
+
 }

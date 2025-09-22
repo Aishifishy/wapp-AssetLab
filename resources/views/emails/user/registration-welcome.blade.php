@@ -5,13 +5,18 @@
 @section('content')
 <div class="header">
     <h1>Welcome to AssetLab! 🎉</h1>
-    <p class="subtitle">Your account has been successfully created</p>
+    <p class="subtitle">Email verification successful - Your account is now active</p>
 </div>
 
 <div class="content">
     <p><strong>Hello {{ $user->name }}!</strong></p>
     
-    <p>Welcome to AssetLab, the Laboratory & Equipment Management System! Your registration has been completed successfully, and you can now access all the features available to students.</p>
+    <div class="alert alert-success">
+        <strong>✅ Email Verification Success!</strong>
+        <p style="margin: 5px 0;">Your email address has been successfully verified. You now have full access to all AssetLab features!</p>
+    </div>
+    
+    <p>Welcome to AssetLab, the Laboratory & Equipment Management System! Your registration and verification are now complete, and you can access all the features available to students.</p>
 
     <div class="info-card">
         <div class="info-item">
@@ -29,8 +34,12 @@
         <div class="info-item">
             <span class="info-label">Account Status:</span>
             <span class="info-value">
-                <span class="status-badge success">✅ Active</span>
+                <span class="status-badge success">✅ Active & Verified</span>
             </span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Email Verified:</span>
+            <span class="info-value">{{ $user->email_verified_at->format('F j, Y \a\t g:i A') }}</span>
         </div>
     </div>
 
