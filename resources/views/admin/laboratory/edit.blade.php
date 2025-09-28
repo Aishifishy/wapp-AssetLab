@@ -90,6 +90,18 @@
                             </select>                            <x-form-error field="status" />
                         </div>
 
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                   id="require_faci_req_form" 
+                                   name="require_faci_req_form" 
+                                   value="1"
+                                   {{ old('require_faci_req_form', $laboratory->require_faci_req_form) ? 'checked' : '' }}
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="require_faci_req_form" class="ml-2 block text-sm text-gray-900">
+                                Require ITSO Facility Reservation Request Form
+                            </label>
+                            <x-form-error field="require_faci_req_form" />
+                        </div>
 
                     </div>
                 </div>

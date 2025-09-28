@@ -52,6 +52,10 @@
                     'reserved' => 'Reserved'
                 ]" />
 
+            <x-admin.form-field
+                name="require_faci_req_form"
+                label="Require ITSO Facility Reservation Request Form"
+                type="checkbox" />
 
         </div>
     </div>

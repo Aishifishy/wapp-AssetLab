@@ -190,15 +190,8 @@
                         </div>
                     </div>
 
-                    <!-- Enhanced User Menu -->
-                    <div class="flex items-center space-x-4">
-                        <!-- Notifications Bell -->
-                        <button class="relative p-2 text-gray-400">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-3.5-3.5c-.3-.3-.5-.7-.5-1.1V9c0-4.1-3.4-7.5-7.5-7.5S1 4.9 1 9v3.4c0 .4-.2.8-.5 1.1L-2 17h5m8 0v1c0 2.2-1.8 4-4 4s-4-1.8-4-4v-1m8 0H7"/>
-                            </svg>
-                            <span class="absolute top-0 right-0 block h-2 w-2 bg-red-400 rounded-full animate-pulse"></span>
-                        </button>
+                    <!-- User Menu -->
+                    <div class="flex items-center space-x-3">
 
                         <!-- Desktop User Menu -->
                         <div class="hidden md:flex md:items-center">
@@ -237,65 +230,76 @@
                             </div>
                         </div>
 
-                        <!-- Mobile menu button -->
+                        <!-- Simple Mobile menu button -->
                         <div class="md:hidden">
-                            <button type="button" class="mobile-menu-button p-2 rounded-xl bg-gray-100/50 hover:bg-gray-200/50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500" aria-controls="mobile-menu" aria-expanded="false">
+                            <button type="button" 
+                                    class="mobile-menu-button p-2 rounded-lg bg-white/80 hover:bg-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm border border-gray-200/50" 
+                                    aria-controls="mobile-menu" 
+                                    aria-expanded="false"
+                                    aria-label="Toggle navigation menu">
                                 <span class="sr-only">Open main menu</span>
-                                <svg class="block h-6 w-6 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                                <svg class="hidden h-6 w-6 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <!-- Simple Menu Icon -->
+                                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                                 </svg>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Enhanced Mobile menu -->
-                <div class="mobile-menu hidden md:hidden glass-card mx-4 my-4 rounded-2xl animate-slide-down">
-                    <div class="p-4 space-y-2">
-                        <a href="{{ route('ruser.dashboard') }}" 
-                           class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('ruser.dashboard') ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600' }}">
-                            <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
-                            <span class="font-medium">Dashboard</span>
-                        </a>
-                        <a href="{{ route('ruser.equipment.borrow') }}" 
-                           class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('ruser.equipment.*') ? 'bg-emerald-100 text-emerald-700 shadow-sm' : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
-                            <i class="fas fa-tools w-5 h-5 mr-3"></i>
-                            <span class="font-medium">Equipment</span>
-                        </a>
-                        <a href="{{ route('ruser.laboratory.index') }}" 
-                           class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('ruser.laboratory.*') ? 'bg-purple-100 text-purple-700 shadow-sm' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
-                            <i class="fas fa-flask w-5 h-5 mr-3"></i>
-                            <span class="font-medium">Laboratories</span>
-                        </a>
-                    </div>
-                    
-                    <hr class="border-gray-200 mx-4">
-                    
-                    <div class="p-4">
-                        <div class="flex items-center px-4 py-3 mb-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                                <span class="text-white font-bold">{{ substr(Auth::user()->name, 0, 2) }}</span>
-                            </div>
-                            <div class="ml-3">
-                                <div class="text-base font-semibold text-gray-900">{{ Auth::user()->name }}</div>
-                                <div class="text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                            </div>
-                        </div>
-                        <div class="space-y-2">
-                            <a href="{{ route('ruser.profile.edit') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all duration-300">
-                                <i class="fas fa-user w-5 h-5 mr-3"></i>
-                                <span class="font-medium">Profile Settings</span>
+                <!-- Simple Mobile menu -->
+                <div class="mobile-menu hidden md:hidden">
+                    <div class="bg-white mx-4 mt-2 rounded-lg shadow-lg border border-gray-200">
+                        <!-- Navigation Links -->
+                        <div class="p-4 space-y-1">
+                            <a href="{{ route('ruser.dashboard') }}" 
+                               class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 {{ request()->routeIs('ruser.dashboard') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <i class="fas fa-tachometer-alt w-5 h-5 mr-3 text-current"></i>
+                                Dashboard
                             </a>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300">
-                                    <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
-                                    <span class="font-medium">Sign Out</span>
-                                </button>
-                            </form>
+                            <a href="{{ route('ruser.equipment.borrow') }}" 
+                               class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 {{ request()->routeIs('ruser.equipment.*') ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <i class="fas fa-tools w-5 h-5 mr-3 text-current"></i>
+                                Equipment
+                            </a>
+                            <a href="{{ route('ruser.laboratory.index') }}" 
+                               class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 {{ request()->routeIs('ruser.laboratory.*') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <i class="fas fa-flask w-5 h-5 mr-3 text-current"></i>
+                                Laboratories
+                            </a>
+                        </div>
+                        
+                        <!-- Divider -->
+                        <hr class="border-gray-200">
+                        
+                        <!-- User Section -->
+                        <div class="p-4">
+                            <div class="flex items-center mb-3 p-2 rounded-md bg-gray-50">
+                                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white font-semibold text-sm">{{ substr(Auth::user()->name, 0, 2) }}</span>
+                                </div>
+                                <div class="ml-3 min-w-0 flex-1">
+                                    <div class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->name }}</div>
+                                    <div class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-1">
+                                <a href="{{ route('ruser.profile.edit') }}" 
+                                   class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">
+                                    <i class="fas fa-user w-5 h-5 mr-3"></i>
+                                    Profile Settings
+                                </a>
+                                
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="flex items-center w-full px-3 py-2 text-red-600 hover:bg-red-50 rounded-md text-sm font-medium transition-colors duration-200 text-left">
+                                        <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
+                                        Sign Out
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -333,48 +337,50 @@
         </main>
     </div>
     
-    <!-- Mobile Menu Script -->
+    <!-- Simple Mobile Menu Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.querySelector('.mobile-menu-button');
             const mobileMenu = document.querySelector('.mobile-menu');
             
-            // Check if mobile menu elements exist before proceeding
             if (!mobileMenuButton || !mobileMenu) {
                 return;
             }
             
-            const menuIcon = mobileMenuButton.querySelector('svg:first-child');
-            const closeIcon = mobileMenuButton.querySelector('svg:last-child');
+            let isMenuOpen = false;
             
-            // Check if menu icons exist
-            if (!menuIcon || !closeIcon) {
-                return;
-            }
-
-            mobileMenuButton.addEventListener('click', function() {
-                const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+            function toggleMenu() {
+                isMenuOpen = !isMenuOpen;
+                mobileMenuButton.setAttribute('aria-expanded', isMenuOpen);
                 
-                mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
-                
-                if (isExpanded) {
-                    mobileMenu.classList.add('hidden');
-                    menuIcon.classList.remove('hidden');
-                    closeIcon.classList.add('hidden');
-                } else {
+                if (isMenuOpen) {
                     mobileMenu.classList.remove('hidden');
-                    menuIcon.classList.add('hidden');
-                    closeIcon.classList.remove('hidden');
+                    mobileMenuButton.classList.add('bg-gray-100');
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    mobileMenuButton.classList.remove('bg-gray-100');
+                }
+            }
+            
+            // Toggle menu on button click
+            mobileMenuButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleMenu();
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (isMenuOpen && 
+                    !mobileMenuButton.contains(event.target) && 
+                    !mobileMenu.contains(event.target)) {
+                    toggleMenu();
                 }
             });
-
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
-                    mobileMenu.classList.add('hidden');
-                    mobileMenuButton.setAttribute('aria-expanded', 'false');
-                    menuIcon.classList.remove('hidden');
-                    closeIcon.classList.add('hidden');
+            
+            // Close menu with Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && isMenuOpen) {
+                    toggleMenu();
                 }
             });
         });

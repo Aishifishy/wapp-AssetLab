@@ -17,14 +17,14 @@ class ComputerLaboratory extends Model
         'number_of_computers',
         'equipment_inventory',
         'status',
-
+        'require_faci_req_form',
     ];
 
     protected $casts = [
         'capacity' => 'integer',
         'number_of_computers' => 'integer',
         'equipment_inventory' => 'array',
-
+        'require_faci_req_form' => 'boolean',
     ];
 
     // Status constants

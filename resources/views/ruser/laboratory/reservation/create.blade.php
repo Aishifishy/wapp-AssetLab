@@ -81,6 +81,21 @@
                         </div>
                     </div>
 
+                    <!-- ITSO Facility Reservation Notice -->
+                    @if($laboratory->require_faci_req_form)
+                        <div class="mb-6 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4">
+                            <div class="flex">
+                                <svg class="w-5 h-5 mr-2 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                    <p class="font-medium">ITSO Facility Reservation Required</p>
+                                    <p class="text-sm">Please present your facility reservation request form at ITSO.</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="purpose" class="form-label form-label-required">
