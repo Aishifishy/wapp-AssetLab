@@ -525,4 +525,40 @@ class LaboratoryController extends Controller
 
         ]);
     }
+
+    /**
+     * Get schedule override details for modal view
+     */
+    public function getScheduleOverrideDetails(LaboratoryScheduleOverride $override)
+    {
+        $override->load(['laboratory', 'createdBy', 'originalSchedule']);
+        
+        return response()->json([
+            'id' => $override->id,
+            'laboratory' => [
+                'name' => $override->laboratory->name,
+                'building' => $override->laboratory->building,
+                'room_number' => $override->laboratory->room_number,
+                'capacity' => $override->laboratory->capacity,
+            ],
+            'override_date' => $override->override_date ? $override->override_date->format('M d, Y') : 'N/A',
+            'override_type' => $override->override_type,
+            'override_type_name' => $override->override_type_name,
+            'original_start_time' => $override->originalSchedule && $override->originalSchedule->start_time ? 
+                \Carbon\Carbon::parse($override->originalSchedule->start_time)->format('H:i') : 'N/A',
+            'original_end_time' => $override->originalSchedule && $override->originalSchedule->end_time ? 
+                \Carbon\Carbon::parse($override->originalSchedule->end_time)->format('H:i') : 'N/A',
+            'new_start_time' => $override->new_start_time ? \Carbon\Carbon::parse($override->new_start_time)->format('H:i') : 'N/A',
+            'new_end_time' => $override->new_end_time ? \Carbon\Carbon::parse($override->new_end_time)->format('H:i') : 'N/A',
+            'new_subject_code' => $override->new_subject_code,
+            'new_subject_name' => $override->new_subject_name,
+            'new_instructor_name' => $override->new_instructor_name,
+            'new_section' => $override->new_section,
+            'reason' => $override->reason,
+            'is_active' => $override->is_active,
+            'created_by_name' => $override->createdBy ? $override->createdBy->name : 'N/A',
+            'created_at' => $override->created_at->format('M d, Y H:i'),
+            'updated_at' => $override->updated_at->format('M d, Y H:i'),
+        ]);
+    }
 }

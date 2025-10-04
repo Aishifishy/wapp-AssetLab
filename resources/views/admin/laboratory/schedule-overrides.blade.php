@@ -218,19 +218,24 @@
 </div>
 
 <!-- Override Details Modal -->
-<div id="overrideDetailsModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 z-50 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg max-w-2xl w-full p-6">
-            <div class="flex justify-between items-center mb-4">
+<div id="overrideDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium text-gray-900">Override Details</h3>
-                <button type="button" onclick="closeOverrideDetails()" class="text-gray-500 hover:text-gray-700">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <button type="button" onclick="closeOverrideDetails()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
-            <div id="overrideDetailsContent">
-                <!-- Content will be loaded dynamically -->
+            
+            <div id="overrideDetailsContent" class="space-y-4">
+                <!-- Content will be loaded here via JavaScript -->
+                <div class="text-center py-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p class="mt-2 text-gray-500">Loading details...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -362,20 +367,209 @@ document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('overrideDetailsModal');
         const content = document.getElementById('overrideDetailsContent');
 
-        // Show loading state
-        content.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-gray-400"></i> Loading...</div>';
+        // Show modal with loading state
         modal.classList.remove('hidden');
-
-        // In a real implementation, you would fetch the details via AJAX
-        // For now, we'll show basic information
         content.innerHTML = `
-            <div class="space-y-4">
-                <p class="text-gray-600">Override details for ID: ${overrideId}</p>
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <p class="text-sm text-gray-500">Use this modal to display detailed information about the override, including reason, requestor, affected schedules, etc.</p>
-                </div>
+            <div class="text-center py-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p class="mt-2 text-gray-500">Loading details...</p>
             </div>
         `;
+
+        // Fetch override details
+        fetch(`{{ url('admin/laboratory/schedule-overrides') }}/${overrideId}/details`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                content.innerHTML = `
+                    <div class="max-h-96 overflow-y-auto">
+                        <!-- Header with Status Badge -->
+                        <div class="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-lg">
+                            <div>
+                                <h5 class="text-lg font-medium text-gray-900">Override #${data.id}</h5>
+                                <p class="text-sm text-gray-600">Created ${data.created_at}</p>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2">
+                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full 
+                                    ${data.override_type === 'cancel' ? 'bg-red-100 text-red-800' : 
+                                      data.override_type === 'replace' ? 'bg-yellow-100 text-yellow-800' : 
+                                      data.override_type === 'modify' ? 'bg-blue-100 text-blue-800' : 
+                                      'bg-gray-100 text-gray-800'}">
+                                    ${data.override_type.charAt(0).toUpperCase() + data.override_type.slice(1)}
+                                </span>
+                                <span class="inline-flex px-2.5 py-0.5 text-xs font-medium rounded-full 
+                                    ${data.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                    ${data.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Laboratory & Date Info -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h6 class="font-medium text-blue-900 mb-3 flex items-center">
+                                    <i class="fas fa-flask mr-2"></i>Laboratory Information
+                                </h6>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Name:</span>
+                                        <span class="font-medium text-gray-900">${data.laboratory.name}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Location:</span>
+                                        <span class="font-medium text-gray-900">${data.laboratory.building}, Room ${data.laboratory.room_number}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Capacity:</span>
+                                        <span class="font-medium text-gray-900">${data.laboratory.capacity} people</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h6 class="font-medium text-purple-900 mb-3 flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2"></i>Override Information
+                                </h6>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Date:</span>
+                                        <span class="font-medium text-gray-900">${data.override_date}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Day:</span>
+                                        <span class="font-medium text-gray-900">${data.day_of_week}</span>
+                                    </div>
+                                    ${data.time_range ? `
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Time:</span>
+                                        <span class="font-medium text-gray-900">${data.time_range}</span>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Original Schedule (if applicable) -->
+                        ${data.original_schedule ? `
+                        <div class="bg-red-50 p-4 rounded-lg mb-6">
+                            <h6 class="font-medium text-red-900 mb-3 flex items-center">
+                                <i class="fas fa-calendar-times mr-2"></i>Original Schedule
+                            </h6>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                ${data.original_schedule.subject_code ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Subject Code:</span>
+                                    <span class="font-medium text-gray-900">${data.original_schedule.subject_code}</span>
+                                </div>
+                                ` : ''}
+                                ${data.original_schedule.subject_name ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Subject Name:</span>
+                                    <span class="font-medium text-gray-900">${data.original_schedule.subject_name}</span>
+                                </div>
+                                ` : ''}
+                                ${data.original_schedule.instructor_name ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Instructor:</span>
+                                    <span class="font-medium text-gray-900">${data.original_schedule.instructor_name}</span>
+                                </div>
+                                ` : ''}
+                                ${data.original_schedule.time_range ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Time:</span>
+                                    <span class="font-medium text-gray-900">${data.original_schedule.time_range}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- New Schedule (for replace/modify) -->
+                        ${data.override_type !== 'cancel' && data.new_schedule ? `
+                        <div class="bg-green-50 p-4 rounded-lg mb-6">
+                            <h6 class="font-medium text-green-900 mb-3 flex items-center">
+                                <i class="fas fa-calendar-plus mr-2"></i>New Schedule
+                            </h6>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                ${data.new_schedule.subject_code ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Subject Code:</span>
+                                    <span class="font-medium text-gray-900">${data.new_schedule.subject_code}</span>
+                                </div>
+                                ` : ''}
+                                ${data.new_schedule.subject_name ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Subject Name:</span>
+                                    <span class="font-medium text-gray-900">${data.new_schedule.subject_name}</span>
+                                </div>
+                                ` : ''}
+                                ${data.new_schedule.instructor_name ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Instructor:</span>
+                                    <span class="font-medium text-gray-900">${data.new_schedule.instructor_name}</span>
+                                </div>
+                                ` : ''}
+                                ${data.new_schedule.time_range ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Time:</span>
+                                    <span class="font-medium text-gray-900">${data.new_schedule.time_range}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Reason -->
+                        ${data.reason ? `
+                        <div class="mb-6">
+                            <h6 class="font-medium text-gray-900 mb-2 flex items-center">
+                                <i class="fas fa-comment mr-2"></i>Reason
+                            </h6>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-700">${data.reason}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Created By Information -->
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h6 class="font-medium text-yellow-900 mb-3 flex items-center">
+                                <i class="fas fa-user mr-2"></i>Created By
+                            </h6>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Name:</span>
+                                    <span class="font-medium text-gray-900">${data.created_by_name}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Created At:</span>
+                                    <span class="font-medium text-gray-900">${data.created_at}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error fetching override details:', error);
+                content.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-red-500 mb-4">
+                            <i class="fas fa-exclamation-triangle text-4xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Error Loading Details</h3>
+                        <p class="text-gray-500 mb-4">Unable to load override details: ${error.message}</p>
+                        <button onclick="closeOverrideDetails()" 
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                            Close
+                        </button>
+                    </div>
+                `;
+            });
     };
 
     window.closeOverrideDetails = function() {
