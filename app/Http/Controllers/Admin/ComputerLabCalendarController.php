@@ -7,6 +7,7 @@ use App\Models\AcademicTerm;
 use App\Models\ComputerLaboratory;
 use App\Models\LaboratorySchedule;
 use App\Services\ReservationConflictService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -31,6 +32,16 @@ class ComputerLabCalendarController extends Controller
         $selectedLaboratoryId = $request->get('laboratory_id');
         $selectedLaboratory = null;
 
+        // Get the requested week or default to current week
+        $weekOffset = (int) $request->query('week', 0); // 0 = current week, -1 = previous, 1 = next, etc.
+        
+        // Limit week navigation to reasonable bounds (e.g., 6 months in the past and 1 year in the future)
+        $weekOffset = max(-26, min(52, $weekOffset));
+        
+        $currentWeekStart = \Carbon\Carbon::now()->startOfWeek();
+        $selectedWeekStart = $currentWeekStart->copy()->addWeeks($weekOffset);
+        $selectedWeekEnd = $selectedWeekStart->copy()->endOfWeek();
+
         // Build schedules query
         $schedulesQuery = LaboratorySchedule::with(['laboratory', 'academicTerm'])
             ->where('academic_term_id', $currentTerm->id);
@@ -45,7 +56,37 @@ class ComputerLabCalendarController extends Controller
 
         $schedules = $schedulesQuery->get()->groupBy('laboratory_id');
 
-        return view('admin.comlab.calendar', compact('laboratories', 'currentTerm', 'schedules', 'selectedLaboratory'));
+        // Get reservations for the selected week (for all laboratories or selected one)
+        $reservationsQuery = \App\Models\LaboratoryReservation::with(['user', 'laboratory'])
+            ->where('status', \App\Models\LaboratoryReservation::STATUS_APPROVED)
+            ->whereBetween('reservation_date', [$selectedWeekStart->toDateString(), $selectedWeekEnd->toDateString()]);
+
+        if ($selectedLaboratory) {
+            $reservationsQuery->where('laboratory_id', $selectedLaboratory->id);
+        }
+
+        $reservations = $reservationsQuery->get()->groupBy('laboratory_id');
+
+        // Prepare week navigation data
+        $weekData = [
+            'current_offset' => $weekOffset,
+            'selected_week_start' => $selectedWeekStart,
+            'selected_week_end' => $selectedWeekEnd,
+            'is_current_week' => $weekOffset === 0,
+            'week_dates' => []
+        ];
+        
+        // Generate array of dates for the selected week
+        for ($i = 0; $i < 7; $i++) {
+            $weekData['week_dates'][] = $selectedWeekStart->copy()->addDays($i);
+        }
+
+        // Handle AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return view('admin.comlab.calendar', compact('laboratories', 'currentTerm', 'schedules', 'reservations', 'selectedLaboratory', 'weekData'))->render();
+        }
+
+        return view('admin.comlab.calendar', compact('laboratories', 'currentTerm', 'schedules', 'reservations', 'selectedLaboratory', 'weekData'));
     }
 
     /**
