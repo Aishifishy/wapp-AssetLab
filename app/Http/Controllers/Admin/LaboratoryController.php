@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use App\Mail\ScheduleOverrideNotification;
 
+
 class LaboratoryController extends Controller
 {
     use ControllerHelpers, CrudOperations;
@@ -172,6 +173,9 @@ class LaboratoryController extends Controller
             return redirect()->back()->with('error', 'This request has already been processed.');
         }
 
+        $previousStatus = $reservation->status;
+        $adminUser = auth('admin')->user();
+
         $reservation->update([
             'status' => LaboratoryReservation::STATUS_APPROVED,
             'approved_at' => now(),
@@ -193,6 +197,9 @@ class LaboratoryController extends Controller
         if ($reservation->status !== LaboratoryReservation::STATUS_PENDING) {
             return redirect()->back()->with('error', 'This request has already been processed.');
         }
+
+        $previousStatus = $reservation->status;
+        $adminUser = auth('admin')->user();
 
         $reservation->update([
             'status' => LaboratoryReservation::STATUS_REJECTED,

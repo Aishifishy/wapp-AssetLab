@@ -453,7 +453,76 @@
                 button.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-50');
             }
         });
+
+        // Initialize real-time updates for user dashboard
+        if (typeof SimpleRealTime !== 'undefined') {
+            const realTimeManager = new SimpleRealTime({
+                endpoint: '/live-status',
+                interval: 45000, // 45 seconds
+                onUpdate: function(data) {
+                    // Update dashboard stats
+                    if (data.stats) {
+                        // Update pending requests
+                        const pendingElement = document.querySelector('.text-3xl.font-bold.text-gray-900');
+                        if (pendingElement && data.stats.pending_requests !== undefined) {
+                            pendingElement.textContent = data.stats.pending_requests;
+                        }
+                        
+                        // Update currently borrowed count
+                        const borrowedElements = document.querySelectorAll('.text-3xl.font-bold.text-gray-900');
+                        if (borrowedElements.length > 1 && data.stats.currently_borrowed !== undefined) {
+                            borrowedElements[1].textContent = data.stats.currently_borrowed;
+                        }
+                        
+                        // Update upcoming returns
+                        if (borrowedElements.length > 2 && data.stats.upcoming_returns !== undefined) {
+                            borrowedElements[2].textContent = data.stats.upcoming_returns;
+                        }
+                    }
+                    
+                    // Show notifications for status changes
+                    if (data.notifications && data.notifications.length > 0) {
+                        data.notifications.forEach(notification => {
+                            showNotification(notification.message, notification.type || 'info');
+                        });
+                    }
+                },
+                onError: function(error) {
+                    console.log('User dashboard real-time update error:', error);
+                }
+            });
+
+            realTimeManager.start();
+            console.log('User dashboard real-time updates started');
+        }
     });
+
+    // Simple notification function
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full ${
+            type === 'success' ? 'bg-green-500 text-white' :
+            type === 'warning' ? 'bg-yellow-500 text-white' :
+            type === 'error' ? 'bg-red-500 text-white' :
+            'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Slide in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 5000);
+    }
 </script>
 
 @endsection

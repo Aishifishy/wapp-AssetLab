@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [RDashboardController::class, 'index'])->name('ruser.dashboard');
+    Route::get('/live-status', [RDashboardController::class, 'getLiveStatus'])->name('ruser.live-status');
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('ruser.profile.edit');
@@ -59,7 +60,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [RuserEquipmentController::class, 'index'])->name('borrow');
         Route::post('/request', [RuserEquipmentController::class, 'request'])->name('request');
         Route::post('/check-availability', [RuserEquipmentController::class, 'checkAvailability'])->name('check-availability');
-        Route::get('/status-update', [RuserEquipmentController::class, 'statusUpdate'])->name('status-update');
+        Route::get('/live-status', [RuserEquipmentController::class, 'getLiveStatus'])->name('live-status');
+
         Route::patch('/request/{equipmentRequest}/cancel', [RuserEquipmentController::class, 'cancelRequest'])->name('cancel-request');
         Route::post('/return/{equipmentRequest}', [RuserEquipmentController::class, 'return'])->name('return');
     });
@@ -104,7 +106,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('logout', [UnifiedAuthController::class, 'logout'])->name('logout');
         
         // Dashboard
-        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+                Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/live-stats', [DashboardController::class, 'getLiveStats'])->name('live-stats');
 
         // Admin Profile Routes
         Route::get('profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'edit'])->name('profile.edit');

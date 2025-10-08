@@ -80,10 +80,12 @@
                             </div>
                             
                             <!-- Real-time Status Indicator -->
-                            <div class="flex items-center px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                <div class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></div>
-                                <span class="text-sm font-medium text-emerald-700">Live Updates</span>
+                            <div class="flex items-center px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
+                                <div id="live-indicator" class="w-2 h-2 bg-gray-400 rounded-full mr-2 transition-all duration-300"></div>
+                                <span class="text-sm font-medium text-blue-700">Real-time Updates</span>
                             </div>
+                            
+
                         </div>
                     </div>
                 </div>
@@ -725,177 +727,9 @@ document.addEventListener('DOMContentLoaded', function() {
         availabilityData = null;
     }
     
-    // Real-time status polling functionality
-    let statusPollingInterval = null;
-    let pollingEnabled = true;
-    const POLLING_INTERVAL = 30000; // 30 seconds
+
     
-    function startStatusPolling() {
-        if (statusPollingInterval) {
-            clearInterval(statusPollingInterval);
-        }
-        
-        statusPollingInterval = setInterval(async () => {
-            if (!pollingEnabled) return;
-            
-            try {
-                await updateEquipmentStatuses();
-            } catch (error) {
-                console.error('Error updating equipment statuses:', error);
-            }
-        }, POLLING_INTERVAL);
-        
-        console.log('Real-time status polling started');
-    }
-    
-    function stopStatusPolling() {
-        if (statusPollingInterval) {
-            clearInterval(statusPollingInterval);
-            statusPollingInterval = null;
-            console.log('Real-time status polling stopped');
-        }
-    }
-    
-    async function updateEquipmentStatuses() {
-        try {
-            const response = await fetch('{{ route("ruser.equipment.status-update") }}', {
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            if (data.equipment && Array.isArray(data.equipment)) {
-                updateStatusBadges(data.equipment);
-                updateAvailabilityStatuses(data.equipment);
-            }
-        } catch (error) {
-            console.error('Failed to fetch equipment statuses:', error);
-        }
-    }
-    
-    function updateStatusBadges(equipmentData) {
-        equipmentData.forEach(equipment => {
-            const statusBadge = document.querySelector(`[data-equipment-id="${equipment.id}"].status-badge`);
-            const card = statusBadge?.closest('[data-equipment-name]');
-            
-            if (statusBadge) {
-                const statusClasses = getStatusBadgeClasses(equipment.status);
-                const statusText = getStatusDisplayText(equipment.status);
-                
-                statusBadge.className = `px-2 py-1 text-xs font-semibold rounded-full status-badge ${statusClasses}`;
-                statusBadge.textContent = statusText;
-                
-                if (card) {
-                    card.setAttribute('data-status', equipment.status);
-                }
-            }
-        });
-    }
-    
-    function updateAvailabilityStatuses(equipmentData) {
-        equipmentData.forEach(equipment => {
-            const availabilityStatus = document.querySelector(`[data-equipment-id="${equipment.id}"].availability-status`);
-            
-            if (availabilityStatus) {
-                availabilityStatus.textContent = getAvailabilityStatusText(equipment.status);
-            }
-        });
-    }
-    
-    function getStatusBadgeClasses(status) {
-        const statusMap = {
-            'available': 'bg-green-100 text-green-800',
-            'borrowed': 'bg-yellow-100 text-yellow-800',
-            'unavailable': 'bg-red-100 text-red-800',
-            'maintenance': 'bg-red-100 text-red-800'
-        };
-        
-        return statusMap[status] || 'bg-gray-100 text-gray-800';
-    }
-    
-    function getStatusDisplayText(status) {
-        const statusMap = {
-            'available': 'Available',
-            'borrowed': 'Borrowed',
-            'unavailable': 'Unavailable',
-            'maintenance': 'Under Maintenance'
-        };
-        
-        return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
-    }
-    
-    function getAvailabilityStatusText(status) {
-        const statusMap = {
-            'available': 'Click to check availability',
-            'borrowed': 'Currently borrowed',
-            'unavailable': 'Currently unavailable',
-            'maintenance': 'Under maintenance'
-        };
-        
-        return statusMap[status] || 'Status unknown';
-    }
-    
-    // Pause polling when user is actively interacting
-    function pausePolling() {
-        pollingEnabled = false;
-    }
-    
-    function resumePolling() {
-        pollingEnabled = true;
-    }
-    
-    // Pause polling during user interactions
-    document.addEventListener('focus', pausePolling);
-    document.addEventListener('blur', resumePolling);
-    
-    // Pause polling when modal is open
-    document.addEventListener('click', function(e) {
-        if (e.target.matches('.borrow-btn')) {
-            pausePolling();
-        }
-    });
-    
-    // Resume polling when modal is closed
-    document.addEventListener('click', function(e) {
-        if (e.target.matches('[data-action="close-modal"]')) {
-            setTimeout(resumePolling, 1000);
-        }
-    });
-    
-    // Start polling when page loads
-    startStatusPolling();
-    
-    // Clean up polling when page unloads
-    window.addEventListener('beforeunload', stopStatusPolling);
-    
-    // Add visual indicator for real-time updates
-    function addRealTimeIndicator() {
-        const indicator = document.createElement('div');
-        indicator.id = 'realtime-indicator';
-        indicator.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs flex items-center space-x-1 z-50';
-        indicator.innerHTML = `
-            <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span>Live</span>
-        `;
-        document.body.appendChild(indicator);
-        
-        // Update indicator every 30 seconds
-        setInterval(() => {
-            const dot = indicator.querySelector('.w-2');
-            if (dot) {
-                dot.classList.add('animate-pulse');
-                setTimeout(() => dot.classList.remove('animate-pulse'), 1000);
-            }
-        }, POLLING_INTERVAL);
-    }
+
     
     // Form submission validation
     document.getElementById('borrowForm').addEventListener('submit', function(e) {
@@ -935,8 +769,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Form validation passed, submitting...');
     });
 
-    // Add the real-time indicator
-    addRealTimeIndicator();
+
 });
 </script>
 @endpush

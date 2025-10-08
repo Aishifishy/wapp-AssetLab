@@ -254,38 +254,58 @@ class EquipmentController extends Controller
     }
 
     /**
-     * Get real-time status updates for equipment items.
+     * Get live status updates for equipment items (for AJAX polling)
      */
-    public function statusUpdate(Request $request)
+    public function getLiveStatus(Request $request)
     {
         try {
-            // Get all equipment that the user can see (available equipment across all categories)
-            $equipment = Equipment::select('id', 'status', 'updated_at')
-                ->whereIn('status', ['available', 'borrowed', 'unavailable'])
-                ->orderBy('updated_at', 'desc')
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'status' => $item->status,
-                        'updated_at' => $item->updated_at->toISOString(),
-                    ];
-                });
+            $categoryId = $request->get('category_id');
+            $lastUpdate = $request->get('last_update');
+            
+            $query = Equipment::select('id', 'name', 'status', 'updated_at');
+            
+            // Filter by category if provided
+            if ($categoryId) {
+                $query->where('equipment_category_id', $categoryId);
+            }
+            
+            // Only get items updated after the last check (for efficiency)
+            if ($lastUpdate) {
+                $query->where('updated_at', '>', $lastUpdate);
+            }
+            
+            $equipmentUpdates = $query->get()->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'status' => $item->status ?? 'available',
+                    'updated_at' => $item->updated_at->toISOString(),
+                ];
+            });
+
+            // Get pending/recent equipment requests count for real-time notifications
+            $recentRequests = Auth::check() ? 
+                Auth::user()->equipmentRequests()
+                    ->where('created_at', '>', now()->subMinutes(5))
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->count() : 0;
 
             return response()->json([
                 'success' => true,
-                'equipment' => $equipment,
+                'equipment' => $equipmentUpdates,
+                'recent_requests' => $recentRequests,
                 'timestamp' => now()->toISOString()
             ]);
+            
         } catch (\Exception $e) {
-            Log::error('Equipment status update failed', [
+            Log::error('Live status update failed', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch equipment status updates'
+                'message' => 'Failed to fetch live updates'
             ], 500);
         }
     }

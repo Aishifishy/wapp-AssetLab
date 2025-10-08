@@ -132,6 +132,7 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($reservations as $request)
                         <tr class="request-row" 
+                            data-reservation-id="{{ $request->id }}"
                             data-user="{{ strtolower($request->user->name) }}" 
                             data-laboratory="{{ strtolower($request->laboratory->name) }}" 
                             data-status="{{ $request->status }}"
@@ -166,9 +167,9 @@
                                 </div>
                                 <div class="text-xs text-gray-500">{{ $request->duration }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap status-cell">
                                 <div class="flex justify-center">
-                                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium
+                                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium status-badge
                                         @if($request->status === 'approved') bg-green-100 text-green-800
                                         @elseif($request->status === 'rejected') bg-red-100 text-red-800
                                         @else bg-yellow-100 text-yellow-800 @endif">
@@ -176,7 +177,7 @@
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap admin-info-cell">
                                 @if($request->status === 'approved' && $request->approvedBy)
                                     <div class="text-xs text-green-600">
                                         <div class="font-medium">Approved by:</div>
@@ -198,7 +199,7 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium action-buttons">
                                 @if($request->status === 'pending')
                                     <div class="flex flex-col space-y-1">
                                         <div class="flex space-x-2">

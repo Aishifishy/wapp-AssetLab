@@ -5,10 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+
         <title>{{ config('app.name', 'AssetLab') }}@yield('title')</title>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+
 
         <!-- Alpine.js -->
         <script src="//unpkg.com/alpinejs" defer></script>
@@ -24,6 +27,8 @@
             
             @include('layouts.footer')
         </div>
+
+
 
         @stack('scripts')
     </body>

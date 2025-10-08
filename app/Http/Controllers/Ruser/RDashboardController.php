@@ -7,6 +7,7 @@ use App\Services\UserEquipmentService;
 use App\Services\UserLaboratoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class RDashboardController extends Controller
@@ -111,5 +112,121 @@ class RDashboardController extends Controller
         $paginator->appends(request()->query());
         
         return $paginator;
+    }
+
+    /**
+     * Get live status updates for user dashboard (for AJAX polling)
+     */
+    public function getLiveStatus(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $lastUpdate = $request->get('last_update');
+            
+            // Get current user statistics
+            $equipmentStats = $this->equipmentService->getUserStats($user->id);
+            
+            $stats = [
+                'equipment' => [
+                    'pending_requests' => $equipmentStats['pending_requests'],
+                    'currently_borrowed' => $equipmentStats['currently_borrowed'],
+                    'upcoming_returns' => $equipmentStats['upcoming_returns'],
+                    'total_requests' => $equipmentStats['total_requests'],
+                ],
+                'laboratory' => [
+                    'available_labs' => $this->laboratoryService->getAvailableLabsCount(),
+                    'user_reservations' => \App\Models\LaboratoryReservation::where('user_id', $user->id)
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->count(),
+                    'upcoming_reservations' => \App\Models\LaboratoryReservation::where('user_id', $user->id)
+                        ->where('status', 'approved')
+                        ->where('reservation_date', '>=', today())
+                        ->count(),
+                ]
+            ];
+            
+            // Get recent activity if requested
+            $recentActivity = null;
+            if ($lastUpdate) {
+                $recentEquipmentRequests = \App\Models\EquipmentRequest::where('user_id', $user->id)
+                    ->where('updated_at', '>', $lastUpdate)
+                    ->count();
+                    
+                $recentLaboratoryReservations = \App\Models\LaboratoryReservation::where('user_id', $user->id)
+                    ->where('updated_at', '>', $lastUpdate)
+                    ->count();
+                
+                $recentActivity = [
+                    'equipment_requests' => $recentEquipmentRequests,
+                    'laboratory_reservations' => $recentLaboratoryReservations,
+                    'total' => $recentEquipmentRequests + $recentLaboratoryReservations
+                ];
+            }
+            
+            // Check for status changes (approvals, rejections, etc.)
+            $notifications = [];
+            if ($lastUpdate) {
+                // Check for recently approved equipment requests
+                $approvedRequests = $user->equipmentRequests()
+                    ->where('status', 'approved')
+                    ->where('updated_at', '>', $lastUpdate)
+                    ->count();
+                
+                if ($approvedRequests > 0) {
+                    $notifications[] = [
+                        'type' => 'equipment_approved',
+                        'count' => $approvedRequests,
+                        'message' => "You have {$approvedRequests} newly approved equipment request(s)!"
+                    ];
+                }
+                
+                // Check for recently rejected equipment requests
+                $rejectedRequests = $user->equipmentRequests()
+                    ->where('status', 'rejected')
+                    ->where('updated_at', '>', $lastUpdate)
+                    ->count();
+                
+                if ($rejectedRequests > 0) {
+                    $notifications[] = [
+                        'type' => 'equipment_rejected',
+                        'count' => $rejectedRequests,
+                        'message' => "You have {$rejectedRequests} equipment request(s) that need attention."
+                    ];
+                }
+                
+                // Check for approved laboratory reservations
+                $approvedReservations = $user->laboratoryReservations()
+                    ->where('status', 'approved')
+                    ->where('updated_at', '>', $lastUpdate)
+                    ->count();
+                
+                if ($approvedReservations > 0) {
+                    $notifications[] = [
+                        'type' => 'laboratory_approved',
+                        'count' => $approvedReservations,
+                        'message' => "You have {$approvedReservations} newly approved laboratory reservation(s)!"
+                    ];
+                }
+            }
+            
+            return response()->json([
+                'success' => true,
+                'stats' => $stats,
+                'recent_activity' => $recentActivity,
+                'notifications' => $notifications,
+                'timestamp' => now()->toISOString()
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in user dashboard live status: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch live updates'
+            ], 500);
+        }
     }
 }

@@ -14,6 +14,7 @@ import './date-validation-manager';
 import './reservation-form';
 import './quick-reserve';
 import './calendar';
+import './simple-realtime';
 
 import Alpine from 'alpinejs';
 

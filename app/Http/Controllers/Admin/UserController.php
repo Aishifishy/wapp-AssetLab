@@ -191,8 +191,8 @@ class UserController extends Controller
             'password' => $validated['password']
         ]);
 
-        return redirect()->route('admin.users.show', $user)
-            ->with('success', 'Password reset successfully.');
+        // Redirect back to the previous page (could be index or show)
+        return back()->with('success', 'Password reset successfully for ' . $user->name . '.');
     }
 
     /**

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+
     <title>@yield('title', 'Admin') - {{ config('app.name', 'AssetLab') }}</title>
 
     <!-- Fonts -->
@@ -314,5 +315,82 @@
             });
         });
     </script>
+    
+    <!-- Real-time Updates for Admin Dashboard -->
+    @if(request()->routeIs('admin.dashboard'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof SimpleRealTime !== 'undefined') {
+                // Initialize real-time updates for admin dashboard
+                const adminRealTime = new SimpleRealTime({
+                    debug: false,
+                    pollInterval: 45000 // 45 seconds for admin dashboard
+                });
+                
+                // Add status indicator
+                adminRealTime.addStatusIndicator();
+                
+                // Start polling for admin stats
+                adminRealTime.start('/admin/live-stats');
+                
+                // Handle stats updates
+                adminRealTime.on('update', function(data) {
+                    if (data.stats) {
+                        updateDashboardStats(data.stats);
+                    }
+                    
+                    if (data.recent_activity && data.recent_activity.total > 0) {
+                        showActivityNotification(data.recent_activity);
+                    }
+                });
+                
+                // Update dashboard statistics
+                function updateDashboardStats(stats) {
+                    // Update equipment stats
+                    const totalEquipmentEl = document.querySelector('[data-stat="total-equipment"]');
+                    const borrowedEquipmentEl = document.querySelector('[data-stat="borrowed-equipment"]');
+                    const pendingRequestsEl = document.querySelector('[data-stat="pending-requests"]');
+                    
+                    if (totalEquipmentEl) totalEquipmentEl.textContent = stats.equipment.total;
+                    if (borrowedEquipmentEl) borrowedEquipmentEl.textContent = stats.equipment.borrowed;
+                    if (pendingRequestsEl) pendingRequestsEl.textContent = stats.requests.pending_equipment;
+                    
+                    // Update laboratory stats
+                    const todayBookingsEl = document.querySelector('[data-stat="today-bookings"]');
+                    const pendingReservationsEl = document.querySelector('[data-stat="pending-reservations"]');
+                    
+                    if (todayBookingsEl) todayBookingsEl.textContent = stats.requests.today_bookings;
+                    if (pendingReservationsEl) pendingReservationsEl.textContent = stats.requests.pending_laboratory;
+                    
+                    // Update user stats
+                    const totalUsersEl = document.querySelector('[data-stat="total-users"]');
+                    const activeTodayEl = document.querySelector('[data-stat="active-today"]');
+                    
+                    if (totalUsersEl) totalUsersEl.textContent = stats.users.total;
+                    if (activeTodayEl) activeTodayEl.textContent = stats.users.active_today;
+                }
+                
+                // Show activity notification
+                function showActivityNotification(activity) {
+                    // Simple notification (could be enhanced with toast notifications)
+                    console.log(`New activity: ${activity.total} new items`);
+                    
+                    // Add a small pulse effect to indicate updates
+                    const activitySection = document.querySelector('.recent-activities');
+                    if (activitySection) {
+                        activitySection.classList.add('animate-pulse');
+                        setTimeout(() => {
+                            activitySection.classList.remove('animate-pulse');
+                        }, 1000);
+                    }
+                }
+                
+                // Store globally for debugging
+                window.adminRealTime = adminRealTime;
+            }
+        });
+    </script>
+    @endif
+
 </body>
 </html>

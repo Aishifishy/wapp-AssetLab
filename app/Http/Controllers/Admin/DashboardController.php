@@ -235,4 +235,78 @@ class DashboardController extends Controller
             'recentActivities'
         ));
     }
+
+    /**
+     * Get live statistics for admin dashboard (for AJAX polling)
+     */
+    public function getLiveStats(Request $request)
+    {
+        try {
+            $lastUpdate = $request->get('last_update');
+            
+            // Get current statistics
+            $stats = [
+                'equipment' => [
+                    'total' => Equipment::count(),
+                    'borrowed' => Equipment::where('status', 'borrowed')->count(),
+                    'available' => Equipment::where('status', 'available')->count(),
+                    'maintenance' => Equipment::where('status', 'maintenance')->count(),
+                ],
+                'requests' => [
+                    'pending_equipment' => \App\Models\EquipmentRequest::where('status', \App\Models\EquipmentRequest::STATUS_PENDING)->count(),
+                    'pending_laboratory' => \App\Models\LaboratoryReservation::where('status', \App\Models\LaboratoryReservation::STATUS_PENDING)->count(),
+                    'today_bookings' => \App\Models\LaboratoryReservation::whereDate('reservation_date', today())
+                        ->where('status', \App\Models\LaboratoryReservation::STATUS_APPROVED)
+                        ->count(),
+                ],
+                'users' => [
+                    'total' => Ruser::count(),
+                    'active_today' => Ruser::whereHas('equipmentRequests', function($query) {
+                        $query->whereDate('created_at', today());
+                    })->count(),
+                    'new_this_week' => Ruser::where('created_at', '>=', now()->subWeek())->count(),
+                ]
+            ];
+            
+            // Get recent activities if requested
+            $recentActivity = null;
+            if ($lastUpdate) {
+                $recentEquipmentRequests = \App\Models\EquipmentRequest::with(['user', 'equipment'])
+                    ->where('updated_at', '>', $lastUpdate)
+                    ->latest()
+                    ->take(5)
+                    ->get();
+                    
+                $recentLaboratoryReservations = \App\Models\LaboratoryReservation::with(['user', 'laboratory'])
+                    ->where('updated_at', '>', $lastUpdate)
+                    ->latest()
+                    ->take(5)
+                    ->get();
+                
+                $recentActivity = [
+                    'equipment_requests' => $recentEquipmentRequests->count(),
+                    'laboratory_reservations' => $recentLaboratoryReservations->count(),
+                    'total' => $recentEquipmentRequests->count() + $recentLaboratoryReservations->count()
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'stats' => $stats,
+                'recent_activity' => $recentActivity,
+                'timestamp' => now()->toISOString()
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Live stats update failed', [
+                'admin_id' => Auth::guard('admin')->id(),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch live statistics'
+            ], 500);
+        }
+    }
 } 

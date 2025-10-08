@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Mail\EquipmentRequestStatusChanged;
 
+
 class EquipmentController extends Controller
 {
     use ControllerHelpers;
@@ -235,11 +236,14 @@ class EquipmentController extends Controller
 
     public function checkOutEquipment(EquipmentRequest $request)
     {
+        $previousStatus = $request->status;
         $result = $this->equipmentService->checkOutEquipment($request);
 
         if (!$result['success']) {
             return back()->with('error', $result['message']);
         }
+
+
 
         return back()->with('success', $result['message']);
     }

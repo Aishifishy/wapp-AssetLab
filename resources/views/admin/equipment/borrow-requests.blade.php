@@ -122,6 +122,7 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($requests as $request)
                             <tr class="request-row" 
+                                data-request-id="{{ $request->id }}"
                                 data-user="{{ strtolower($request->user->name) }}" 
                                 data-equipment="{{ strtolower($request->equipment->name) }}" 
                                 data-status="{{ $request->status }}"
