@@ -125,6 +125,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{academicYear}/set-current', [AcademicYearController::class, 'setCurrent'])->name('set-current');
             Route::post('/set-current-by-date', [AcademicYearController::class, 'setCurrentByDate'])->name('set-current-by-date');
             Route::get('/daily-overview', [AcademicYearController::class, 'getDailyOverview'])->name('daily-overview');
+            Route::get('/month-activities', [AcademicYearController::class, 'getMonthActivities'])->name('month-activities');
 
             // Academic Term Management
             Route::prefix('{academicYear}/terms')->name('terms.')->group(function () {
@@ -149,6 +150,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/reservations', [LaboratoryController::class, 'reservations'])->name('reservations');
             Route::patch('/reservations/{reservation}/approve', [LaboratoryController::class, 'approveRequest'])->name('approve-request');
             Route::patch('/reservations/{reservation}/reject', [LaboratoryController::class, 'rejectRequest'])->name('reject-request');
+            Route::get('/reservations/{reservation}/edit', [LaboratoryController::class, 'editReservation'])->name('edit-reservation');
+            Route::patch('/reservations/{reservation}/update', [LaboratoryController::class, 'updateReservation'])->name('update-reservation');
+            Route::patch('/reservations/{reservation}/cancel', [LaboratoryController::class, 'cancelReservation'])->name('cancel-reservation');
             
             // Schedule Override Management (integrated under laboratory)
             Route::get('/schedule-overrides', [LaboratoryController::class, 'scheduleOverrides'])->name('schedule-overrides');

@@ -212,6 +212,123 @@ class LaboratoryController extends Controller
     }
 
     /**
+     * Show edit form for a reservation
+     */
+    public function editReservation(LaboratoryReservation $reservation)
+    {
+        $reservation->load(['user', 'laboratory']);
+        
+        $laboratories = ComputerLaboratory::orderBy('building')
+                                         ->orderBy('room_number')
+                                         ->get();
+
+        $currentTerm = AcademicTerm::where('is_current', true)->first();
+
+        return view('admin.laboratory.edit-reservation', compact(
+            'reservation', 
+            'laboratories', 
+            'currentTerm'
+        ));
+    }
+
+    /**
+     * Update a reservation with admin changes
+     */
+    public function updateReservation(Request $request, LaboratoryReservation $reservation)
+    {
+        $validated = $this->validateRequest($request, [
+            'laboratory_id' => 'required|exists:computer_laboratories,id',
+            'reservation_date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'purpose' => 'required|string|max:500',
+            'num_students' => 'required|integer|min:1',
+            'course_code' => 'nullable|string|max:20',
+            'subject' => 'nullable|string|max:100',
+            'section' => 'nullable|string|max:20',
+            'admin_notes' => 'nullable|string|max:500',
+        ]);
+
+        // Validate capacity
+        $laboratory = ComputerLaboratory::find($validated['laboratory_id']);
+        if ($validated['num_students'] > $laboratory->capacity) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "Number of students cannot exceed laboratory capacity ({$laboratory->capacity}).");
+        }
+
+        // Store original values for notification
+        $originalData = [
+            'laboratory_name' => $reservation->laboratory->name,
+            'reservation_date' => $reservation->reservation_date,
+            'start_time' => $reservation->start_time,
+            'end_time' => $reservation->end_time,
+        ];
+
+        // Update reservation
+        $reservation->update([
+            'laboratory_id' => $validated['laboratory_id'],
+            'reservation_date' => $validated['reservation_date'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'purpose' => $validated['purpose'],
+            'num_students' => $validated['num_students'],
+            'course_code' => $validated['course_code'],
+            'subject' => $validated['subject'],
+            'section' => $validated['section'],
+            'admin_notes' => $validated['admin_notes'],
+            'modified_by' => auth('admin')->id(),
+            'modified_at' => now(),
+        ]);
+
+        // Send notification to user about the changes
+        $hasChanges = (
+            $originalData['laboratory_name'] !== $laboratory->name ||
+            $originalData['reservation_date']->format('Y-m-d') !== $validated['reservation_date'] ||
+            $originalData['start_time'] !== $validated['start_time'] ||
+            $originalData['end_time'] !== $validated['end_time']
+        );
+
+        if ($hasChanges) {
+            // TODO: Send email notification about the changes
+            // Mail::to($reservation->user->email)->send(
+            //     new \App\Mail\ReservationModifiedNotification($reservation, $originalData)
+            // );
+        }
+
+        return redirect()->route('admin.laboratory.reservations')
+            ->with('success', 'Reservation updated successfully.');
+    }
+
+    /**
+     * Cancel a reservation (admin action)
+     */
+    public function cancelReservation(Request $request, LaboratoryReservation $reservation)
+    {
+        $validated = $this->validateRequest($request, [
+            'cancellation_reason' => 'required|string|max:500'
+        ]);
+
+        if ($reservation->status === LaboratoryReservation::STATUS_CANCELLED) {
+            return redirect()->back()->with('error', 'This reservation is already cancelled.');
+        }
+
+        $reservation->update([
+            'status' => LaboratoryReservation::STATUS_CANCELLED,
+            'cancellation_reason' => $validated['cancellation_reason'],
+            'cancelled_at' => now(),
+            'cancelled_by' => auth('admin')->id()
+        ]);
+
+        // TODO: Send notification to user
+        // Mail::to($reservation->user->email)->send(
+        //     new \App\Mail\ReservationCancelledNotification($reservation)
+        // );
+
+        return redirect()->back()->with('success', 'Reservation cancelled successfully.');
+    }
+
+    /**
      * Show schedule overrides management
      */
     /**

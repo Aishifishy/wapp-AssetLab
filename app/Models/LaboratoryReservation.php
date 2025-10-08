@@ -20,6 +20,7 @@ class LaboratoryReservation extends Model
         'status',
         'purpose',
         'rejection_reason',
+        'cancellation_reason',
         'num_students',
         'course_code',
         'subject',
@@ -29,8 +30,13 @@ class LaboratoryReservation extends Model
         'recurrence_end_date',
         'approved_at',
         'rejected_at',
+        'cancelled_at',
         'approved_by',
         'rejected_by',
+        'cancelled_by',
+        'modified_at',
+        'modified_by',
+        'admin_notes',
     ];
 
     protected $casts = [
@@ -39,6 +45,8 @@ class LaboratoryReservation extends Model
         'recurrence_end_date' => 'date',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'modified_at' => 'datetime',
     ];
 
     // Status constants
@@ -66,6 +74,16 @@ class LaboratoryReservation extends Model
     public function rejectedBy()
     {
         return $this->belongsTo(Radmin::class, 'rejected_by');
+    }
+
+    public function cancelledBy()
+    {
+        return $this->belongsTo(Radmin::class, 'cancelled_by');
+    }
+
+    public function modifiedBy()
+    {
+        return $this->belongsTo(Radmin::class, 'modified_by');
     }
 
     // Scopes

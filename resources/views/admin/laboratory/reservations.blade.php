@@ -16,12 +16,12 @@
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
             <span class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600">
                 <i class="fas fa-calendar-check mr-2"></i>
-                Reservations
+                Unified Management
             </span>
             <a href="{{ route('admin.laboratory.schedule-overrides') }}" 
                class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
-                Schedule Overrides
+                Class Overrides Only
             </a>
         </nav>
     </div>
@@ -68,7 +68,7 @@
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <h3 class="text-lg font-medium text-gray-900">Laboratory Reservation Requests</h3>
+                    <h3 class="text-lg font-medium text-gray-900">Laboratory Reservations Management</h3>
                 </div>
                 <div class="flex items-center space-x-4">
                     <!-- Per Page Selector -->
@@ -207,36 +207,53 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" 
-                                                        class="text-green-600 hover:text-green-900"
+                                                        class="text-green-600 hover:text-green-900 text-xs"
                                                         onclick="return confirm('Are you sure you want to approve this request?')">
                                                     Approve
                                                 </button>
                                             </form>
                                             <button type="button" 
-                                                    class="text-red-600 hover:text-red-900"
+                                                    class="text-red-600 hover:text-red-900 text-xs"
                                                     data-modal-target="rejectModal{{ $request->id }}">
                                                 Reject
                                             </button>
                                         </div>
-                                        @if($request->reservation_date && $request->laboratory_id)
+                                        <div class="flex space-x-2">
+                                            <a href="{{ route('admin.laboratory.edit-reservation', $request) }}"
+                                               class="text-blue-600 hover:text-blue-900 text-xs">
+                                                Edit
+                                            </a>
                                             <button type="button" 
                                                     class="text-blue-600 hover:text-blue-900 text-xs"
                                                     onclick="viewReservationDetails({{ $request->id }})">
                                                 View
                                             </button>
-                                        @endif
+                                        </div>
                                     </div>
-                                @elseif($request->status === 'approved' && $request->reservation_date && $request->laboratory_id)
+                                @elseif($request->status === 'approved')
                                     <div class="flex flex-col space-y-1">
-                                        <span class="text-gray-400 text-sm">Processed {{ $request->updated_at->diffForHumans() }}</span>
+                                        <div class="flex space-x-2">
+                                            <a href="{{ route('admin.laboratory.edit-reservation', $request) }}"
+                                               class="text-blue-600 hover:text-blue-900 text-xs">
+                                                Edit
+                                            </a>
+                                            <button type="button" 
+                                                    class="text-blue-600 hover:text-blue-900 text-xs"
+                                                    onclick="viewReservationDetails({{ $request->id }})">
+                                                View
+                                            </button>
+                                        </div>
+                                        <span class="text-gray-400 text-xs">Approved {{ $request->approved_at->diffForHumans() }}</span>
+                                    </div>
+                                @else
+                                    <div class="flex flex-col space-y-1">
                                         <button type="button" 
                                                 class="text-blue-600 hover:text-blue-900 text-xs"
                                                 onclick="viewReservationDetails({{ $request->id }})">
                                             View
                                         </button>
+                                        <span class="text-gray-400 text-xs">{{ ucfirst($request->status) }} {{ $request->updated_at->diffForHumans() }}</span>
                                     </div>
-                                @else
-                                    <span class="text-gray-400">Processed {{ $request->updated_at->diffForHumans() }}</span>
                                 @endif
                             </td>
                         </tr>

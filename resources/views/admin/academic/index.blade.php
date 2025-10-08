@@ -4,7 +4,188 @@
 
 @push('styles')
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
-<!-- Styles moved to app.css -->
+<style>
+/* Custom calendar styles */
+.fc-daygrid-day {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* Activity indicators */
+.activity-indicators {
+    pointer-events: auto;
+    z-index: 5;
+}
+
+.activity-indicator {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    cursor: pointer;
+}
+
+.activity-indicator:hover {
+    transform: scale(1.3);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.activity-indicator:active {
+    transform: scale(1.1);
+}
+
+/* Enhanced pulse animation for overdue items */
+.pulse-animation {
+    animation: enhanced-pulse 1.8s infinite;
+}
+
+@keyframes enhanced-pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.15);
+        box-shadow: 0 4px 16px rgba(239, 68, 68, 0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+    }
+}
+
+/* Gradient indicators for better visual appeal */
+.activity-indicator.equipment-gradient {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.activity-indicator.lab-gradient {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.activity-indicator.overdue-gradient {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Term background styling */
+.fc .fc-bg-event {
+    opacity: 0.1;
+}
+
+.fc .term-event.current-term {
+    background-color: #10b981 !important;
+    opacity: 0.15;
+}
+
+.fc .term-event:not(.current-term) {
+    background-color: #3b82f6 !important;
+    opacity: 0.08;
+}
+
+/* Calendar cell hover effect */
+.fc-daygrid-day:hover {
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.fc-daygrid-day.fc-day-today {
+    background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+/* Enhanced legend styling */
+.calendar-legend {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 1px solid #cbd5e0;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .activity-indicators {
+        top: 2px;
+        right: 2px;
+        gap: 2px;
+    }
+    
+    .activity-indicator {
+        width: 7px !important;
+        height: 7px !important;
+        border-width: 1px;
+    }
+    
+    .activity-indicator span {
+        font-size: 7px !important;
+        top: -6px !important;
+        right: -6px !important;
+        padding: 1px 3px !important;
+        min-width: 12px !important;
+    }
+    
+    .calendar-legend {
+        padding: 8px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .calendar-legend > div {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .calendar-legend .border-l {
+        border-left: none;
+        border-top: 1px solid #d1d5db;
+        padding-left: 0;
+        padding-top: 8px;
+        margin-top: 8px;
+    }
+    
+    /* Enhanced touch targets */
+    .activity-indicator {
+        min-width: 12px;
+        min-height: 12px;
+        touch-action: manipulation;
+    }
+    
+    /* Larger tooltips for mobile */
+    .activity-tooltip {
+        font-size: 12px !important;
+        padding: 10px 14px !important;
+        max-width: 250px;
+        word-wrap: break-word;
+    }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .activity-indicator {
+        width: 9px !important;
+        height: 9px !important;
+    }
+    
+    .activity-indicator span {
+        font-size: 8px !important;
+        top: -7px !important;
+        right: -7px !important;
+    }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1440px) {
+    .activity-indicator {
+        width: 11px !important;
+        height: 11px !important;
+    }
+    
+    .activity-indicator span {
+        font-size: 10px !important;
+        top: -9px !important;
+        right: -9px !important;
+    }
+}
+</style>
 @endpush
 
 @section('content')
@@ -88,17 +269,41 @@
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                    <i class="fas fa-calendar-alt text-gray-500 mr-3"></i>
+                    <i class="fas fa-calendar-alt text-blue-500 mr-3"></i>
                     Calendar Overview
                 </h3>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-blue-500 rounded"></div>
-                        <span class="text-sm text-gray-600">Academic Terms</span>
+                <div class="calendar-legend rounded-lg p-3">
+                    <div class="flex items-center space-x-6">
+                    <!-- Term Legend -->
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
+                            <span class="text-sm text-gray-600">Academic Terms</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
+                            <span class="text-sm text-gray-600">Current Term</span>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-green-500 rounded"></div>
-                        <span class="text-sm text-gray-600">Current Term</span>
+                    
+                    <!-- Activity Indicators Legend -->
+                    <div class="border-l border-gray-300 pl-6">
+                        <div class="text-xs font-medium text-gray-500 mb-2">Daily Activity Indicators</div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                                <span class="text-xs text-gray-600">Equipment Requests</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2.5 h-2.5 bg-purple-500 rounded-full"></div>
+                                <span class="text-xs text-gray-600">Lab Reservations</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
+                                <span class="text-xs text-gray-600">Overdue Items</span>
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -238,6 +443,7 @@
 <script>
 // Make calendar events and academic years data available to JavaScript
 window.calendarEvents = {!! json_encode($calendarEvents) !!};
+window.calendarActivities = {!! json_encode($calendarActivities) !!};
 window.academicYearsData = {!! json_encode($academicYears->map(function($year) {
     return [
         'id' => $year->id,
@@ -904,11 +1110,304 @@ document.addEventListener('DOMContentLoaded', function() {
                 dateClick: function(info) {
                     // Open modal with daily overview for clicked date
                     openModal(info.dateStr);
+                },
+                datesSet: function(dateInfo) {
+                    // Debounced loading for better performance
+                    clearTimeout(window.monthLoadTimer);
+                    window.monthLoadTimer = setTimeout(() => {
+                        loadMonthActivities(dateInfo.start);
+                    }, 150);
+                },
+                dayCellDidMount: function(info) {
+                    // Add activity indicators to calendar cells
+                    addActivityIndicators(info.el, info.date);
+                },
+                loading: function(isLoading) {
+                    // Show loading state
+                    if (isLoading) {
+                        calendarEl.style.opacity = '0.7';
+                    } else {
+                        calendarEl.style.opacity = '1';
+                        // Trigger initial activity loading when calendar finishes loading
+                        if (!window.initialActivitiesLoaded) {
+                            window.initialActivitiesLoaded = true;
+                            setTimeout(() => {
+                                const currentDate = calendar.getDate();
+                                loadMonthActivities(currentDate);
+                            }, 200);
+                        }
+                    }
                 }
             });
             calendar.render();
+            
+            // Store calendar instance globally
+            window.calendarInstance = calendar;
+            
+            // Load initial activities for current month after DOM is ready
+            setTimeout(() => {
+                const currentDate = calendar.getDate();
+                loadMonthActivities(currentDate);
+            }, 100);
         }
     }, 500);
+
+    // Function to load activities for a specific month
+    async function loadMonthActivities(startDate) {
+        const year = startDate.getFullYear();
+        const month = startDate.getMonth() + 1; // JavaScript months are 0-based
+        
+
+        
+        try {
+            const response = await fetch(`/admin/academic/month-activities?year=${year}&month=${month}`);
+            if (response.ok) {
+                const newActivities = await response.json();
+
+                
+                // Update global activities
+                window.calendarActivities = { ...window.calendarActivities, ...newActivities };
+                
+                // Refresh indicators for all visible cells
+                refreshActivityIndicators();
+            } else {
+                console.error('Failed to fetch activities:', response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error('Failed to load month activities:', error);
+        }
+    }
+
+    // Function to refresh activity indicators
+    function refreshActivityIndicators() {
+        if (!window.calendarInstance) return;
+        
+        // Remove existing indicators
+        document.querySelectorAll('.activity-indicators').forEach(el => el.remove());
+        
+        // Wait a bit for calendar DOM to be ready, then re-add indicators
+        setTimeout(() => {
+            const dayCells = document.querySelectorAll('.fc-daygrid-day');
+
+            
+            dayCells.forEach(cell => {
+                const dateStr = cell.getAttribute('data-date');
+                if (dateStr) {
+                    // Create date object with local timezone to avoid UTC shifts
+                    const [year, month, day] = dateStr.split('-');
+                    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                    addActivityIndicators(cell, date);
+                }
+            });
+        }, 50);
+    }
+
+    // Function to add activity indicators to calendar cells
+    function addActivityIndicators(cellElement, date) {
+        // Use local date formatting to avoid timezone issues
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        const activities = window.calendarActivities[dateStr];
+        
+
+        
+        if (!activities) return;
+        
+        // Remove existing indicators
+        const existing = cellElement.querySelector('.activity-indicators');
+        if (existing) existing.remove();
+        
+        // Create indicators container
+        const indicatorsContainer = document.createElement('div');
+        indicatorsContainer.className = 'activity-indicators';
+        indicatorsContainer.style.cssText = `
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            display: flex;
+            gap: 3px;
+            z-index: 5;
+        `;
+        
+        // Equipment borrowing indicator
+        if (activities.equipment_borrowing > 0) {
+            const equipmentIndicator = createIndicator('equipment', activities.equipment_borrowing, 'Equipment Requests');
+            indicatorsContainer.appendChild(equipmentIndicator);
+        }
+        
+        // Lab reservations indicator
+        if (activities.lab_reservations > 0) {
+            const labIndicator = createIndicator('lab', activities.lab_reservations, 'Lab Reservations');
+            indicatorsContainer.appendChild(labIndicator);
+        }
+        
+        // Overdue items indicator (pulsing red)
+        if (activities.overdue_equipment > 0) {
+            const overdueIndicator = createIndicator('overdue', activities.overdue_equipment, 'Overdue Items', true);
+            indicatorsContainer.appendChild(overdueIndicator);
+        }
+        
+        // Make sure the cell is positioned relatively
+        cellElement.style.position = 'relative';
+        cellElement.appendChild(indicatorsContainer);
+    }
+
+    // Function to create individual activity indicators
+    function createIndicator(color, count, tooltip, pulse = false) {
+        const indicator = document.createElement('div');
+        indicator.className = `activity-indicator ${color}-gradient ${pulse ? 'pulse-animation' : ''}`;
+        
+        const sizeMap = {
+            small: { width: '8px', height: '8px' },
+            medium: { width: '10px', height: '10px' },
+            large: { width: '12px', height: '12px' }
+        };
+        
+        // Determine size based on count
+        let size = 'small';
+        if (count > 5) size = 'large';
+        else if (count > 2) size = 'medium';
+        
+        const dimensions = sizeMap[size];
+        
+        indicator.style.cssText = `
+            width: ${dimensions.width};
+            height: ${dimensions.height};
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        // Add count badge if more than 1
+        if (count > 1) {
+            const badge = document.createElement('span');
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.cssText = `
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+                color: white;
+                font-size: 9px;
+                font-weight: 700;
+                padding: 2px 4px;
+                border-radius: 8px;
+                line-height: 1;
+                min-width: 14px;
+                text-align: center;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            `;
+            indicator.appendChild(badge);
+        }
+        
+        // Enhanced tooltip with touch/click interaction
+        indicator.title = `${tooltip}: ${count} item${count !== 1 ? 's' : ''}\nTap to view details`;
+        
+        // Add touch/click handlers for better mobile support
+        const showDetails = function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            showActivityDetails(tooltip, count, e.target);
+        };
+        
+        indicator.addEventListener('click', showDetails);
+        indicator.addEventListener('touchend', showDetails);
+        
+        return indicator;
+    }
+
+    // Function to show activity details in a tooltip with mobile optimization
+    function showActivityDetails(type, count, element) {
+        // Remove existing tooltips
+        document.querySelectorAll('.activity-tooltip').forEach(el => el.remove());
+        
+        const tooltip = document.createElement('div');
+        tooltip.className = 'activity-tooltip';
+        
+        // Mobile-optimized styling
+        const isMobile = window.innerWidth <= 768;
+        tooltip.style.cssText = `
+            position: fixed;
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: ${isMobile ? '10px 14px' : '8px 12px'};
+            border-radius: 8px;
+            font-size: ${isMobile ? '12px' : '11px'};
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            max-width: ${isMobile ? '250px' : '200px'};
+            touch-action: manipulation;
+        `;
+        
+        tooltip.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: ${getIndicatorColor(type)};"></div>
+                <span>${count} ${type}</span>
+            </div>
+            ${isMobile ? '<div style="font-size: 10px; opacity: 0.8; margin-top: 4px;">Tap anywhere to close</div>' : ''}
+        `;
+        
+        // Smart positioning for mobile
+        const rect = element.getBoundingClientRect();
+        const tooltipWidth = isMobile ? 250 : 200;
+        const tooltipHeight = isMobile ? 50 : 35;
+        
+        let left = rect.right + 5;
+        let top = rect.top - 5;
+        
+        // Ensure tooltip stays within viewport
+        if (left + tooltipWidth > window.innerWidth) {
+            left = rect.left - tooltipWidth - 5;
+        }
+        if (top + tooltipHeight > window.innerHeight) {
+            top = rect.bottom - tooltipHeight;
+        }
+        if (left < 5) left = 5;
+        if (top < 5) top = 5;
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        
+        document.body.appendChild(tooltip);
+        
+        // Enhanced removal logic for mobile
+        const removeTooltip = function() {
+            if (tooltip.parentNode) tooltip.remove();
+            document.removeEventListener('click', removeTooltip);
+            document.removeEventListener('touchstart', removeTooltip);
+        };
+        
+        // Auto-remove after 3 seconds on mobile, 2 on desktop
+        setTimeout(() => {
+            if (tooltip.parentNode) tooltip.remove();
+        }, isMobile ? 3000 : 2000);
+        
+        // Remove on click/touch elsewhere
+        setTimeout(() => {
+            document.addEventListener('click', removeTooltip);
+            document.addEventListener('touchstart', removeTooltip);
+        }, 100);
+    }
+
+    // Helper function to get indicator color
+    function getIndicatorColor(type) {
+        const colorMap = {
+            'Equipment Requests': '#3b82f6',  // Blue to match legend
+            'Lab Reservations': '#8b5cf6',    // Purple to match legend
+            'Overdue Items': '#ef4444'        // Red to match legend
+        };
+        return colorMap[type] || '#6b7280';
+    }
 });
 </script>
 @endpush

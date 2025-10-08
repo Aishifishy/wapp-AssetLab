@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class AcademicYearController extends Controller
@@ -16,6 +17,10 @@ class AcademicYearController extends Controller
             ->get();
 
         $calendarEvents = [];
+        
+        // Initialize empty activities - will be loaded dynamically
+        $calendarActivities = [];
+        
         foreach ($academicYears as $year) {
             foreach ($year->terms as $term) {
                 $calendarEvents[] = [
@@ -23,16 +28,120 @@ class AcademicYearController extends Controller
                     'start' => $term->start_date->format('Y-m-d'),
                     'end' => $term->end_date->addDay()->format('Y-m-d'), // Add a day because FullCalendar end dates are exclusive
                     'className' => 'term-event' . ($term->is_current ? ' current-term' : ''),
+                    'display' => 'background',
                     'extendedProps' => [
                         'year_id' => $year->id,
                         'term_id' => $term->id,
-                        'is_current' => $term->is_current
+                        'is_current' => $term->is_current,
+                        'type' => 'term'
                     ]
                 ];
             }
         }
 
-        return view('admin.academic.index', compact('academicYears', 'calendarEvents'));
+        return view('admin.academic.index', compact('academicYears', 'calendarEvents', 'calendarActivities'));
+    }
+
+    /**
+     * Get calendar activities for notification indicators
+     */
+    private function getCalendarActivities($startDate, $endDate)
+    {
+        $activities = [];
+        
+        // Get laboratory reservations within date range (only pending/approved)
+        $labReservations = \App\Models\LaboratoryReservation::whereBetween('reservation_date', [$startDate, $endDate])
+            ->whereIn('status', ['pending', 'approved'])
+            ->get();
+        
+        // Get overdue equipment (for current date indicators)
+        $overdueRequests = \App\Models\EquipmentRequest::where('requested_until', '<', Carbon::now())
+            ->whereNull('returned_at')
+            ->where('status', 'approved')
+            ->get();
+        
+        // Initialize activities array for each date in the range
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            $dateKey = $date->format('Y-m-d');
+            
+            // Count equipment requests active on this specific date (only pending/approved)
+            $equipmentCount = \App\Models\EquipmentRequest::where(function($query) use ($dateKey) {
+                // Equipment is active on this date if the borrowing period includes this date
+                // Use DATE() function to compare only the date part, ignoring time
+                $query->whereRaw('DATE(requested_from) <= ?', [$dateKey])
+                      ->whereRaw('DATE(requested_until) >= ?', [$dateKey]);
+            })
+            ->whereIn('status', ['pending', 'approved'])
+            ->count();
+            
+            if ($equipmentCount > 0) {
+                if (!isset($activities[$dateKey])) {
+                    $activities[$dateKey] = [
+                        'equipment_borrowing' => 0,
+                        'lab_reservations' => 0,
+                        'overdue_equipment' => 0
+                    ];
+                }
+                
+                $activities[$dateKey]['equipment_borrowing'] = $equipmentCount;
+            }
+        }
+        
+        // Process laboratory reservations
+        foreach ($labReservations as $reservation) {
+            $dateKey = $reservation->reservation_date->format('Y-m-d');
+            
+            if (!isset($activities[$dateKey])) {
+                $activities[$dateKey] = [
+                    'equipment_borrowing' => 0,
+                    'lab_reservations' => 0,
+                    'overdue_equipment' => 0
+                ];
+            }
+            
+            $activities[$dateKey]['lab_reservations']++;
+        }
+        
+        // Process overdue equipment (show on current date)
+        $currentDate = Carbon::now()->format('Y-m-d');
+        if (count($overdueRequests) > 0) {
+            if (!isset($activities[$currentDate])) {
+                $activities[$currentDate] = [
+                    'equipment_borrowing' => 0,
+                    'lab_reservations' => 0,
+                    'overdue_equipment' => 0
+                ];
+            }
+            
+            $activities[$currentDate]['overdue_equipment'] = count($overdueRequests);
+        }
+        
+        return $activities;
+    }
+
+    /**
+     * Get calendar activities for a specific month (AJAX endpoint)
+     */
+    public function getMonthActivities(Request $request)
+    {
+        $year = $request->get('year', Carbon::now()->year);
+        $month = $request->get('month', Carbon::now()->month);
+        
+        // Create cache key for this month's data
+        $cacheKey = "month_activities_{$year}_{$month}";
+        
+        return Cache::remember($cacheKey, now()->addHours(6), function () use ($year, $month) {
+            $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+            $endDate = $startDate->copy()->endOfMonth();
+            
+            // Extend range to include previous/next month edges for better UX
+            $startDate->subDays(7);
+            $endDate->addDays(7);
+            
+            $activities = $this->getCalendarActivities($startDate, $endDate);
+            
+            return response()->json($activities);
+        });
     }
 
     public function create()
@@ -263,10 +372,10 @@ class AcademicYearController extends Controller
             })
             ->get();
 
-        // Get laboratory reservations for the selected date
+        // Get laboratory reservations for the selected date (only approved for schedule display)
         $labReservations = \App\Models\LaboratoryReservation::with(['laboratory', 'user'])
             ->whereDate('reservation_date', $selectedDate->format('Y-m-d'))
-            ->where('status', 'approved') // Only approved reservations
+            ->where('status', 'approved')
             ->get();
 
         // Build comprehensive lab data with new structure
@@ -339,7 +448,7 @@ class AcademicYearController extends Controller
                         'override_reason' => $override->reason,
                         'override_id' => $override->id,
                         'notes' => $override->reason,
-                        'original_schedule_id' => $override->laboratory_schedule_id // For debugging
+                        'original_schedule_id' => $override->laboratory_schedule_id
                     ]);
                 }
             }
@@ -419,16 +528,10 @@ class AcademicYearController extends Controller
             ];
         })->values();
 
-        // Temporary debugging - remove this after testing
-        logger('Lab Data Debug:', [
-            'selected_date' => $selectedDate->format('Y-m-d'),
-            'total_labs' => $labData->count(),
-            'sample_lab_data' => $labData->first()
-        ]);
-
         // Get laboratory reservations for the selected date (separate for other tabs)
         $labReservationsDisplay = \App\Models\LaboratoryReservation::with(['laboratory', 'user'])
             ->whereDate('reservation_date', $selectedDate->format('Y-m-d'))
+            ->whereIn('status', ['pending', 'approved'])
             ->get()
             ->map(function($reservation) {
                 return [
@@ -445,22 +548,34 @@ class AcademicYearController extends Controller
                 ];
             });
 
-        // Get equipment borrowing for the selected date
+        // Get equipment borrowing for the selected date (active on this date)
         $equipmentBorrowing = \App\Models\EquipmentRequest::with(['equipment.category', 'user'])
-            ->whereDate('requested_from', $selectedDate->format('Y-m-d'))
+            ->where(function($query) use ($selectedDate) {
+                $dateStr = $selectedDate->format('Y-m-d');
+                // Equipment is active on this date if the borrowing period includes this date
+                // Use DATE() function to compare only the date part, ignoring time
+                $query->whereRaw('DATE(requested_from) <= ?', [$dateStr])
+                      ->whereRaw('DATE(requested_until) >= ?', [$dateStr]);
+            })
+            ->whereIn('status', ['pending', 'approved'])
             ->get()
-            ->map(function($request) {
+            ->map(function($request) use ($selectedDate) {
+                $selectedDateStr = $selectedDate->format('Y-m-d');
+                $isStartingToday = $request->requested_from->format('Y-m-d') === $selectedDateStr;
+                $isEndingToday = $request->requested_until->format('Y-m-d') === $selectedDateStr;
+                
                 return [
                     'id' => $request->id,
                     'equipment_name' => $request->equipment->name,
                     'user_name' => $request->user->name,
-                    'borrow_time' => $request->requested_from->format('h:i A'),
-                    'return_time' => $request->requested_until->format('h:i A'),
+                    'borrow_time' => $request->requested_from->format('M d, Y h:i A'),
+                    'return_time' => $request->requested_until->format('M d, Y h:i A'),
                     'purpose' => $request->purpose ?? 'N/A',
                     'quantity' => 1, // Default quantity since model doesn't have this field
                     'category' => $request->equipment->category ? $request->equipment->category->name : 'Uncategorized',
                     'rfid_tag' => $request->equipment->rfid_tag ?? 'N/A',
-                    'status' => $request->status
+                    'status' => $request->status,
+                    'borrowing_phase' => $isStartingToday ? 'starting' : ($isEndingToday ? 'ending' : 'active')
                 ];
             });
 
@@ -472,14 +587,7 @@ class AcademicYearController extends Controller
             'overdue_equipment' => $overdueEquipment,
             'lab_schedules' => $labData,
             'lab_reservations' => $labReservationsDisplay,
-            'equipment_borrowing' => $equipmentBorrowing,
-            'debug_info' => [
-                'total_regular_schedules' => $regularSchedules->count(),
-                'total_schedule_overrides' => $scheduleOverrides->count(),
-                'total_lab_reservations' => $labReservations->count(),
-                'selected_date' => $selectedDate->format('Y-m-d'),
-                'day_of_week' => $dayOfWeek
-            ]
+            'equipment_borrowing' => $equipmentBorrowing
         ]);
     }
 } 
