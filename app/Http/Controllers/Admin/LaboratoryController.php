@@ -48,6 +48,7 @@ class LaboratoryController extends Controller
             'capacity' => 'required|integer|min:1',
             'number_of_computers' => 'required|integer|min:1',
             'status' => 'required|in:available,in_use,under_maintenance,reserved',
+            'require_faci_req_form' => 'boolean',
         ];
     }
 
@@ -60,6 +61,7 @@ class LaboratoryController extends Controller
             'capacity' => 'required|integer|min:1',
             'number_of_computers' => 'required|integer|min:1',
             'status' => 'required|in:available,in_use,under_maintenance,reserved',
+            'require_faci_req_form' => 'boolean',
         ];
     }
 

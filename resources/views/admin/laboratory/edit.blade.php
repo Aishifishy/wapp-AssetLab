@@ -91,6 +91,7 @@
                         </div>
 
                         <div class="flex items-center">
+                            <input type="hidden" name="require_faci_req_form" value="0">
                             <input type="checkbox" 
                                    id="require_faci_req_form" 
                                    name="require_faci_req_form" 

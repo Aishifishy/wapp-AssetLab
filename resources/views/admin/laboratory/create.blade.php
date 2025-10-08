@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
 @section('content')
-<x-admin   title="Add New Laboratory"
-    :back-route="route('admin.laboratory.index')"
-    back-text="Back to List"
-    :form-action="route('admin.laboratory.store')"
-    submit-text="Create Laboratory">
+<x-admin.form-wrapper title="Add New Laboratory"
+    :backRoute="route('admin.laboratory.index')"
+    backText="Back to List"
+    :formAction="route('admin.laboratory.store')"
+    submitText="Create Laboratory">
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-6">

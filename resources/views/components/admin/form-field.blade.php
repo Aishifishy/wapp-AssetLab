@@ -1,9 +1,11 @@
 @props(['name', 'label', 'type' => 'text', 'required' => false, 'placeholder' => '', 'value' => '', 'options' => null, 'rows' => 3])
 
 <div class="form-group">
-    <label for="{{ $name }}" class="{{ $required ? 'form-label form-label-required' : 'form-label-optional' }}">
-        {{ $label }}
-    </label>
+    @if($type !== 'checkbox')
+        <label for="{{ $name }}" class="{{ $required ? 'form-label form-label-required' : 'form-label-optional' }}">
+            {{ $label }}
+        </label>
+    @endif
     
     @if($type === 'textarea')
         <textarea 
@@ -29,6 +31,22 @@
                 </option>
             @endforeach
         </select>
+    @elseif($type === 'checkbox')
+        <div class="flex items-center">
+            <input type="hidden" name="{{ $name }}" value="0">
+            <input 
+                type="checkbox" 
+                id="{{ $name }}" 
+                name="{{ $name }}" 
+                value="1"
+                @if(old($name, $value) == '1' || old($name, $value) === true) checked @endif
+                class="form-checkbox"
+                {{ $attributes }}
+            >
+            <label for="{{ $name }}" class="ml-2 block text-sm text-gray-900">
+                {{ $label }}
+            </label>
+        </div>
     @else
         <input 
             type="{{ $type }}" 
