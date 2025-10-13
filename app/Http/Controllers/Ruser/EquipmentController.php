@@ -38,10 +38,18 @@ class EquipmentController extends Controller
             return $this->showCategory($categoryId);
         }
         
-        // Show categories overview
-        $categories = EquipmentCategory::withCount(['equipment' => function ($query) {
-            $query->where('status', Equipment::STATUS_AVAILABLE);
-        }])
+        // Show categories overview - include both available and borrowed equipment
+        $categories = EquipmentCategory::withCount([
+            'equipment' => function ($query) {
+                $query->whereIn('status', [Equipment::STATUS_AVAILABLE, 'borrowed']);
+            },
+            'equipment as available_count' => function ($query) {
+                $query->where('status', Equipment::STATUS_AVAILABLE);
+            },
+            'equipment as borrowed_count' => function ($query) {
+                $query->where('status', 'borrowed');
+            }
+        ])
         ->orderBy('name')
         ->get()
         ->where('equipment_count', '>', 0);
@@ -69,7 +77,7 @@ class EquipmentController extends Controller
             $validated = $this->validateRequest($request, [
                 'equipment_id' => 'required|exists:equipment,id',
                 'purpose' => 'required|string|max:1000',
-                'requested_from' => 'required|date|after_or_equal:now',
+                'requested_from' => 'required|date|after_or_equal:' . now()->subMinutes(5)->format('Y-m-d H:i:s'),
                 'requested_until' => 'required|date|after:requested_from',
                 'booking_type' => 'sometimes|in:immediate,advance',
             ]);

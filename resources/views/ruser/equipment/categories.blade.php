@@ -76,11 +76,39 @@
 
                                 <!-- Equipment Count -->
                                 <div class="flex items-center justify-between">
-                                    <div class="flex items-center text-sm text-gray-500">
-                                        <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z" />
-                                        </svg>
-                                        {{ $category->equipment->where('status', 'available')->count() }} {{ Str::plural('item', $category->equipment->where('status', 'available')->count()) }} available
+                                    <div class="flex flex-col text-sm">
+                                        @php
+                                            $availableCount = $category->available_count ?? $category->equipment->where('status', 'available')->count();
+                                            $borrowedCount = $category->borrowed_count ?? $category->equipment->where('status', 'borrowed')->count();
+                                            $totalCount = $availableCount + $borrowedCount;
+                                        @endphp
+                                        
+                                        @if($availableCount > 0)
+                                            <div class="flex items-center text-emerald-600">
+                                                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                {{ $availableCount }} {{ Str::plural('item', $availableCount) }} available
+                                            </div>
+                                        @endif
+                                        
+                                        @if($borrowedCount > 0)
+                                            <div class="flex items-center text-amber-600">
+                                                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
+                                                </svg>
+                                                {{ $borrowedCount }} for advance booking
+                                            </div>
+                                        @endif
+                                        
+                                        @if($availableCount == 0 && $borrowedCount == 0)
+                                            <div class="flex items-center text-gray-500">
+                                                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z" />
+                                                </svg>
+                                                No items available
+                                            </div>
+                                        @endif
                                     </div>
                                     
                                     <div class="text-blue-600 group-hover:text-blue-700 transition-colors">

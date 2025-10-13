@@ -79,11 +79,7 @@
                                 </select>
                             </div>
                             
-                            <!-- Real-time Status Indicator -->
-                            <div class="flex items-center px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
-                                <div id="live-indicator" class="w-2 h-2 bg-gray-400 rounded-full mr-2 transition-all duration-300"></div>
-                                <span class="text-sm font-medium text-blue-700">Real-time Updates</span>
-                            </div>
+
                             
 
                         </div>
@@ -142,14 +138,18 @@
                                        (($item->status ?? 'available') === 'borrowed' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-red-100 text-red-800 border border-red-200') }}"
                                     data-equipment-id="{{ $item->id }}">
                                     @if(($item->status ?? 'available') === 'available')
-                                        🟢 Available
+                                        🟢 Available Now
                                     @elseif(($item->status ?? 'available') === 'borrowed')
-                                        🟡 Borrowed
+                                        🟡 Currently Borrowed
                                     @else
                                         🔴 Unavailable
                                     @endif
                                 </span>
-                                <div class="text-xs text-gray-400 mt-1">ID: {{ $item->id }}</div>
+                                @if(($item->status ?? 'available') === 'borrowed')
+                                    <div class="text-xs text-blue-600 mt-1 font-medium">Available for advance booking</div>
+                                @else
+                                    <div class="text-xs text-gray-400 mt-1">ID: {{ $item->id }}</div>
+                                @endif
                             </div>
                         </div>
                         
@@ -186,10 +186,13 @@
                             <button data-equipment-id="{{ $item->id }}" 
                                     data-equipment-name="{{ $item->name }}"
                                     data-equipment-status="{{ $item->status ?? 'available' }}"
-                                    class="borrow-btn w-full py-3 px-4 rounded-xl font-semibold
+                                    class="borrow-btn w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 hover:scale-105
                                         {{ ($item->status ?? 'available') === 'available' ? 
-                                           'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg' : 
-                                           'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg' }}">
+                                           'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg' : 
+                                           (($item->status ?? 'available') === 'borrowed' ?
+                                           'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg' :
+                                           'bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-lg cursor-not-allowed opacity-60') }}"
+                                    {{ ($item->status ?? 'available') !== 'available' && ($item->status ?? 'available') !== 'borrowed' ? 'disabled' : '' }}>
                                 
                                 <div class="flex items-center justify-center space-x-2">
                                     @if(($item->status ?? 'available') === 'available')
@@ -259,9 +262,12 @@
             </div>
             
             <!-- Equipment Info -->
-            <div id="equipmentInfo" class="mb-4 p-3 bg-gray-50 rounded-lg hidden">
+            <div id="equipmentInfo" class="mb-4 p-4 bg-gray-50 rounded-lg hidden">
                 <h4 class="font-medium text-gray-900" id="equipmentName"></h4>
                 <p class="text-sm text-gray-600" id="equipmentStatus"></p>
+                <div id="bookingTypeInfo" class="hidden mt-2 p-3 rounded-lg border-l-4">
+                    <p class="text-sm font-medium" id="bookingMessage"></p>
+                </div>
             </div>
             
             <form id="borrowForm" action="{{ route('ruser.equipment.request') }}" method="POST">
@@ -278,32 +284,111 @@
 
                 <!-- Date and Time Selection -->
                 @php
-                    $defaultFromTime = now()->addMinutes(1)->format('Y-m-d\TH:i');
-                    $minTime = now()->addMinutes(1)->format('Y-m-d\TH:i');
+                    $now = now();
+                    $currentDate = $now->format('Y-m-d');
+                    $currentTime = $now->format('H:i');
+                    $currentHour = $now->hour;
+                    $currentMinute = $now->minute;
+                    
+                    // Calculate minimum allowed time for today (current time rounded down to nearest 30-min slot)
+                    $currentMinuteSlot = floor($currentMinute / 30) * 30;
+                    $minTimeToday = sprintf('%02d:%02d', $currentHour, $currentMinuteSlot);
+                    
+                    // If current time is past 9 PM, no slots available today
+                    if ($currentHour >= 21) {
+                        $minTimeToday = '22:00'; // This will make all slots unavailable for today
+                    }
+                    
+                    // Calculate default date and time
+                    if ($currentHour < 7) {
+                        $defaultDate = $currentDate;
+                        $defaultTime = '07:00';
+                    } elseif ($currentHour >= 21) {
+                        $defaultDate = $now->copy()->addDay()->format('Y-m-d');
+                        $defaultTime = '07:00';
+                    } else {
+                        $defaultDate = $currentDate;
+                        // Round up to next available 30-minute slot
+                        $nextMinuteSlot = ceil($currentMinute / 30) * 30;
+                        if ($nextMinuteSlot >= 60) {
+                            $defaultHour = $currentHour + 1;
+                            $nextMinuteSlot = 0;
+                        } else {
+                            $defaultHour = $currentHour;
+                        }
+                        
+                        // Ensure within office hours
+                        if ($defaultHour > 21) {
+                            $defaultDate = $now->copy()->addDay()->format('Y-m-d');
+                            $defaultTime = '07:00';
+                        } else {
+                            $defaultTime = sprintf('%02d:%02d', $defaultHour, $nextMinuteSlot);
+                        }
+                    }
                 @endphp
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Borrowing Period *</label>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-gray-600 text-xs font-medium mb-1" for="requested_from">From</label>
-                            <input type="datetime-local" name="requested_from" id="requested_from" required
-                                   min="{{ $minTime }}"
-                                   value="{{ $defaultFromTime }}"
-                                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <label class="block text-gray-600 text-xs font-medium mb-1" for="requested_from">From Date & Time</label>
+                            <div class="space-y-2">
+                                <input type="date" name="requested_from_date" id="requested_from_date" required
+                                       min="{{ $currentDate }}"
+                                       value="{{ $defaultDate }}"
+                                       data-current-date="{{ $currentDate }}"
+                                       data-min-time-today="{{ $minTimeToday }}"
+                                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <select name="requested_from_time" id="requested_from_time" required
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    <option value="">Select time</option>
+                                    @for($hour = 7; $hour <= 21; $hour++)
+                                        @for($minute = 0; $minute < 60; $minute += 30)
+                                            @php
+                                                $timeValue = sprintf('%02d:%02d', $hour, $minute);
+                                                $timeDisplay = date('g:i A', strtotime($timeValue));
+                                            @endphp
+                                            <option value="{{ $timeValue }}" {{ $timeValue === $defaultTime ? 'selected' : '' }}>{{ $timeDisplay }}</option>
+                                        @endfor
+                                    @endfor
+                                </select>
+                            </div>
+                            <input type="hidden" name="requested_from" id="requested_from">
                         </div>
                         <div>
-                            <label class="block text-gray-600 text-xs font-medium mb-1" for="requested_until">Until</label>
-                            <input type="datetime-local" name="requested_until" id="requested_until" required
-                                   min="{{ now()->format('Y-m-d\TH:i') }}"
-                                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <label class="block text-gray-600 text-xs font-medium mb-1" for="requested_until">Until Date & Time</label>
+                            <div class="space-y-2">
+                                <input type="date" name="requested_until_date" id="requested_until_date" required
+                                       min="{{ $currentDate }}"
+                                       value="{{ $defaultDate }}"
+                                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <select name="requested_until_time" id="requested_until_time" required
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    <option value="">Select time</option>
+                                    @for($hour = 7; $hour <= 21; $hour++)
+                                        @for($minute = 0; $minute < 60; $minute += 30)
+                                            @php
+                                                $timeValue = sprintf('%02d:%02d', $hour, $minute);
+                                                $timeDisplay = date('g:i A', strtotime($timeValue));
+                                            @endphp
+                                            <option value="{{ $timeValue }}">{{ $timeDisplay }}</option>
+                                        @endfor
+                                    @endfor
+                                </select>
+                            </div>
+                            <input type="hidden" name="requested_until" id="requested_until">
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">
-                        You can book equipment for immediate use or schedule it for future dates
-                    </p>
-                    <p class="text-xs text-blue-500 mt-1">
-                        *If conflict checker has error please manually adjust the date and time by 1 minute of the current time.
-                    </p>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                        <div class="flex items-start">
+                            <svg class="w-4 h-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="text-xs text-blue-700">
+                                <p class="font-medium mb-1">📅 Office Hours: 7:00 AM - 9:00 PM</p>
+                                <p>Equipment can only be borrowed and returned during office hours to ensure proper handling and security.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Availability Check Result -->
@@ -425,7 +510,33 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set form values
         document.getElementById('equipment_id').value = equipmentId;
         document.getElementById('equipmentName').textContent = equipmentName;
-        document.getElementById('equipmentStatus').textContent = `Status: ${status}`;
+        
+        // Update status display based on equipment status
+        const statusElement = document.getElementById('equipmentStatus');
+        const bookingTypeInfo = document.getElementById('bookingTypeInfo');
+        const bookingMessage = document.getElementById('bookingMessage');
+        
+        if (status === 'borrowed') {
+            statusElement.textContent = 'Status: Currently Borrowed';
+            statusElement.className = 'text-sm text-amber-600 font-medium';
+            
+            bookingTypeInfo.className = 'mt-2 p-3 rounded-lg border-l-4 border-blue-400 bg-blue-50';
+            bookingMessage.textContent = '📅 This equipment is currently borrowed. You can schedule it for future use (advance booking).';
+            bookingMessage.className = 'text-sm font-medium text-blue-700';
+            bookingTypeInfo.classList.remove('hidden');
+        } else if (status === 'available') {
+            statusElement.textContent = 'Status: Available';
+            statusElement.className = 'text-sm text-emerald-600 font-medium';
+            
+            bookingTypeInfo.className = 'mt-2 p-3 rounded-lg border-l-4 border-green-400 bg-green-50';
+            bookingMessage.textContent = '✅ This equipment is available for immediate borrowing.';
+            bookingMessage.className = 'text-sm font-medium text-green-700';
+            bookingTypeInfo.classList.remove('hidden');
+        } else {
+            statusElement.textContent = `Status: ${status}`;
+            statusElement.className = 'text-sm text-gray-600';
+            bookingTypeInfo.classList.add('hidden');
+        }
         
         // Verify the hidden input was set correctly
         console.log('Hidden input value after setting:', document.getElementById('equipment_id').value);
@@ -433,12 +544,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show equipment info
         document.getElementById('equipmentInfo').classList.remove('hidden');
         
-        // Set default dates (from now to 3 hours later)
-        const now = new Date();
-        const defaultEnd = new Date(now.getTime() + (3 * 60 * 60 * 1000)); // 3 hours later
+        // Update current time data attributes to ensure accurate constraints
+        updateCurrentTimeData();
         
-        document.getElementById('requested_from').value = formatDateTimeLocal(now);
-        document.getElementById('requested_until').value = formatDateTimeLocal(defaultEnd);
+        // Update available time slots based on current time
+        updateAvailableTimeSlots();
+        
+        // Combine the initial date/time inputs
+        combineDateTimeInputs();
         
         // Show modal
         document.getElementById('borrowModal').classList.remove('hidden');
@@ -466,9 +579,324 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAvailability();
     });
 
+    // Simple notification function
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 max-w-sm p-4 rounded-lg shadow-lg ${
+            type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+            type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+            'bg-blue-100 text-blue-800 border border-blue-200'
+        }`;
+        notification.innerHTML = `
+            <div class="flex items-start">
+                <div class="flex-1 text-sm">${message}</div>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-gray-400 hover:text-gray-600">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+
+    // Initialize default values on page load
+    initializeDefaultTimes();
+
     // Auto-check availability when dates change
-    document.getElementById('requested_from').addEventListener('change', autoCheckAvailability);
-    document.getElementById('requested_until').addEventListener('change', autoCheckAvailability);
+    document.getElementById('requested_from_date').addEventListener('change', handleTimeChange);
+    document.getElementById('requested_from_time').addEventListener('change', handleTimeChange);
+    document.getElementById('requested_until_date').addEventListener('change', handleTimeChange);
+    document.getElementById('requested_until_time').addEventListener('change', handleTimeChange);
+    
+    function initializeDefaultTimes() {
+        // Initialize with default values and update time slots based on current constraints
+        updateAvailableTimeSlots();
+        combineDateTimeInputs();
+    }
+
+    // Function to update current time data for accurate time constraints
+    function updateCurrentTimeData() {
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0];
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        
+        // Calculate minimum time (current exact time for precise comparison)
+        const exactCurrentTime = String(currentHour).padStart(2, '0') + ':' + String(currentMinute).padStart(2, '0');
+        
+        // Also calculate rounded down time for 30-minute slot comparison
+        const currentMinuteSlot = Math.floor(currentMinute / 30) * 30;
+        const roundedMinTime = String(currentHour).padStart(2, '0') + ':' + String(currentMinuteSlot).padStart(2, '0');
+        
+        // Update data attributes
+        const fromDateInput = document.getElementById('requested_from_date');
+        fromDateInput.setAttribute('data-current-date', currentDate);
+        fromDateInput.setAttribute('data-min-time-today', currentHour >= 21 ? '22:00' : roundedMinTime);
+        fromDateInput.setAttribute('data-exact-current-time', exactCurrentTime);
+    }
+
+    // Function to update available time slots based on selected date
+    function updateAvailableTimeSlots() {
+        updateFromTimeSlots();
+        updateUntilTimeSlots();
+    }
+
+    // Function to update "from" time slots
+    function updateFromTimeSlots() {
+        const fromDateInput = document.getElementById('requested_from_date');
+        const fromTimeSelect = document.getElementById('requested_from_time');
+        const selectedDate = fromDateInput.value;
+        const currentDate = fromDateInput.getAttribute('data-current-date');
+        const minTimeToday = fromDateInput.getAttribute('data-min-time-today');
+        
+        // Store current selection
+        const previousSelection = fromTimeSelect.value;
+        
+        // Clear all options except the placeholder
+        fromTimeSelect.innerHTML = '<option value="">Select time</option>';
+        
+        const isToday = selectedDate === currentDate;
+        
+        // Add current exact time option for today
+        if (isToday) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            
+            // Only add current time if it's within office hours
+            if (currentHour >= 7 && currentHour < 21) {
+                const currentTimeValue = String(currentHour).padStart(2, '0') + ':' + String(currentMinute).padStart(2, '0');
+                const currentTimeDisplay = now.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                }) + ' (current time)';
+                
+                const currentOption = new Option(currentTimeDisplay, currentTimeValue);
+                fromTimeSelect.appendChild(currentOption);
+            }
+        }
+        
+        // Generate regular 30-minute interval slots
+        for (let hour = 7; hour <= 21; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+                const timeValue = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+                const timeDisplay = new Date('2000-01-01 ' + timeValue).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                
+                // For today, only include current and future time slots
+                if (isToday) {
+                    // Get current exact time for precise comparison
+                    const now = new Date();
+                    const currentExactTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                    
+                    // Only include 30-minute slots that are in the future compared to current exact time
+                    if (timeValue > currentExactTime) {
+                        const option = new Option(timeDisplay, timeValue);
+                        fromTimeSelect.appendChild(option);
+                    }
+                } else {
+                    // For future dates, include all office hour slots
+                    const option = new Option(timeDisplay, timeValue);
+                    fromTimeSelect.appendChild(option);
+                }
+            }
+        }
+        
+        // Try to restore previous selection if it's still available
+        if (previousSelection && Array.from(fromTimeSelect.options).some(opt => opt.value === previousSelection)) {
+            fromTimeSelect.value = previousSelection;
+        } else {
+            // Select the current time option if it exists (index 1), otherwise first regular slot
+            if (fromTimeSelect.options.length > 1) {
+                fromTimeSelect.selectedIndex = 1;
+            }
+        }
+    }
+
+    // Function to update "until" time slots
+    function updateUntilTimeSlots() {
+        const fromDateInput = document.getElementById('requested_from_date');
+        const untilDateInput = document.getElementById('requested_until_date');
+        const untilTimeSelect = document.getElementById('requested_until_time');
+        const fromTimeSelect = document.getElementById('requested_from_time');
+        
+        const selectedUntilDate = untilDateInput.value;
+        const selectedFromDate = fromDateInput.value;
+        const currentDate = fromDateInput.getAttribute('data-current-date');
+        const minTimeToday = fromDateInput.getAttribute('data-min-time-today');
+        const fromTime = fromTimeSelect.value;
+        
+        // Store current selection
+        const previousSelection = untilTimeSelect.value;
+        
+        // Clear all options except the placeholder
+        untilTimeSelect.innerHTML = '<option value="">Select time</option>';
+        
+        const isToday = selectedUntilDate === currentDate;
+        const isSameDayAsFrom = selectedUntilDate === selectedFromDate;
+        
+        // Determine minimum time for until slot
+        let minUntilTime = '07:00';
+        
+        if (isToday) {
+            // For today, use current time as minimum
+            minUntilTime = minTimeToday;
+        }
+        
+        if (isSameDayAsFrom && fromTime) {
+            // If same day as from date and from time is selected, until time must be after from time
+            const [fromHour, fromMinute] = fromTime.split(':').map(Number);
+            
+            // Calculate minimum time: from time + 30 minutes
+            const fromDateTime = new Date();
+            fromDateTime.setHours(fromHour, fromMinute, 0, 0);
+            const minDateTime = new Date(fromDateTime.getTime() + 30 * 60000); // Add 30 minutes
+            
+            // Round up to next 30-minute slot if not already on one
+            let minHour = minDateTime.getHours();
+            let minMinute = minDateTime.getMinutes();
+            
+            if (minMinute > 0 && minMinute <= 30) {
+                minMinute = 30;
+            } else if (minMinute > 30) {
+                minHour += 1;
+                minMinute = 0;
+            }
+            
+            // Ensure within office hours
+            if (minHour > 21) {
+                minHour = 21;
+                minMinute = 30;
+            }
+            
+            const calculatedMinTime = String(minHour).padStart(2, '0') + ':' + String(minMinute).padStart(2, '0');
+            minUntilTime = calculatedMinTime > minUntilTime ? calculatedMinTime : minUntilTime;
+        }
+        
+        // Generate time slots based on constraints
+        for (let hour = 7; hour <= 21; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+                const timeValue = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+                const timeDisplay = new Date('2000-01-01 ' + timeValue).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                
+                // Only include time slots that meet the minimum time requirement
+                if (timeValue >= minUntilTime) {
+                    const option = new Option(timeDisplay, timeValue);
+                    untilTimeSelect.appendChild(option);
+                }
+            }
+        }
+        
+        // Try to restore previous selection if it's still available
+        if (previousSelection && Array.from(untilTimeSelect.options).some(opt => opt.value === previousSelection)) {
+            untilTimeSelect.value = previousSelection;
+        } else {
+            // Select the first available time slot (after placeholder)
+            if (untilTimeSelect.options.length > 1) {
+                untilTimeSelect.selectedIndex = 1;
+            }
+        }
+        
+        // Update until date minimum
+        untilDateInput.min = selectedFromDate;
+        
+        // If until date is before from date, update it
+        if (untilDateInput.value < selectedFromDate) {
+            untilDateInput.value = selectedFromDate;
+        }
+    }
+
+    // Function to combine date and time inputs
+    function combineDateTimeInputs() {
+        const fromDate = document.getElementById('requested_from_date').value;
+        const fromTime = document.getElementById('requested_from_time').value;
+        const untilDate = document.getElementById('requested_until_date').value;
+        const untilTime = document.getElementById('requested_until_time').value;
+        
+        if (fromDate && fromTime) {
+            document.getElementById('requested_from').value = fromDate + 'T' + fromTime;
+        }
+        
+        if (untilDate && untilTime) {
+            document.getElementById('requested_until').value = untilDate + 'T' + untilTime;
+        }
+    }
+
+    // Function to validate that until time is after from time
+    function validateTimeOrder() {
+        const fromDate = document.getElementById('requested_from_date').value;
+        const fromTime = document.getElementById('requested_from_time').value;
+        const untilDate = document.getElementById('requested_until_date').value;
+        const untilTime = document.getElementById('requested_until_time').value;
+        
+        if (fromDate && fromTime && untilDate && untilTime) {
+            const fromDateTime = new Date(fromDate + 'T' + fromTime);
+            const untilDateTime = new Date(untilDate + 'T' + untilTime);
+            
+            if (untilDateTime <= fromDateTime) {
+                // Auto-adjust until time to be at least 30 minutes after from time
+                const suggestedUntil = new Date(fromDateTime.getTime() + 30 * 60000);
+                
+                // If suggested time is beyond office hours, set to next day 7 AM
+                if (suggestedUntil.getHours() > 21 || (suggestedUntil.getHours() === 21 && suggestedUntil.getMinutes() > 0)) {
+                    const nextDay = new Date(suggestedUntil);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    nextDay.setHours(7, 0, 0, 0);
+                    
+                    document.getElementById('requested_until_date').value = nextDay.toISOString().split('T')[0];
+                    document.getElementById('requested_until_time').value = '07:00';
+                } else {
+                    document.getElementById('requested_until_date').value = suggestedUntil.toISOString().split('T')[0];
+                    
+                    // Round to nearest 30-minute slot
+                    const minutes = suggestedUntil.getMinutes();
+                    const roundedMinutes = Math.ceil(minutes / 30) * 30;
+                    const adjustedTime = new Date(suggestedUntil.setMinutes(roundedMinutes, 0, 0));
+                    document.getElementById('requested_until_time').value = adjustedTime.toTimeString().slice(0, 5);
+                }
+                
+                combineDateTimeInputs();
+                showNotification('Until time has been automatically adjusted to be after the from time.', 'info');
+            }
+        }
+    }
+
+    function handleTimeChange(event) {
+        // Update time slots based on what changed
+        if (event && event.target) {
+            if (event.target.id === 'requested_from_date') {
+                // From date changed - update both from and until time slots
+                updateAvailableTimeSlots();
+            } else if (event.target.id === 'requested_until_date') {
+                // Until date changed - update until time slots
+                updateUntilTimeSlots();
+            } else if (event.target.id === 'requested_from_time') {
+                // From time changed - update until time slots to ensure proper minimum
+                updateUntilTimeSlots();
+            }
+        }
+        
+        combineDateTimeInputs();
+        autoCheckAvailability();
+    }
     
     function autoCheckAvailability() {
         const fromDate = document.getElementById('requested_from').value;
@@ -733,6 +1161,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Form submission validation
     document.getElementById('borrowForm').addEventListener('submit', function(e) {
+        // Ensure hidden datetime inputs are populated before submission
+        combineDateTimeInputs();
+        
         const equipmentId = document.getElementById('equipment_id').value;
         const purpose = document.getElementById('purpose').value.trim();
         const fromDate = document.getElementById('requested_from').value;
@@ -752,11 +1183,35 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        if (!purpose || !fromDate || !untilDate) {
+        // Check individual date/time inputs as well
+        const fromDateInput = document.getElementById('requested_from_date').value;
+        const fromTimeInput = document.getElementById('requested_from_time').value;
+        const untilDateInput = document.getElementById('requested_until_date').value;
+        const untilTimeInput = document.getElementById('requested_until_time').value;
+
+        if (!purpose || !fromDateInput || !fromTimeInput || !untilDateInput || !untilTimeInput || !fromDate || !untilDate) {
             e.preventDefault();
             console.error('Form submission blocked: Missing required fields');
-            showError('Please fill in all required fields.');
+            showError('Please fill in all required fields including dates and times.');
             return false;
+        }
+
+        // Validate that from time is not in the past for today's date
+        const currentDateTime = new Date();
+        const fromDateTime = new Date(fromDate);
+        const currentDate = currentDateTime.toISOString().split('T')[0];
+        
+        // Allow current time (within the same minute) but not past times
+        if (fromDateInput === currentDate) {
+            const timeDifference = fromDateTime.getTime() - currentDateTime.getTime();
+            const oneMinuteInMs = 60 * 1000;
+            
+            if (timeDifference < -oneMinuteInMs) { // Allow 1 minute tolerance for current time
+                e.preventDefault();
+                console.error('Form submission blocked: From time cannot be in the past');
+                showError('The borrowing start time cannot be in the past. Please select the current time or later.');
+                return false;
+            }
         }
         
         if (new Date(fromDate) >= new Date(untilDate)) {
