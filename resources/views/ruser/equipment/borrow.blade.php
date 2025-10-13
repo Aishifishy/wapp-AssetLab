@@ -670,10 +670,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add current exact time option for today
         if (isToday) {
             const now = new Date();
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
+            // Add 1 minute to current time to ensure it's always in the future
+            const currentTimePlus1 = new Date(now.getTime() + 60000); // Add 1 minute (60000 ms)
+            const currentHour = currentTimePlus1.getHours();
+            const currentMinute = currentTimePlus1.getMinutes();
             
-            // Only add current time if it's within office hours
+            // Only add current time if it's within office hours (after adding the minute)
             if (currentHour >= 7 && currentHour < 21) {
                 const currentTimeValue = String(currentHour).padStart(2, '0') + ':' + String(currentMinute).padStart(2, '0');
                 const currentTimeDisplay = now.toLocaleTimeString('en-US', {
@@ -683,7 +685,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }) + ' (current time)';
                 
                 const currentOption = new Option(currentTimeDisplay, currentTimeValue);
+                currentOption.setAttribute('data-is-current-time', 'true'); // Mark this as current time option
                 fromTimeSelect.appendChild(currentOption);
+                
+                console.log('Added current time option (+1 min):', currentTimeValue, currentTimeDisplay);
             }
         }
         
@@ -1201,15 +1206,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const fromDateTime = new Date(fromDate);
         const currentDate = currentDateTime.toISOString().split('T')[0];
         
-        // Allow current time (within the same minute) but not past times
+        // Allow current time and future times, but not clearly past times
         if (fromDateInput === currentDate) {
             const timeDifference = fromDateTime.getTime() - currentDateTime.getTime();
-            const oneMinuteInMs = 60 * 1000;
+            const fiveMinutesInMs = 5 * 60 * 1000; // More lenient: 5 minute tolerance
             
-            if (timeDifference < -oneMinuteInMs) { // Allow 1 minute tolerance for current time
+            // Check if the selected time is from the current time dropdown option
+            const selectedOption = document.getElementById('requested_from_time').selectedOptions[0];
+            const selectedTimeText = selectedOption?.text || '';
+            const isCurrentTimeOption = selectedTimeText.includes('(current time)') || 
+                                      selectedOption?.getAttribute('data-is-current-time') === 'true';
+            
+            // If it's the current time option, allow it regardless of small timing differences
+            if (isCurrentTimeOption) {
+                console.log('Current time option selected, allowing submission');
+            } else if (timeDifference < -fiveMinutesInMs) { 
+                // For regular time slots, allow 5 minute tolerance for timing differences
                 e.preventDefault();
                 console.error('Form submission blocked: From time cannot be in the past');
-                showError('Please select a start time that is now or in the future.');
+                showError('The selected start time appears to be in the past. Please choose the current time or a future time.');
                 return false;
             }
         }

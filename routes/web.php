@@ -16,9 +16,20 @@ use App\Http\Controllers\Ruser\LaboratoryController as RuserLaboratoryController
 use App\Http\Controllers\Ruser\LaboratoryReservationController as RuserLaboratoryReservationController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    // Check if user is authenticated and redirect to appropriate dashboard
+    if (Auth::guard('web')->check()) {
+        // Regular user is authenticated
+        return redirect()->route('ruser.dashboard');
+    } elseif (Auth::guard('admin')->check()) {
+        // Admin is authenticated
+        return redirect()->route('admin.dashboard');
+    }
+    
+    // Not authenticated, show landing page
     return view('welcome');
 });
 

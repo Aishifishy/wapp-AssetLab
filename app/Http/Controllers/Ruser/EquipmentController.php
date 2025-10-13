@@ -77,9 +77,20 @@ class EquipmentController extends Controller
             $validated = $this->validateRequest($request, [
                 'equipment_id' => 'required|exists:equipment,id',
                 'purpose' => 'required|string|max:1000',
-                'requested_from' => 'required|date|after_or_equal:' . now()->subMinutes(5)->format('Y-m-d H:i:s'),
+                'requested_from' => 'required|date|after_or_equal:' . now()->subMinutes(10)->format('Y-m-d H:i:s'),
                 'requested_until' => 'required|date|after:requested_from',
                 'booking_type' => 'sometimes|in:immediate,advance',
+            ], [
+                'equipment_id.required' => 'Please select an equipment item.',
+                'equipment_id.exists' => 'The selected equipment is not available.',
+                'purpose.required' => 'Please describe the purpose for borrowing this equipment.',
+                'purpose.max' => 'The purpose description cannot exceed 1000 characters.',
+                'requested_from.required' => 'Please select a start date and time.',
+                'requested_from.date' => 'Please enter a valid start date and time.',
+                'requested_from.after_or_equal' => 'The start time cannot be in the past. Please select the current time or a future time.',
+                'requested_until.required' => 'Please select an end date and time.',
+                'requested_until.date' => 'Please enter a valid end date and time.',
+                'requested_until.after' => 'The end time must be after the start time.',
             ]);
 
             $result = $this->equipmentService->createRequest($validated, Auth::id());

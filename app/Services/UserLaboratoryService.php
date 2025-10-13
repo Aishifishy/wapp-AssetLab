@@ -212,26 +212,26 @@ class UserLaboratoryService extends BaseService
         
         switch($reservation->status) {
             case LaboratoryReservation::STATUS_PENDING:
-                $activityText = "<strong>Requested</strong> laboratory reservation for {$reservation->laboratory->name}";
+                $activityText = "<strong>Laboratory Reservation Submitted</strong> for {$reservation->laboratory->name}";
                 if ($reservation->reservation_date) {
-                    $activityText .= '<br><small class="text-gray-600">Date: ' . 
+                    $activityText .= '<br><small class="text-gray-600">Requested date: ' . 
                                    $reservation->reservation_date->format('M j, Y') . '</small>';
                 }
                 if ($reservation->formatted_start_time && $reservation->formatted_end_time) {
-                    $activityText .= '<br><small class="text-gray-600">Time: ' . 
+                    $activityText .= '<br><small class="text-gray-600">Requested time: ' . 
                                    $reservation->formatted_start_time . ' - ' . $reservation->formatted_end_time . '</small>';
                 }
                 $statusClass = 'yellow';
                 break;
                 
             case LaboratoryReservation::STATUS_APPROVED:
-                $activityText = "<strong>Laboratory reservation approved</strong> for {$reservation->laboratory->name}";
+                $activityText = "<strong>Laboratory Reservation Approved</strong> for {$reservation->laboratory->name}";
                 if ($reservation->reservation_date) {
-                    $activityText .= '<br><small class="text-green-600">Date: ' . 
+                    $activityText .= '<br><small class="text-green-600">Reserved date: ' . 
                                    $reservation->reservation_date->format('M j, Y') . '</small>';
                 }
                 if ($reservation->formatted_start_time && $reservation->formatted_end_time) {
-                    $activityText .= '<br><small class="text-green-600">Time: ' . 
+                    $activityText .= '<br><small class="text-green-600">Reserved time: ' . 
                                    $reservation->formatted_start_time . ' - ' . $reservation->formatted_end_time . '</small>';
                 }
                 if ($reservation->approvedBy) {
@@ -243,7 +243,7 @@ class UserLaboratoryService extends BaseService
                 break;
                 
             case LaboratoryReservation::STATUS_REJECTED:
-                $activityText = "<strong>Laboratory reservation rejected</strong> for {$reservation->laboratory->name}";
+                $activityText = "<strong>Laboratory Reservation Declined</strong> for {$reservation->laboratory->name}";
                 if ($reservation->reservation_date) {
                     $activityText .= '<br><small class="text-gray-600">Requested date: ' . 
                                    $reservation->reservation_date->format('M j, Y') . '</small>';
@@ -253,7 +253,7 @@ class UserLaboratoryService extends BaseService
                                    $reservation->formatted_start_time . ' - ' . $reservation->formatted_end_time . '</small>';
                 }
                 if ($reservation->rejectedBy) {
-                    $activityText .= '<br><small class="text-red-600">Rejected by: ' . 
+                    $activityText .= '<br><small class="text-red-600">Reviewed by: ' . 
                                    $reservation->rejectedBy->name . ' on ' . 
                                    $reservation->rejected_at->format('M j, Y g:i A') . '</small>';
                 }
@@ -265,16 +265,16 @@ class UserLaboratoryService extends BaseService
                 break;
                 
             case LaboratoryReservation::STATUS_CANCELLED:
-                $activityText = "<strong>Cancelled</strong> laboratory reservation for {$reservation->laboratory->name}";
+                $activityText = "<strong>Laboratory Reservation Cancelled</strong> for {$reservation->laboratory->name}";
                 if ($reservation->reservation_date) {
-                    $activityText .= '<br><small class="text-gray-600">Originally scheduled: ' . 
+                    $activityText .= '<br><small class="text-gray-600">Originally scheduled for: ' . 
                                    $reservation->reservation_date->format('M j, Y') . '</small>';
                 }
                 $statusClass = 'gray';
                 break;
                 
             default:
-                $activityText = "Unknown status for {$reservation->laboratory->name}";
+                $activityText = "Status update for {$reservation->laboratory->name} reservation";
                 $statusClass = 'gray';
                 break;
         }

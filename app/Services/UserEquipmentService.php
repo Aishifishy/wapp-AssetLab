@@ -438,66 +438,66 @@ class UserEquipmentService extends BaseService
         
         switch($request->status) {
             case EquipmentRequest::STATUS_PENDING:
-                $activityText = "<strong>Requested</strong> {$request->equipment->name}";
+                $activityText = "<strong>Equipment Request Submitted</strong> for {$request->equipment->name}";
                 $dateRange = Carbon::parse($request->requested_from)->format('M j') . 
                            ' - ' . Carbon::parse($request->requested_until)->format('M j, Y');
-                $activityText .= '<br><small class="text-gray-600">Duration: ' . $dateRange . '</small>';
+                $activityText .= '<br><small class="text-gray-600">Requested period: ' . $dateRange . '</small>';
                 $statusClass = 'yellow';
                 break;
                 
             case EquipmentRequest::STATUS_APPROVED:
                 if ($request->returned_at) {
                     // Equipment has been returned
-                    $activityText = "<strong>Returned</strong> {$request->equipment->name}";
+                    $activityText = "<strong>Equipment Returned</strong> - {$request->equipment->name}";
                     $activityText .= '<br><small class="text-green-600">Returned on: ' . 
                                    $request->returned_at->format('M j, Y g:i A') . '</small>';
                     if ($request->return_condition) {
                         $conditionColor = $request->return_condition === 'good' ? 'text-green-600' : 
                                         ($request->return_condition === 'damaged' ? 'text-red-600' : 'text-yellow-600');
-                        $activityText .= '<br><small class="' . $conditionColor . '">Condition: ' . 
+                        $activityText .= '<br><small class="' . $conditionColor . '">Return condition: ' . 
                                        ucfirst($request->return_condition) . '</small>';
                     }
                     $detailedStatus = 'returned';
                     $statusClass = 'green';
                 } elseif ($request->isCheckedOut()) {
                     // Equipment is currently checked out (borrowed)
-                    $activityText = "<strong>Borrowed</strong> {$request->equipment->category->name} - {$request->equipment->name}";
+                    $activityText = "<strong>Currently Borrowed</strong> - {$request->equipment->category->name} - {$request->equipment->name}";
                     $activityText .= '<br><small class="text-blue-600">Checked out: ' . 
                                    $request->checked_out_at->format('M j, Y g:i A') . '</small>';
                     if ($request->checkedOutBy) {
-                        $activityText .= '<br><small class="text-blue-600">By: ' . $request->checkedOutBy->name . '</small>';
+                        $activityText .= '<br><small class="text-blue-600">Processed by: ' . $request->checkedOutBy->name . '</small>';
                     }
                     $returnDate = Carbon::parse($request->requested_until);
                     $isOverdue = $returnDate->isPast();
                     $returnText = $isOverdue ? 'text-red-600' : 'text-gray-600';
-                    $overdueLabel = $isOverdue ? ' (OVERDUE)' : '';
-                    $activityText .= '<br><small class="' . $returnText . '">Due: ' . 
+                    $overdueLabel = $isOverdue ? ' (OVERDUE - Please return immediately)' : '';
+                    $activityText .= '<br><small class="' . $returnText . '">Return due: ' . 
                                    $returnDate->format('M j, Y g:i A') . $overdueLabel . '</small>';
                     $detailedStatus = 'checked_out';
                     $statusClass = 'blue';
                 } else {
                     // Equipment is approved but not yet checked out
-                    $activityText = "<strong>Approved Request</strong> for {$request->equipment->category->name} - {$request->equipment->name}";
+                    $activityText = "<strong>Request Approved</strong> for {$request->equipment->category->name} - {$request->equipment->name}";
                     $dateRange = Carbon::parse($request->requested_from)->format('M j') . 
                                ' - ' . Carbon::parse($request->requested_until)->format('M j, Y');
-                    $activityText .= '<br><small class="text-green-600">Duration: ' . $dateRange . '</small>';
+                    $activityText .= '<br><small class="text-green-600">Approved period: ' . $dateRange . '</small>';
                     if ($request->approvedBy) {
                         $activityText .= '<br><small class="text-green-600">Approved by: ' . 
                                        $request->approvedBy->name . ' on ' . 
                                        $request->approved_at->format('M j, Y g:i A') . '</small>';
                     }
-                    $activityText .= '<br><small class="text-blue-600">Ready for pickup</small>';
+                    $activityText .= '<br><small class="text-blue-600">Available for pickup at the laboratory</small>';
                     $statusClass = 'green';
                 }
                 break;
                 
             case EquipmentRequest::STATUS_REJECTED:
-                $activityText = "<strong>Request rejected</strong> for {$request->equipment->category->name} - {$request->equipment->name}";
+                $activityText = "<strong>Request Declined</strong> for {$request->equipment->category->name} - {$request->equipment->name}";
                 $dateRange = Carbon::parse($request->requested_from)->format('M j') . 
                            ' - ' . Carbon::parse($request->requested_until)->format('M j, Y');
-                $activityText .= '<br><small class="text-gray-600">Requested duration: ' . $dateRange . '</small>';
+                $activityText .= '<br><small class="text-gray-600">Requested period: ' . $dateRange . '</small>';
                 if ($request->rejectedBy) {
-                    $activityText .= '<br><small class="text-red-600">Rejected by: ' . 
+                    $activityText .= '<br><small class="text-red-600">Reviewed by: ' . 
                                    $request->rejectedBy->name . ' on ' . 
                                    $request->rejected_at->format('M j, Y g:i A') . '</small>';
                 }
@@ -512,18 +512,18 @@ class UserEquipmentService extends BaseService
                 $activityText = "<strong>Request Cancelled</strong> for {$request->equipment->category->name} - {$request->equipment->name}";
                 $dateRange = Carbon::parse($request->requested_from)->format('M j') . 
                            ' - ' . Carbon::parse($request->requested_until)->format('M j, Y');
-                $activityText .= '<br><small class="text-gray-600">Requested duration: ' . $dateRange . '</small>';
+                $activityText .= '<br><small class="text-gray-600">Originally requested: ' . $dateRange . '</small>';
                 break;
 
             case EquipmentRequest::STATUS_RETURNED:
-                $activityText = "<strong>Equipment Returned</strong> - {$request->equipment->category->name} - {$request->equipment->name}";
+                $activityText = "<strong>Equipment Successfully Returned</strong> - {$request->equipment->category->name} - {$request->equipment->name}";
                 $dateRange = Carbon::parse($request->requested_from)->format('M j') . 
                            ' - ' . Carbon::parse($request->requested_until)->format('M j, Y');
-                $activityText .= '<br><small class="text-gray-600">Requested duration: ' . $dateRange . '</small>';
+                $activityText .= '<br><small class="text-gray-600">Usage period: ' . $dateRange . '</small>';
                 break;
 
             default:
-                $activityText = "Unknown status for {$request->equipment->name}";
+                $activityText = "Status update for {$request->equipment->name}";
                 $statusClass = 'gray';
                 break;
         }
