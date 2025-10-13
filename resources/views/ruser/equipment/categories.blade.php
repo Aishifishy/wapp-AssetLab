@@ -106,7 +106,7 @@
                                                 <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z" />
                                                 </svg>
-                                                No items available
+                                                Currently out of stock
                                             </div>
                                         @endif
                                     </div>
@@ -128,8 +128,8 @@
                     <svg class="mx-auto h-24 w-24 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z" />
                     </svg>
-                    <h3 class="mt-4 text-lg font-medium text-gray-900">No Equipment Available</h3>
-                    <p class="mt-2 text-sm text-gray-500">There are currently no equipment categories with available items for borrowing.</p>
+                    <h3 class="mt-4 text-lg font-medium text-gray-900">No Equipment Available Right Now</h3>
+                    <p class="mt-2 text-sm text-gray-500">We don't have any equipment available for borrowing at the moment. Please check back later! 🔧</p>
                 </div>
             @endif
         </div>

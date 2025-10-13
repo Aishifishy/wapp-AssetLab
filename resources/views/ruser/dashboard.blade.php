@@ -307,7 +307,7 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" 
-                                                onclick="return confirm('Are you sure you want to cancel this equipment request? This action cannot be undone.')"
+                                                onclick="return confirm('Would you like to cancel this equipment request? Don\'t worry - you can always make a new request later! 😊')"
                                                 class="inline-flex items-center px-3 py-1.5 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
                                             <svg class="w-3 h-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -324,11 +324,11 @@
                         <tr>
                             <td colspan="5" class="px-6 py-4 text-center text-gray-500">
                                 @if($activityType == 'laboratory')
-                                    Laboratory booking activities will appear here when you book a laboratory
+                                    Your laboratory bookings will show up here once you reserve a lab! 🏢
                                 @elseif($activityType == 'equipment')
-                                    Equipment borrowing activities will appear here when you borrow equipment
+                                    Your equipment requests will appear here when you borrow something! 🔧
                                 @else
-                                    No recent activities found. Start by borrowing equipment or booking a laboratory.
+                                    No activities yet! Try borrowing some equipment or booking a laboratory to get started! 🚀
                                 @endif
                             </td>
                         </tr>

@@ -12,13 +12,13 @@
                 @if($currentTerm)
                     <p class="text-sm text-gray-600">Current Term: {{ $currentTerm->name }}</p>
                 @else
-                    <p class="text-sm text-red-500">No active academic term set</p>
+                    <p class="text-sm text-red-500">No active academic term available</p>
                 @endif
             </div>
 
             @if(!$currentTerm)
                 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
-                    <p>There is no active academic term. Laboratory reservations are not available at this time.</p>
+                    <p>Laboratory reservations aren't available right now - we're waiting for the academic term to start. Please check back soon! 📚</p>
                 </div>
             @endif
 
@@ -62,7 +62,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                    No laboratories available
+                                    No laboratories are available right now. Please check back later! 🏢
                                 </td>
                             </tr>
                         @endforelse

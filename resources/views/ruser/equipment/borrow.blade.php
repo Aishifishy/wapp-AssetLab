@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!currentEquipmentId) {
                 console.error('Equipment ID is missing from button attributes!');
-                showError('Equipment ID is missing. Please try again.');
+                showError('Something went wrong. Please try selecting the equipment again.');
                 return;
             }
             
@@ -925,12 +925,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!equipmentId || !fromDate || !untilDate) {
             console.error('Missing required fields:', { equipmentId, fromDate, untilDate });
-            showError('Please fill in all required fields.');
+            showError('Please fill in all fields before submitting.');
             return;
         }
         
         if (new Date(fromDate) >= new Date(untilDate)) {
-            showError('End date must be after start date.');
+            showError('Please select an end time that comes after your start time.');
             return;
         }
         
@@ -959,11 +959,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 displayAvailabilityResult(data);
             } else {
-                showError(data.message || 'Failed to check availability.');
+                showError(data.message || 'Unable to check availability right now.');
             }
         } catch (error) {
             console.error('Error checking availability:', error);
-            showError('An error occurred while checking availability. Please try again.');
+            showError('Something went wrong. Please try again in a moment.');
         } finally {
             // Restore button state
             checkBtn.textContent = originalText;
@@ -1179,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!equipmentId) {
             e.preventDefault();
             console.error('Form submission blocked: Equipment ID is missing');
-            showError('Equipment ID is missing. Please close the modal and try selecting the equipment again.');
+            showError('Something went wrong. Please close this form and try again.');
             return false;
         }
         
@@ -1192,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!purpose || !fromDateInput || !fromTimeInput || !untilDateInput || !untilTimeInput || !fromDate || !untilDate) {
             e.preventDefault();
             console.error('Form submission blocked: Missing required fields');
-            showError('Please fill in all required fields including dates and times.');
+            showError('Please complete all fields before submitting your request.');
             return false;
         }
 
@@ -1209,7 +1209,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (timeDifference < -oneMinuteInMs) { // Allow 1 minute tolerance for current time
                 e.preventDefault();
                 console.error('Form submission blocked: From time cannot be in the past');
-                showError('The borrowing start time cannot be in the past. Please select the current time or later.');
+                showError('Please select a start time that is now or in the future.');
                 return false;
             }
         }
@@ -1217,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (new Date(fromDate) >= new Date(untilDate)) {
             e.preventDefault();
             console.error('Form submission blocked: Invalid date range');
-            showError('End date must be after start date.');
+            showError('Please select an end time that comes after your start time.');
             return false;
         }
         
