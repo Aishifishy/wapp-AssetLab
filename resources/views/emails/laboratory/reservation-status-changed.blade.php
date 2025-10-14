@@ -111,10 +111,14 @@
         </div>
 
     @elseif($reservation->status === 'rejected')
-        @if($reservation->admin_notes)
+        @if($reservation->rejection_reason)
         <p><strong>Reason for Rejection:</strong></p>
         <div class="info-card">
-            <p>{{ $reservation->admin_notes }}</p>
+            <p>{{ $reservation->rejection_reason }}</p>
+        </div>
+        @else
+        <div class="alert alert-info">
+            <p>No specific reason was provided for the rejection. Please contact the administrator for more details.</p>
         </div>
         @endif
 

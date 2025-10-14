@@ -102,10 +102,14 @@
         </div>
 
     @elseif($equipmentRequest->status === 'rejected')
-        @if($equipmentRequest->admin_notes)
+        @if($equipmentRequest->rejection_reason)
         <p><strong>Reason for Rejection:</strong></p>
         <div class="info-card">
-            <p>{{ $equipmentRequest->admin_notes }}</p>
+            <p>{{ $equipmentRequest->rejection_reason }}</p>
+        </div>
+        @else
+        <div class="alert alert-info">
+            <p>No specific reason was provided for the rejection. Please contact the administrator for more details.</p>
         </div>
         @endif
 

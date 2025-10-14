@@ -130,6 +130,53 @@
         </div>
     </div>
 
+    <!-- Reservation Section -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Make a Reservation</h2>
+        </div>
+        <div class="p-6">
+            @if(!$currentTerm)
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
+                    <div class="flex">
+                        <i class="fas fa-exclamation-triangle mr-2 mt-0.5"></i>
+                        <p>Reservations are not available without an active academic term.</p>
+                    </div>
+                </div>
+            @else
+                <!-- Reservation Guidelines -->
+                <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                    <h3 class="text-sm font-medium text-blue-800 mb-2">Reservation Guidelines</h3>
+                    <ul class="text-sm text-blue-700 space-y-1">
+                        <li>• Please check the schedule below to avoid conflicts with regular classes & reservations</li>
+                        <li>• Use the Previous/Next buttons to navigate between weeks for advance planning</li>
+                        <li>• Reservations must be made at least 24 hours in advance</li>
+                        <li>• All reservations are subject to approval by laboratory administrators</li>
+                        <li>• Keyboard shortcuts: ← → arrow keys to navigate weeks, Home key to return to current week</li>
+                    </ul>
+                </div>
+
+                <div class="text-center space-y-4">
+                    <a href="{{ route('ruser.laboratory.reservations.create', $laboratory) }}" 
+                       class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-plus mr-2"></i>
+                        Create New Reservation
+                    </a>
+                    
+                    <div class="text-sm text-gray-600">
+                        or
+                    </div>
+                    
+                    <a href="{{ route('ruser.laboratory.reservations.index') }}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-list mr-2"></i>
+                        View My Reservations
+                    </a>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <!-- Schedule Header -->
     <div class="space-y-4">
         <!-- Title and Week Info -->
@@ -574,53 +621,6 @@
                     </tbody>
                 </table>
             </div> <!-- Close calendar-scroll-container -->
-        </div>
-    </div>
-
-    <!-- Reservation Section -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Make a Reservation</h2>
-        </div>
-        <div class="p-6">
-            @if(!$currentTerm)
-                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
-                    <div class="flex">
-                        <i class="fas fa-exclamation-triangle mr-2 mt-0.5"></i>
-                        <p>Reservations are not available without an active academic term.</p>
-                    </div>
-                </div>
-            @else
-                <!-- Reservation Guidelines -->
-                <div class="bg-blue-50 rounded-lg p-4 mb-6">
-                    <h3 class="text-sm font-medium text-blue-800 mb-2">Reservation Guidelines</h3>
-                    <ul class="text-sm text-blue-700 space-y-1">
-                        <li>• Please check the schedule above to avoid conflicts with regular classes</li>
-                        <li>• Use the Previous/Next buttons to navigate between weeks for advance planning</li>
-                        <li>• Reservations must be made at least 24 hours in advance</li>
-                        <li>• All reservations are subject to approval by laboratory administrators</li>
-                        <li>• Keyboard shortcuts: ← → arrow keys to navigate weeks, Home key to return to current week</li>
-                    </ul>
-                </div>
-
-                <div class="text-center space-y-4">
-                    <a href="{{ route('ruser.laboratory.reservations.create', $laboratory) }}" 
-                       class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <i class="fas fa-plus mr-2"></i>
-                        Create New Reservation
-                    </a>
-                    
-                    <div class="text-sm text-gray-600">
-                        or
-                    </div>
-                    
-                    <a href="{{ route('ruser.laboratory.reservations.index') }}" 
-                       class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <i class="fas fa-list mr-2"></i>
-                        View My Reservations
-                    </a>
-                </div>
-            @endif
         </div>
     </div>
 </div>
