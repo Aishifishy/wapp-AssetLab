@@ -15,6 +15,7 @@ import './reservation-form';
 import './quick-reserve';
 import './calendar';
 import './simple-realtime';
+import './common-utilities';
 
 import Alpine from 'alpinejs';
 

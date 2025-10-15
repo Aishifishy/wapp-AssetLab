@@ -15,6 +15,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Scripts -->
+        <!-- Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <!-- Alpine.js -->
@@ -392,9 +393,6 @@
     </script>
     
 
-    
-    <!-- Real-time Updates Script -->
-    @vite(['resources/js/simple-realtime.js'])
     
     <!-- Page Scripts -->
     @stack('scripts')

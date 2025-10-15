@@ -7,14 +7,17 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/common-utilities.js'
+                // Remove simple-realtime.js from here since it's imported in app.js
+                // All other JS files are also imported in app.js and don't need separate entries
             ],
             refresh: true,
         }),
     ],
-    server: {
-        host: '0.0.0.0',
-        port: 5173,
-        hmr: { host: 'localhost' }
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,
+            }
+        }
     }
 });
